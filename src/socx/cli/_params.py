@@ -1,3 +1,4 @@
+import logging
 from functools import partial
 
 import rich_click as click
@@ -8,8 +9,8 @@ socx = partial(
     click.command,
     "socx",
     cls=_cli.CmdLine,
-    invoke_without_command=True,
     no_args_is_help=True,
+    invoke_without_command=True,
 )
 
 help_ = partial(click.help_option, "--help", "-h")
@@ -18,14 +19,32 @@ debug = partial(
     click.option,
     "--debug",
     "-d",
+    envvar="SOCX_DEBUG",
     type=click.BOOL,
     default=False,
     is_flag=True,
-    envvar="SOCX_DEBUG",
     show_envvar=True,
     show_default=True,
     expose_value=True,
     help="Run in debug mode.",
+)
+
+verbosity = partial(
+    click.option,
+    "--verbosity",
+    "-v",
+    nargs=1,
+    envvar="SOCX_VERBOSITY",
+    default="INFO",
+    type=click.Choice(
+        logging.getLevelNamesMapping().keys(),
+        case_sensitive=False,
+    ),
+    show_envvar=True,
+    show_choices=True,
+    show_default=True,
+    expose_value=True,
+    help="set the logging verbosity to the specified level.",
 )
 
 configure = partial(
@@ -34,32 +53,8 @@ configure = partial(
     type=click.BOOL,
     default=True,
     is_flag=True,
-    envvar="SOCX_VERBOSITY",
     show_envvar=True,
     show_default=True,
     expose_value=True,
     help="Load/Don't-Load local user configuration overrides.",
-)
-
-verbosity = partial(
-    click.option,
-    "-v",
-    "--verbosity",
-    nargs=1,
-    default="INFO",
-    type=click.Choice(
-        (
-            "CRITICAL",
-            "FATAL",
-            "ERROR",
-            "WARNING",
-            "WARN",
-            "INFO",
-            "DEBUG",
-        ),
-        case_sensitive=False,
-    ),
-    help="Run with custom logging verbosity level.",
-    show_choices=True,
-    show_default=True,
 )

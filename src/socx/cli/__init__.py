@@ -105,7 +105,7 @@ rich_cfg.USE_RICH_MARKUP: bool = True
 rich_cfg.USE_MARKDOWN_EMOJI: bool = True
 """Parse emoji codes in markdown :smile:"""
 
-rich_cfg.OPTION_ENVVAR_FIRST: bool = True
+rich_cfg.OPTION_ENVVAR_FIRST: bool = False
 """Show env vars before option help text instead of avert"""
 
 rich_cfg.APPEND_METAVARS_HELP: bool = False
@@ -127,7 +127,7 @@ rich_cfg.GROUP_ARGUMENTS_OPTIONS: bool = False
 rich_cfg.HEADER_TEXT: str = ""
 rich_cfg.EPILOG_TEXT: str = ""
 rich_cfg.FOOTER_TEXT: str = ""
-rich_cfg.ABORTED_TEXT: str = "Aborted"
+rich_cfg.ABORTED_TEXT: str = ""
 
 rich_cfg.ERRORS_PANEL_TITLE: str = "Error"
 rich_cfg.OPTIONS_PANEL_TITLE: str = "Options"
