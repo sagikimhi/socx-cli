@@ -7,7 +7,7 @@ from .log import get_logger
 from ._config import USER_LOG_DIR
 
 
-__all__ = ("log_it", )
+__all__ = ("log_it",)
 
 
 _loggers = {}
@@ -24,14 +24,11 @@ def log_it(f):
     def wrapper(*args, **kwargs):
         @cache
         def logger(f):
-            mod = getmodule(f).__name__
-            return get_logger(mod, USER_LOG_DIR/mod)
+            mod = getmodule(f)
+            return get_logger(mod.__name__, USER_LOG_DIR / mod.__name__)
         sig = f"{f.__name__}{signature(f)}"
         logger(f).debug(f"{sig}: entered.")
         rv = f(*args, **kwargs)
         logger(f).debug(f"{sig}: returned {rv=}.")
         return rv
-
     return wrapper
-
-

@@ -3,7 +3,12 @@ from functools import partial
 import rich_click as click
 
 
-input_opt: click.Option = partial(
+rgr = partial(
+    click.group,
+    "rgr",
+)
+
+input: click.Option = partial(  # noqa: A001
     click.option,
     "-i",
     "--input",
@@ -13,7 +18,7 @@ input_opt: click.Option = partial(
     help="Input file of failed commands to rerun",
 )
 
-output_opt: click.Option = partial(
+output: click.Option = partial(
     click.option,
     "-o",
     "--output",

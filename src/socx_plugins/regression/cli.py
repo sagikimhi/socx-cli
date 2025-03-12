@@ -1,7 +1,6 @@
 import rich_click as click
 
-from socx_plugins.regression._opts import input_opt
-from socx_plugins.regression._opts import output_opt
+from socx_plugins.regression import _params
 
 
 @click.group("rgr")
@@ -10,37 +9,33 @@ def cli():
 
 
 @cli.command()
-@input_opt()
-@output_opt()
+@_params.input()
+@_params.output()
 def run(input, output):  # noqa: A002
     """Run a regression from a file of 'socrun' commands."""
-    import asyncio
+    import uvloop
     from socx_plugins.regression._cli import _run_from_file
 
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(_run_from_file(input, output))
+    uvloop.run(_run_from_file(input, output))
 
 
 @cli.command()
-@input_opt()
-@output_opt()
+@_params.input()
+@_params.output()
 def rrfh(input, output):  # noqa: A002
     """Command alias for rerun-failure-history."""
-    import asyncio
+    import uvloop
     from socx_plugins.regression._cli import _run_from_file
 
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(_run_from_file(input, output))
+    uvloop.run(_run_from_file(input, output))
 
 
 @cli.command()
-@input_opt()
-@output_opt()
+@_params.input()
+@_params.output()
 def rerun_failure_history(input, output):  # noqa: A002
     """Rerun failed tests from all past regressions."""
-    import asyncio
+    import uvloop
     from socx_plugins.regression._cli import _run_from_file
 
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(_run_from_file(input, output))
-
+    uvloop.run(_run_from_file(input, output))
