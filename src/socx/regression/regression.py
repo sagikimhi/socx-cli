@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import asyncio as aio
-from time import strftime
-from pathlib import Path
 from typing import override
 from threading import RLock
 from dataclasses import dataclass
@@ -10,8 +8,6 @@ from collections import deque
 from collections.abc import Iterator
 from collections.abc import Iterable
 
-from click import open_file
-from rich.panel import Panel
 from rich.progress import Progress
 from rich.progress import TextColumn
 from rich.progress import BarColumn
@@ -28,16 +24,14 @@ from .test import TestStatus
 from .test import TestResult
 from ..log import get_logger
 from ..config import settings
-from ..config import USER_LOG_DIR
-from ..console import console
 from ..visitor import Node
 from ..visitor import Visitor
 
 
-logger = get_logger(__name__, USER_LOG_DIR / f"{__name__}.log")
+logger = get_logger(__name__)
 
 
-__all__ = ("Regression", "RegressionStatus", "RegressionResult")
+__all__ = ("Regression")
 
 
 @dataclass(init=False)
@@ -135,13 +129,17 @@ class Regression(TestBase):
     @override
     async def start(self) -> None:
         """Start the regression."""
-        self._status = TestStatus.Pending
         try:
+            self._status = TestStatus.Pending
+            logger.info("regression starting.")
+            logger.debug(f"{self=}")
+
             async with aio.TaskGroup() as tg:
                 tg.create_task(self._animate_progress())
                 tg.create_task(self._schedule_tests())
                 tg.create_task(self._run_tests())
                 self._status = TestStatus.Running
+
             self._status = TestStatus.Finished
             self._result = (
                 TestResult.Passed
@@ -152,6 +150,9 @@ class Regression(TestBase):
             self._status = TestStatus.Terminated
             self._result = TestResult.Failed
             raise
+        finally:
+            logger.info("regression ending.")
+            logger.debug(f"{self=}")
 
     @override
     def suspend(self) -> None:
