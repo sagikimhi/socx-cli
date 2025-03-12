@@ -29,7 +29,6 @@ dependencies = [
     "platformdirs>=4.3.6",
     "trogon>=0.6.0",
     "textual-serve>=1.1.1",
-    "textual-web>=0.4.2",
     "pyarrow>=19.0.0",
     "psutil>=7.0.0",
     "numpy>=2.2.3",
@@ -39,6 +38,8 @@ dependencies = [
     "build>=1.2.2.post1",
     "importlib>=1.0.4",
     "importlib-metadata>=8.6.1",
+    "httpx>=0.28.1",
+    "uvloop>=0.21.0",
 ]
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
