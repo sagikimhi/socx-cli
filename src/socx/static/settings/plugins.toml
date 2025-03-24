@@ -1,6 +1,6 @@
 [plugins.regression]
 name = "rgr"
-entry = "@entrypoint @format socx_plugins.regression.cli"
+entry = "@entrypoint @format socx_plugins.rgr"
 
 [plugins.config]
 name = "config"
