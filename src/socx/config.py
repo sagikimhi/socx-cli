@@ -27,6 +27,7 @@ from pathlib import Path
 from rich.tree import Tree
 from rich.table import Table
 from dynaconf import Dynaconf
+from dynaconf.base import Settings
 from dynaconf.utils.boxing import DynaBox
 
 from .decorators import log_it
@@ -77,7 +78,7 @@ from ._config import USER_LOG_FILE_PATH as USER_LOG_FILE_PATH
 from ._config import import_entrypoint as import_entrypoint
 
 
-settings: Dynaconf = _get_settings()
+settings: Settings = _get_settings()
 """
 Global settings instance.
 

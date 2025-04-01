@@ -16,6 +16,7 @@ from rich.logging import RichHandler
 from dynaconf import Dynaconf
 from dynaconf import ValidationError
 from dynaconf import add_converter
+from dynaconf.base import Settings
 from dynaconf.validator import empty
 from dynaconf.validator import Validator
 from platformdirs import user_log_dir
@@ -121,7 +122,6 @@ USER_STATE_DIR: Final[Path] = Path(
 USER_CONFIG_DIR: Final[Path] = Path(
     user_config_dir(
         appname=APP_NAME,
-        version=APP_VERSION,
         appauthor=APP_AUTHOR,
         ensure_exists=True,
     )
@@ -151,9 +151,9 @@ _settings_kwargs = dict(
     encoding="utf-8",
     lowercase_read=True,
     envvar_prefix=APP_NAME.upper(),
-    load_dotenv=True,
+    load_dotenv=False,
     environments=False,
-    dotenv_override=False,
+    dotenv_override=True,
     sysenv_fallback=True,
     validate_on_update="all",
     validators=[Validator(r"convert.*", ne=empty)],
@@ -203,7 +203,10 @@ def _init_logger() -> None:
 
 def import_entrypoint(entrypoint: str):
     import importlib
-    return importlib.import_module(entrypoint)
+    parts = entrypoint.partition(":")
+    module, func = parts[0], parts[-1] or "cli"
+    module = importlib.import_module(module)
+    return getattr(module, func)
 
 
 def _init_converters() -> None:
@@ -218,6 +221,7 @@ def _load_settings(
     path: str | Path | None = None,
     preload: Iterable[str] | None = None,
     includes: Iterable[str] | None = None,
+    merge: bool = False,
 ) -> Dynaconf:
     global _default_settings
 
@@ -244,8 +248,9 @@ def _load_settings(
         else _default_settings.as_dict(),
     )
     if isinstance(_default_settings, Dynaconf):
-        _default_settings.update(settings)
+        _default_settings.update(data=settings.as_dict(), merge=merge)
     else:
+        settings.update(data=_default_settings, merge=merge)
         _default_settings = settings
     logger.debug("settings loaded.")
     return _default_settings
@@ -270,7 +275,7 @@ def _validate_settings() -> None:
             logger.exception(accumulative_errors, exc_info=errors)
 
 
-def _get_settings() -> Dynaconf:
+def _get_settings() -> Settings:
     if not _init_done:
         _init_module()
     return _default_settings

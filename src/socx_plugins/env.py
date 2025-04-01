@@ -1,40 +1,40 @@
-import logging
 from pathlib import Path
 
-import git
-from socx import settings
+from socx import logger
 from socx import console
-from socx import get_logger
-import rich_click as click
+from dynaconf.base import Settings
+
+from socx_plugins import _env
 
 
-logger: logging.Logger = get_logger(__name__)
+settings: Settings = _env.get_settings()
 
 
-def _get_repo(path: str | Path) -> git.Repo | None:
-    try:
-        repo = git.Repo(path)
-    except (git.NoSuchPathError, git.InvalidGitRepositoryError):
-        return None
-    else:
-        return repo
-
-
-@click.command("env")
-@click.pass_context
-def cli(ctx: click.Context) -> int:
+@_env.command()
+@_env.output_opt()
+def cli(output: Path | None = None) -> int:
     """Manage different aspects of your working environment & setup."""
     try:
-        warea = Path(settings.warea)
+        root_dir = Path(settings.root_dir)
     except AttributeError:
         logger.exception("Failed to get env status")
-        ctx.exit(1)
-    dirs = [path for path in tuple(warea.glob("*")) if path.is_dir()]
-    dirs = tuple(filter(lambda x: not x.name.startswith('.'), dirs))
-    for path in dirs:
-        if not (repo := _get_repo(path)):
-            continue
-        name = Path(path).name
-        branch = repo.heads[0].name
-        commit = repo.heads[0].commit
-        console.print(f"{name}: {commit} ({branch})")
+        return 1
+
+    style = settings.manifest.style
+    columns = settings.manifest.columns
+    headers = tuple(f"[{style.headers}][{c.style}]{c.name}" for c in columns)
+    table = _env.create_manifest_table(headers)
+    manifest = {}
+
+    for repo in _env.find_repositories(root_dir):
+        name = _env.get_repo_name(repo)
+        row = tuple(f"[{c.style}]{c.func(repo)}[/]" for c in columns)
+        refname = _env.get_ref_name(repo)
+        reftype = _env.get_ref_type(repo)
+        refhash = _env.get_commit_hash(repo)
+        manifest[name] = {c.name: c.func(repo) for c in columns}
+        console.print(f"{name}: {refhash} ({reftype}: {refname})")
+        table.add_row(*row)
+    console.print(table)
+    if output:
+        _env.export_manifest(output, manifest)

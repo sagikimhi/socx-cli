@@ -1,0 +1,27 @@
+git:
+  root_dir: "@path @format {env[warea]}"
+  manifest:
+    style: 
+      values: center
+      headers: underline
+
+    columns:
+      - name: Repo
+        func: "@entrypoint socx_plugins._env:get_repo_name"
+        style: green
+
+      - name: Branch/Tag
+        func: "@entrypoint socx_plugins._env:get_ref_name"
+        style: yellow
+
+      - name: Commit Hash
+        func: "@entrypoint socx_plugins._env:get_commit_hash"
+        style: red
+
+      - name: Commit Message
+        func: "@entrypoint socx_plugins._env:get_commit_message"
+        style: white
+
+      - name: Author Date
+        func: "@entrypoint socx_plugins._env:get_author_date"
+        style: cyan

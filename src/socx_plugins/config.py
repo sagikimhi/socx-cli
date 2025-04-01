@@ -16,21 +16,6 @@ from socx import settings_tree
 
 logger = get_logger(__name__)
 
-get_help = f"""
-    \n\b
-    Print a tree of configurations defined under the field name NAME.
-    \n\b
-    Possible field names are:
-    \b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}
-"""
-
-get_cmd = lambda: partial(  # noqa: E731
-    cli.command,
-    help=get_help,
-    short_help="Print a tree of configurations defined under NAME.",
-    no_args_is_help=True,
-)()
-
 
 @click.group("config")
 def cli():
@@ -68,7 +53,7 @@ def edit():
         show_default=True,
         case_sensitive=False,
     )
-    user_file = USER_CONFIG_DIR/file.name
+    user_file = USER_CONFIG_DIR / file.name
     if (editor := editor.lower()) == "neovim":
         editor = "nvim"
     if text := click.edit(
@@ -83,10 +68,9 @@ def edit():
 
 
 @cli.command()
-def inspect():
-    """Inspect the current settings instance and print the results."""
-    console.clear()
-    rich.inspect(settings, console=console, all=True)
+def tree():
+    """Print a tree of all loaded configurations."""
+    console.print(settings_tree(settings))
 
 
 @cli.command("list")
@@ -95,21 +79,28 @@ def list_():
     console.print(settings.as_dict())
 
 
-@cli.command("tree")
-def tree_():
-    """Print a tree of all loaded configurations."""
-    tree = settings_tree(settings)
-    console.print(tree)
+@cli.command()
+def inspect():
+    """Inspect the current settings instance and print the results."""
+    console.clear()
+    rich.inspect(settings, console=console, all=True)
 
 
-@get_cmd()
+@cli.command()
 @click.argument("name", required=True, type=click.STRING)
 def get(name: str):
-    tree = None
-    with suppress(KeyError, AttributeError):
+    """Print a tree of configurations defined under NAME."""
+    ctx = click.get_current_context()
+    try:
         field = settings[name]
-        tree = settings_tree(field, name)
-        console.print(tree)
-    if not tree:
-        console.print(f"No such field: {name}")
-        console.print(click.get_current_context().get_help())
+        console.print(settings_tree(field, name))
+    except (KeyError, AttributeError):
+        ctx.fail(f"No such field: {name}")
+
+
+get.help = f"""\n\b
+Print a tree of configurations defined under the field name NAME.
+\n\b
+Possible field names are:
+\b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}
+"""

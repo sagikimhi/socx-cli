@@ -144,9 +144,8 @@ rich_cfg.APPEND_METAVARS_HELP_STRING: str = "({})"
 
 rich_cfg.OPTION_GROUPS: dict[str, list[rich_cfg.OptionGroupDict]] = {}
 
-rich_cfg.ERRORS_EPILOGUE = """[bright_black]\
-For more info, usage guides, examples, and API documentation,
-visit:[/] [link]https://pypi.org/project/socx-cli[/]
+rich_cfg.ERRORS_EPILOGUE = """[bright_magenta]\
+For more info, visit:[/] [link]https://bitbucket.org/wiliot/socx-cli[/]
 """.strip()
 
 rich_cfg.ERRORS_SUGGESTION: str | rich.text.Text | None = """\

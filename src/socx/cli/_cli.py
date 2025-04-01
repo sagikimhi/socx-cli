@@ -58,7 +58,7 @@ class CmdLine(click.RichMultiCommand, click.Group):
 
     @log_it
     def _load_plugin(self, plugin: DynaBox) -> click.Command:
-        cmd = plugin.entry.cli
+        cmd = plugin.entry
         self._plugins[plugin.name] = cmd
         self.add_command(cmd, plugin.name)
 
