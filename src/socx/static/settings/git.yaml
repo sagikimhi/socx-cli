@@ -1,5 +1,5 @@
 git:
-  root_dir: "@path @format {env[warea]}"
+  root_dir: "@path @format {env[WAREA]}"
   manifest:
     style: 
       values: center
