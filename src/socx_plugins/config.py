@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from contextlib import suppress
-from functools import partial
 from pathlib import Path
 
 import rich
 import rich_click as click
 from rich.prompt import Prompt
+from dynaconf.utils.inspect import get_debug_info
 
 from socx import console
 from socx import settings
@@ -80,10 +79,25 @@ def list_():
 
 
 @cli.command()
+def debug():
+    """Dump config debug info and modification history."""
+    console.print(get_debug_info(settings))
+
+
+@cli.command()
 def inspect():
     """Inspect the current settings instance and print the results."""
     console.clear()
-    rich.inspect(settings, console=console, all=True)
+    rich.inspect(
+        settings,
+        title="Inspect Settings",
+        console=console,
+        help=True,
+        methods=True,
+        docs=True,
+        private=True,
+        value=True,
+    )
 
 
 @cli.command()
