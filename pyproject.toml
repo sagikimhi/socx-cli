@@ -88,11 +88,11 @@ Issues = "https://github.com/runsonmymachine/socx/issues"
 [tool.uv]
 package = true
 
-[tool.mypy]
-files = [ "src" ]
-python_version = "3.12"
-pretty = true
-strict = true
-color_output = true
-show_error_codes = true
-warn_unreachable = true
+# [tool.mypy]
+# files = [ "src" ]
+# python_version = "3.12"
+# pretty = true
+# strict = true
+# color_output = true
+# show_error_codes = true
+# warn_unreachable = true

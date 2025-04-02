@@ -43,7 +43,7 @@ rich_cfg.STYLE_METAVAR_APPEND: rich.style.StyleType = "yellow"
 rich_cfg.STYLE_METAVAR_SEPARATOR: rich.style.StyleType = ""
 
 rich_cfg.STYLE_OPTION_HELP: rich.style.StyleType = ""
-rich_cfg.STYLE_OPTION_ENVVAR: rich.style.StyleType = "dim yellow"
+rich_cfg.STYLE_OPTION_ENVVAR: rich.style.StyleType = "orange3"
 rich_cfg.STYLE_OPTION_DEFAULT: rich.style.StyleType = "magenta"
 
 rich_cfg.ALIGN_OPTIONS_PANEL: rich.align.AlignMethod = "left"
@@ -135,7 +135,7 @@ rich_cfg.COMMANDS_PANEL_TITLE: str = "Commands"
 rich_cfg.ARGUMENTS_PANEL_TITLE: str = "Arguments"
 
 rich_cfg.RANGE_STRING: str = " [{}]"
-rich_cfg.ENVVAR_STRING: str = "[envvar: {}]"
+rich_cfg.ENVVAR_STRING: str = "[envvar:{}]"
 rich_cfg.DEFAULT_STRING: str = "(default={})"
 rich_cfg.DEPRECATED_STRING: str = "(Deprecated) "
 rich_cfg.REQUIRED_LONG_STRING: str = "[required]"
