@@ -13,8 +13,6 @@ socx = partial(
     invoke_without_command=True,
 )
 
-help_ = partial(click.help_option, "--help", "-h")
-
 debug = partial(
     click.option,
     "--debug",
