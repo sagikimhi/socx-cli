@@ -92,7 +92,6 @@ USER_LOG_DIR: Final[Path] = Path(
 USER_DATA_DIR: Final[Path] = Path(
     user_data_dir(
         appname=APP_NAME,
-        version=APP_VERSION,
         appauthor=APP_AUTHOR,
         ensure_exists=True,
     )
@@ -102,7 +101,6 @@ USER_DATA_DIR: Final[Path] = Path(
 USER_CACHE_DIR: Final[Path] = Path(
     user_cache_dir(
         appname=APP_NAME,
-        version=APP_VERSION,
         appauthor=APP_AUTHOR,
         ensure_exists=True,
     )
@@ -112,7 +110,6 @@ USER_CACHE_DIR: Final[Path] = Path(
 USER_STATE_DIR: Final[Path] = Path(
     user_state_dir(
         appname=APP_NAME,
-        version=APP_VERSION,
         appauthor=APP_AUTHOR,
         ensure_exists=True,
     )
@@ -131,7 +128,6 @@ USER_CONFIG_DIR: Final[Path] = Path(
 USER_RUNTIME_DIR: Final[Path] = Path(
     user_runtime_dir(
         appname=APP_NAME,
-        version=APP_VERSION,
         appauthor=APP_AUTHOR,
         ensure_exists=True,
     )
@@ -172,37 +168,32 @@ def _init_module() -> None:
 
 
 def _init_logger() -> None:
-    global logger
     logger.debug("initializing logger.")
-    add_handler(
-        RichHandler(
-            level=DEFAULT_LEVEL,
-            console=Console(
-                file=open_file(
-                    filename=str(USER_LOG_FILE_PATH),
-                    mode="w",
-                    encoding="utf-8",
-                    lazy=True,
-                ),
-                tab_size=4,
-                width=110,
-            ),
-            markup=False,
-            show_time=True,
-            show_level=True,
-            rich_tracebacks=True,
-            omit_repeated_times=False,
-            tracebacks_word_wrap=False,
-            tracebacks_show_locals=True,
-            log_time_format=DEFAULT_TIME_FORMAT,
-        )
+    _log_path = str(USER_LOG_FILE_PATH)
+    _log_file = open_file(_log_path, mode="w", encoding="utf-8", lazy=True)
+    _log_console = Console(
+        file=_log_file, tab_size=4, record=False, markup=False, highlight=False
     )
-    logger.debug("logging initialized.")
+    _log_handler = RichHandler(
+        level=DEFAULT_LEVEL,
+        console=_log_console,
+        markup=False,
+        show_time=True,
+        show_level=True,
+        rich_tracebacks=True,
+        omit_repeated_times=False,
+        tracebacks_word_wrap=False,
+        tracebacks_show_locals=True,
+        log_time_format=DEFAULT_TIME_FORMAT,
+    )
+    add_handler(_log_handler)
     logger.debug(f"logging at path: {USER_LOG_FILE_PATH}")
+    logger.debug("logging initialized.")
 
 
 def import_entrypoint(entrypoint: str):
     import importlib
+
     parts = entrypoint.partition(":")
     module, func = parts[0], parts[-1] or "cli"
     module = importlib.import_module(module)
