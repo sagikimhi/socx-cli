@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from types import CodeType
 
 import rich_click as click
@@ -7,15 +9,22 @@ from ..config import settings
 from ..decorators import log_it
 
 
-_CONTEXT_SETTINGS = dict(
-    help_option_names=["-h", "--help"],
-)
+def socx():
+    return click.command(
+        "socx",
+        cls=_CmdLine,
+        no_args_is_help=True,
+        invoke_without_command=True,
+    )
 
 
-class CmdLine(click.RichMultiCommand, click.Group):
+_context_settings = dict(help_option_names=["--help", "-h"])
+
+
+class _CmdLine(click.RichMultiCommand, click.Group):
     @log_it
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("context_settings", _CONTEXT_SETTINGS)
+        kwargs.setdefault("context_settings", _context_settings)
         click.RichMultiCommand.__init__(self, *args, **kwargs)
         click.Group.__init__(self, *args, **kwargs)
         self._plugins = {}
@@ -51,16 +60,14 @@ class CmdLine(click.RichMultiCommand, click.Group):
 
     @log_it
     def _load_plugins(self) -> None:
-        plugins = settings.plugins
         for name in settings.plugins:
-            plugin = plugins[name]
-            self._load_plugin(plugin)
+            if (plugin := settings.plugins.get(name)):
+                self._load_plugin(plugin)
 
     @log_it
     def _load_plugin(self, plugin: DynaBox) -> click.Command:
-        cmd = plugin.entry
-        self._plugins[plugin.name] = cmd
-        self.add_command(cmd, plugin.name)
+        self._plugins[plugin.name] = plugin.entry
+        self.add_command(plugin.entry, plugin.name)
 
     @classmethod
     @log_it

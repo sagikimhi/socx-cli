@@ -1,31 +1,25 @@
 from __future__ import annotations
 
-import logging
-
 from trogon import tui
 import rich_click as click
 
-from . import _params
-from ..log import set_level
+from ._cli import socx
+from .options import global_options
 from ..config import settings
-from ..config import reconfigure
-from ..config import USER_CONFIG_DIR
 
 
 @tui()
-@_params.socx()
-@_params.debug()
-@_params.verbosity()
-@_params.configure()
-def cli(**options) -> None:
+@socx()
+@global_options()
+@click.pass_context
+def cli(ctx: click.Context, **options) -> None:
     """System on chip verification and tooling infrastructure."""
-    settings.update({"cli": options})
-    if settings.cli.debug:
-        settings.cli.verbosity = logging.getLevelName(logging.DEBUG)
-    set_level(settings.cli.verbosity)
-    if settings.cli.configure:
-        reconfigure(USER_CONFIG_DIR / "*.toml", [], ["*.toml"])
-    ctx: click.Context = click.get_current_context()
+    settings.update(ctx.params)
+    settings.update({"cli": ctx.params})
+
     if ctx.invoked_subcommand is None:
         formatter = ctx.make_formatter()
         cli.format_help(ctx, formatter)
+    else:
+        cmd, subcmd = ctx.command, ctx.invoked_subcommand
+        ctx.invoke(cmd.get_command(ctx, subcmd))

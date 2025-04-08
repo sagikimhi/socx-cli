@@ -1,6 +1,7 @@
 from inspect import signature
 from functools import wraps
 
+from .log import logger
 
 __all__ = ("log_it",)
 
@@ -14,7 +15,6 @@ def log_it(f):
 
     @wraps(f)
     def wrapper(*args, **kwargs):
-        from .log import logger
         sig = f"{f.__name__}{signature(f)}"
         logger.debug(f"{sig}: entered.")
         rv = f(*args, **kwargs)

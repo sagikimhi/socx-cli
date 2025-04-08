@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import logging
+import enum
 from weakref import proxy
 from typing import Final, NewType
 from pathlib import Path
@@ -42,12 +43,19 @@ __all__ = (
     "DEFAULT_TIME_FORMAT",
 )
 
-Level: NewType = NewType("Level", int | str)
-"""
-Union type definition of `int | str` for annotating level arguments.
-"""
 
-DEFAULT_LEVEL: Final[Level] = os.environ.get("SOCX_VERBOSITY", logging.INFO)
+class Level(enum.IntEnum):
+    NOTSET = 0
+    DEBUG = 10
+    INFO = 20
+    WARN = 30
+    WARNING = 30
+    ERROR = 40
+    FATAL = 50
+    CRITICAL = 50
+
+
+DEFAULT_LEVEL: Final[Level] = os.environ.get("SOCX_VERBOSITY", Level.INFO)
 """
 Default logger level, a.k.a verbosity.
 """
@@ -207,18 +215,16 @@ def critical(msg: str, *args, **kwargs) -> None:
     logger.critical(msg, *args, **kwargs)
 
 
-def get_level(logger: logging.Logger) -> str:
+def get_level(logger_: logging.Logger) -> Level:
     """See documentation of builtin `logging.getLevel` function."""
-    return logger.getLevel()
+    return Level(logger_.getEffectiveLevel())
 
 
 def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
     """See documentation of builtin `logging.setLevel` function."""
     if logger_ is None:
         logger_ = logger
-    for child in logger_.getChildren():
-        child.setLevel(level)
-    logger_.setLevel(level)
+    logger_.setLevel(Level(level))
 
 
 def add_filter(filter: logging.Filter) -> None:  # noqa: A002
