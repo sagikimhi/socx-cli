@@ -1,21 +1,14 @@
 from __future__ import annotations
 
 from types import CodeType
+from collections.abc import Iterable
+from functools import partial
 
 import rich_click as click
 from dynaconf.utils.boxing import DynaBox
 
 from ..config import settings
 from ..decorators import log_it
-
-
-def socx():
-    return click.command(
-        "socx",
-        cls=_CmdLine,
-        no_args_is_help=True,
-        invoke_without_command=True,
-    )
 
 
 _context_settings = dict(help_option_names=["--help", "-h"])
@@ -39,14 +32,12 @@ class _CmdLine(click.RichMultiCommand, click.Group):
 
     @property
     @log_it
-    def plugin_names(self) -> list[str]:
-        return [plugin.name for plugin in self.plugins]
+    def plugin_names(self) -> Iterable[str]:
+        return tuple(self.plugins.keys())
 
     @log_it
-    def list_commands(self, ctx) -> list[str]:
-        rv = list(self.plugins.values())
-        rv += super().list_commands(ctx)
-        rv = list(filter(lambda x: isinstance(x, str), rv))
+    def list_commands(self, ctx) -> Iterable[str]:
+        rv = list(set(super().list_commands(ctx) + list(self.plugin_names)))
         rv.sort(reverse=True)
         return rv
 
@@ -66,8 +57,8 @@ class _CmdLine(click.RichMultiCommand, click.Group):
 
     @log_it
     def _load_plugin(self, plugin: DynaBox) -> click.Command:
-        self._plugins[plugin.name] = plugin.entry
         self.add_command(plugin.entry, plugin.name)
+        self._plugins[plugin.name] = plugin.entry
 
     @classmethod
     @log_it
@@ -109,3 +100,12 @@ class _CmdLine(click.RichMultiCommand, click.Group):
         """
         exc = ValueError(err)
         raise exc
+
+
+socx = partial(
+    click.command,
+    "socx",
+    cls=_CmdLine,
+    no_args_is_help=True,
+    invoke_without_command=True,
+)

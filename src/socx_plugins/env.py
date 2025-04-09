@@ -1,27 +1,28 @@
 from pathlib import Path
 
+import rich_click as click
 from socx import logger
 from socx import console
-from dynaconf.base import Settings
+from socx import settings
+from socx import global_options
 
 from socx_plugins import _env
 
 
-settings: Settings = _env.get_settings()
-
-
 @_env.command()
 @_env.output_opt()
-def cli(output: Path | None = None) -> int:
+@global_options()
+@click.pass_context
+def cli(ctx: click.Context, output: Path) -> int:
     """Manage different aspects of your working environment & setup."""
     try:
-        root_dir = Path(settings.root_dir)
+        root_dir = Path(settings.git.root_dir)
     except AttributeError:
         logger.exception("Failed to get env status")
         return 1
 
-    style = settings.manifest.style
-    columns = settings.manifest.columns
+    style = settings.git.manifest.style
+    columns = settings.git.manifest.columns
     headers = tuple(f"[{style.headers}][{c.style}]{c.name}" for c in columns)
     table = _env.create_manifest_table(headers)
     manifest = {}

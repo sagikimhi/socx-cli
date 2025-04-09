@@ -26,7 +26,7 @@ debug = click.option(
     is_eager=True,
     show_envvar=True,
     show_default=True,
-    expose_value=True,
+    expose_value=False,
     callback=debug_cb,
 )
 
@@ -38,7 +38,7 @@ configure = click.option(
     is_eager=True,
     show_envvar=True,
     show_default=True,
-    expose_value=True,
+    expose_value=False,
     callback=configure_cb,
 )
 
@@ -53,7 +53,7 @@ verbosity = click.option(
     show_envvar=True,
     show_choices=True,
     show_default=True,
-    expose_value=True,
+    expose_value=False,
     type=click.Choice(
         choices=tuple(logging.getLevelNamesMapping()),
         case_sensitive=False,
@@ -62,5 +62,5 @@ verbosity = click.option(
 )
 
 global_options = partial(
-    add_options, verbosity, configure, debug
+    add_options, debug, configure, verbosity
 )

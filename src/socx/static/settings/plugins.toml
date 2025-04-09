@@ -10,11 +10,6 @@ entry = "@entrypoint socx_plugins.env"
 name = "config"
 entry = "@entrypoint socx_plugins.config"
 
-[plugins.ui]
-name = "ui"
-entry = "@entrypoint @format socx_plugins.ui"
-commands = []
-
 [plugins.example]
 name = "example"
 entry = "@entrypoint socx_plugins.example"
@@ -22,3 +17,9 @@ entry = "@entrypoint socx_plugins.example"
 [plugins.convert]
 name = "convert"
 entry = "@entrypoint socx_plugins.convert"
+
+[plugins.ui]
+name = "ui"
+entry = "@entrypoint socx_plugins.ui"
+commands = []
+

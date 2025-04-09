@@ -65,12 +65,6 @@ def get_repo(path: str | Path) -> git.Repo | None:
     return rv
 
 
-def get_settings() -> Settings:
-    from socx import settings
-
-    return settings.git
-
-
 def create_manifest_table(
     headers: Iterable[TextType],
     box: rich.box.Box = rich.box.ROUNDED,

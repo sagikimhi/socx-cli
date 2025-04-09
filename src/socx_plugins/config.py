@@ -7,22 +7,24 @@ import rich_click as click
 from rich.prompt import Prompt
 from dynaconf.utils.inspect import get_debug_info
 
+from socx import logger
 from socx import console
 from socx import settings
-from socx import get_logger
 from socx import settings_tree
-
-
-logger = get_logger(__name__)
+from socx import global_options
 
 
 @click.group("config")
-def cli():
+@global_options()
+@click.pass_context
+def cli(ctx: click.Context):
     """Get, set, list, or modify settings configuration values."""
 
 
 @cli.command()
-def edit():
+@global_options()
+@click.pass_context
+def edit(ctx: click.Context):
     """Edit settings with nano/vim/nvim/gvim."""
     import os
     from socx import APP_SETTINGS_DIR
@@ -67,26 +69,35 @@ def edit():
 
 
 @cli.command()
-def tree():
+@global_options()
+@click.pass_context
+def tree(ctx: click.Context):
     """Print a tree of all loaded configurations."""
     console.print(settings_tree(settings))
 
 
 @cli.command("list")
-def list_():
+@global_options()
+@click.pass_context
+def list_(ctx: click.Context):
     """Print a list of all current configuration values."""
     console.print(settings.as_dict())
 
 
 @cli.command()
-def debug():
+@global_options()
+@click.pass_context
+def debug(ctx: click.Context):
     """Dump config debug info and modification history."""
     console.print(get_debug_info(settings))
 
 
 @cli.command()
-def inspect():
+@global_options()
+@click.pass_context
+def inspect(ctx: click.Context):
     """Inspect the current settings instance and print the results."""
+    settings.update({"cli": ctx.params})
     console.clear()
     rich.inspect(
         settings,
@@ -101,19 +112,19 @@ def inspect():
 
 
 @cli.command()
-@click.argument("name", required=True, type=click.STRING)
-def get(name: str):
+@click.argument("field", required=True, type=click.STRING)
+@global_options()
+@click.pass_context
+def get(ctx: click.Context, field: str):
     """Print a tree of configurations defined under NAME."""
-    ctx = click.get_current_context()
     try:
-        field = settings[name]
-        console.print(settings_tree(field, name))
+        console.print(settings_tree(settings[field], field))
     except (KeyError, AttributeError):
-        ctx.fail(f"No such field: {name}")
+        ctx.fail(f"No such field: {field}")
 
 
 get.help = f"""\n\b
-Print a tree of configurations defined under the field name NAME.
+Print a tree of all configurations defined under NAME.
 \n\b
 Possible field names are:
 \b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}

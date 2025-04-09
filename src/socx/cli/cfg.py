@@ -49,13 +49,11 @@ rich_cfg.STYLE_OPTIONS_PANEL_BORDER: rich.style.StyleType = "bright_black"
 
 rich_cfg.STYLE_OPTIONS_TABLE_BOX: str | rich.box.Box | None = "HORIZONTAL"
 rich_cfg.STYLE_OPTIONS_TABLE_LEADING: int = 1
-rich_cfg.STYLE_OPTIONS_TABLE_PADDING: rich.padding.PaddingDimensions = (0, 1)
-rich_cfg.STYLE_OPTIONS_TABLE_PAD_EDGE: bool = True
-rich_cfg.STYLE_OPTIONS_TABLE_SHOW_LINES: bool = True
+rich_cfg.STYLE_OPTIONS_TABLE_PADDING: rich.padding.PaddingDimensions = (1, 1)
+rich_cfg.STYLE_OPTIONS_TABLE_PAD_EDGE: bool = False
+rich_cfg.STYLE_OPTIONS_TABLE_SHOW_LINES: bool = False
 rich_cfg.STYLE_OPTIONS_TABLE_BORDER_STYLE: rich.style.StyleType | None = None
-rich_cfg.STYLE_OPTIONS_TABLE_COLUMN_WIDTH_RATIO: tuple[int, int] = (
-        1, 3
-)
+rich_cfg.STYLE_OPTIONS_TABLE_COLUMN_WIDTH_RATIO: tuple[int, int] = (1, 1)
 rich_cfg.STYLE_OPTIONS_TABLE_ROW_STYLES: list[rich.style.StyleType] | None = (
     None
 )
@@ -67,15 +65,13 @@ rich_cfg.STYLE_COMMANDS_PANEL_BORDER: rich.style.StyleType = "bright_black"
 rich_cfg.STYLE_COMMANDS_TABLE_BOX: str | rich.box.Box | None = ""
 rich_cfg.STYLE_COMMANDS_TABLE_PADDING: rich.padding.PaddingDimensions = (0, 1)
 rich_cfg.STYLE_COMMANDS_TABLE_LEADING: int = 1
-rich_cfg.STYLE_COMMANDS_TABLE_PAD_EDGE: bool = True
+rich_cfg.STYLE_COMMANDS_TABLE_PAD_EDGE: bool = False
 rich_cfg.STYLE_COMMANDS_TABLE_SHOW_LINES: bool = False
 rich_cfg.STYLE_COMMANDS_TABLE_BORDER_STYLE: rich.style.StyleType | None = None
 rich_cfg.STYLE_COMMANDS_TABLE_ROW_STYLES: list[rich.style.StyleType] | None = (
     None
 )
-rich_cfg.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO: tuple[int, int] = (
-        1, 3
-)
+rich_cfg.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO: tuple[int, int] = (1, 1)
 
 rich_cfg.ALIGN_ERRORS_PANEL: rich.align.AlignMethod = "left"
 rich_cfg.STYLE_ERRORS_PANEL_BOX: str | rich.box.Box | None = "ROUNDED"
@@ -132,12 +128,12 @@ rich_cfg.COMMANDS_PANEL_TITLE: str = "Commands"
 rich_cfg.ARGUMENTS_PANEL_TITLE: str = "Arguments"
 
 rich_cfg.RANGE_STRING: str = " [{}]"
-rich_cfg.ENVVAR_STRING: str = "[envvar:{}]"
-rich_cfg.DEFAULT_STRING: str = "(default={})"
+rich_cfg.ENVVAR_STRING: str = "[envvar: {}]"
+rich_cfg.DEFAULT_STRING: str = "[default: {}]"
 rich_cfg.DEPRECATED_STRING: str = "(Deprecated) "
 rich_cfg.REQUIRED_LONG_STRING: str = "[required]"
 rich_cfg.REQUIRED_SHORT_STRING: str = ""
-rich_cfg.APPEND_METAVARS_HELP_STRING: str = "({})"
+rich_cfg.APPEND_METAVARS_HELP_STRING: str = "[{}]"
 
 rich_cfg.OPTION_GROUPS: dict[str, list[rich_cfg.OptionGroupDict]] = {}
 
