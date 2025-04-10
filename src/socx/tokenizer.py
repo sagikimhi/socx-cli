@@ -40,7 +40,6 @@ class Tokenizer(abc.ABC):
 
 @dataclass(unsafe_hash=True)
 class LstTokenizer(Tokenizer):
-
     def __init__(self) -> None:
         super().__init__()
 
@@ -54,8 +53,7 @@ class LstTokenizer(Tokenizer):
         matches = []
         flags = re.MULTILINE | re.DOTALL | re.VERBOSE
         template = "|".join(
-            "(?P<%s>%s)" % (token.name, token.expr)
-            for token in self.tokens
+            "(?P<%s>%s)" % (token.name, token.expr) for token in self.tokens
         )
         pattern = re.compile(template, flags)
         for line in text.splitlines():

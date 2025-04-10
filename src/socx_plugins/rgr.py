@@ -47,6 +47,7 @@ def rrfh(input, output):  # noqa: A002
     """Command alias for rerun-failure-history."""
     import uvloop
     from socx_plugins._rgr import _run_from_file
+
     uvloop.run(_run_from_file(input, output))
 
 
@@ -57,4 +58,5 @@ def rerun_failure_history(input, output):  # noqa: A002
     """Rerun failed tests from all past regressions."""
     import uvloop
     from socx_plugins._rgr import _run_from_file
+
     uvloop.run(_run_from_file(input, output))

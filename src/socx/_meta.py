@@ -44,6 +44,3 @@ class _UIDMeta(type):
             rv = cls.__uid_map[name]
             cls.__uid_map[name] += 1
         return rv
-
-
-

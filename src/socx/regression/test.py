@@ -275,7 +275,7 @@ class Test(TestBase, UIDMixin):
     @property
     def stdin(self) -> TextIO | None:
         """The standard input of the test's process or None if not running."""
-        return None # not currently needed, can be overriden by subclass
+        return None  # not currently needed, can be overriden by subclass
 
     @property
     def stdout(self) -> TextIO | None:

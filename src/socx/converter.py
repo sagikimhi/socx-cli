@@ -58,7 +58,7 @@ class LstConverter(Converter):
 
     def convert(self) -> None:
         inputs = self.reader.read()
-        outputs = {path: "" for path in inputs}
+        outputs = dict.fromkeys(inputs, "")
         self.parser.parse()
         for path, input_text in inputs.items():
             matches = self.tokenizer.tokenize(input_text)

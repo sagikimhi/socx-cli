@@ -31,7 +31,7 @@ from ..visitor import Visitor
 logger = get_logger(__name__)
 
 
-__all__ = ("Regression")
+__all__ = "Regression"
 
 
 @dataclass(init=False)

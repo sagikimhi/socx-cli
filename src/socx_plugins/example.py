@@ -1,7 +1,6 @@
 import rich
 import rich_click as click
 from socx import console
-from socx import settings
 from socx import global_options
 
 HELP_TEXT = """

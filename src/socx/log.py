@@ -3,10 +3,8 @@ from __future__ import annotations
 import os
 import logging
 import enum
-from weakref import proxy
-from typing import Final, NewType
+from typing import Final
 from pathlib import Path
-from functools import wraps
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -129,6 +127,7 @@ def _get_file_handler(path: str | Path) -> logging.Handler:
         log_time_format=DEFAULT_TIME_FORMAT,
     )
 
+
 def _get_logger(*args, **kwargs) -> logging.Logger:
     kwargs.setdefault("level", DEFAULT_LEVEL)
     kwargs.setdefault("format", DEFAULT_FORMAT)
@@ -150,7 +149,7 @@ or extensive than a basic write to console functionality.
 """
 
 
-def get_logger(name: str, filename: str | None = None)-> logging.Logger:
+def get_logger(name: str, filename: str | None = None) -> logging.Logger:
     """
     Get a pretty printing log handler.
 
@@ -267,5 +266,3 @@ def is_enabled_for(level: Level) -> bool:
     if isinstance(level, str):
         level = logging.getLevelName(level)
     return logger.isEnabledFor(level)
-
-

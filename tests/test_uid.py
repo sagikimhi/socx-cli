@@ -20,5 +20,6 @@ def test():
     inst_ = None
     console.print(UIDTest.dref(0))
 
+
 if __name__ == "__main__":
     test()

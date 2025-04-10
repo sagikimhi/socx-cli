@@ -20,4 +20,5 @@ def log_it(f):
         rv = f(*args, **kwargs)
         logger.debug(f"{sig}: returned {rv=}.")
         return rv
+
     return wrapper

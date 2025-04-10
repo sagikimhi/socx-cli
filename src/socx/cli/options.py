@@ -16,6 +16,7 @@ def add_options(*options):
         for option in reversed(options):
             func = option(func)
         return func
+
     return _add_options
 
 
@@ -25,7 +26,8 @@ def global_options():
 
 version = partial(
     click.option,
-    "--version", "-V",
+    "--version",
+    "-V",
     help="Print version and exit.",
     is_flag=True,
     is_eager=False,
@@ -38,7 +40,8 @@ version = partial(
 
 debug = click.option(
     "--debug",
-    "-d", "debug",
+    "-d",
+    "debug",
     help="Enable debug mode and logging.",
     envvar="SOCX_DEBUG",
     default=False,
@@ -53,7 +56,8 @@ debug = click.option(
 
 verbosity = click.option(
     "--verbosity",
-    "-v", "verbosity",
+    "-v",
+    "verbosity",
     nargs=1,
     help="set the logging verbosity to the specified level.",
     envvar="SOCX_VERBOSITY",
@@ -71,7 +75,8 @@ verbosity = click.option(
 )
 
 configure = click.option(
-    "--config/--no-config", "configure",
+    "--config/--no-config",
+    "configure",
     help="specifies whether or not user configurations should be loaded.",
     default=True,
     is_flag=True,

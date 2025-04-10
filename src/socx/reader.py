@@ -44,4 +44,3 @@ class FileReader(Reader):
         return PathValidator._extract_includes(
             src=self.source, includes=self.includes, excludes=self.excludes
         )
-

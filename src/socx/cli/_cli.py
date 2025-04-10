@@ -52,7 +52,7 @@ class _CmdLine(click.RichMultiCommand, click.Group):
     @log_it
     def _load_plugins(self) -> None:
         for name in settings.plugins:
-            if (plugin := settings.plugins.get(name)):
+            if plugin := settings.plugins.get(name):
                 self._load_plugin(plugin)
 
     @log_it

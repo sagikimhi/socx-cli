@@ -6,7 +6,6 @@ import git
 import rich
 import socx
 import rich_click
-from dynaconf.base import Settings
 
 
 __all__ = (

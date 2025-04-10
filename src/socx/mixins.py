@@ -77,7 +77,7 @@ class PtrMixin(UIDMixin):
     >>> ...
     >>> secret_value = input("Place your secret")
     >>> print("your secret key is: {}".format(place_secret(secret_value)))
-    >>> ... # Some time later
+    >>> ...  # Some time later
     >>> secret_key = input("Enter the secret key: ")
     >>> secret_value = input("Enter the secret value: ")
     >>> if Example.dref(secret_key).secret == secret_value:

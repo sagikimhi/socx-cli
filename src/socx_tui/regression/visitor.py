@@ -37,6 +37,6 @@ class TableVisitor(Visitor):
         values = [mapping[column.name] for column in columns]
         for i in range(len(values)):
             value = values[i]
-            if isinstance(value, dict) and 'line' in value:
-                values[i] = value['line']
+            if isinstance(value, dict) and "line" in value:
+                values[i] = value["line"]
         self._table.add_row(*values)

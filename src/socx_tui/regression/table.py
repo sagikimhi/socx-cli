@@ -5,6 +5,7 @@ from socx import Regression as Regression
 from socx import settings as settings
 from textual.widgets import DataTable
 
+
 class Table(DataTable):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

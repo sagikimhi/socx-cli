@@ -21,6 +21,7 @@ def version_cb(ctx: Context, param: Parameter, value: None) -> None:
     import subprocess
     from ..console import console
     from ..config import settings
+
     args = f"/usr/bin/env python3 -m pip show {settings.PACKAGE_NAME}".split()
     proc = subprocess.run(args, capture_output=True)
     err = proc.stderr.decode("utf-8")

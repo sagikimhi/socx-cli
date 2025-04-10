@@ -36,7 +36,7 @@ class FileWriter[T](Writer):
 
     @override
     def write(self, data: str, filename: str) -> None:
-        target = Path(self.target)/filename
+        target = Path(self.target) / filename
         if target.exists():
             target.replace(target.with_suffix(".backup"))
         target.write_text(data)
