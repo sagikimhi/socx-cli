@@ -15,6 +15,22 @@ def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 
 
 @log_it
+def version_cb(ctx: Context, param: Parameter, value: None) -> None:
+    if not value:
+        return
+    import subprocess
+    from ..console import console
+    from ..config import settings
+    args = f"/usr/bin/env python3 -m pip show {settings.PACKAGE_NAME}".split()
+    proc = subprocess.run(args, capture_output=True)
+    err = proc.stderr.decode("utf-8")
+    console.print(proc.stdout.decode("utf-8"))
+    if err:
+        raise RuntimeError(err)
+    ctx.exit(int(bool(err)))
+
+
+@log_it
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     if value and param.name not in config.settings:
         config.reconfigure(config.USER_CONFIG_DIR)
