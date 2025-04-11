@@ -1,0 +1,6 @@
+dynaconf_include:
+  - git.yaml
+  - plugins.yaml
+  - filetypes.toml
+  - converter.toml
+  - regression.toml

@@ -1,5 +1,8 @@
 git:
   manifest:
+    style:
+      headers: underline
+
     columns:
       - name: Repo
         func: "@entrypoint socx_plugins.git.utils:get_repo_name"
@@ -20,6 +23,3 @@ git:
       - name: Author Date
         func: "@entrypoint socx_plugins.git.utils:get_author_date"
         style: cyan
-    style:
-      headers: underline
-

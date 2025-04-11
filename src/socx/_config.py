@@ -66,7 +66,7 @@ APP_SETTINGS_DIR: Path = Path(PACKAGE_PATH) / "static" / "settings"
 APP_USER_SETTINGS_DIR: Path = Path(PACKAGE_PATH) / "templates" / "settings"
 """Application builtin user_settings directory path."""
 
-APP_SETTINGS_FILE_NAME: Path = "settings.toml"
+APP_SETTINGS_FILE_NAME: Path = "settings.yaml"
 """File name of application's main settings file."""
 
 APP_SETTINGS_FILE_PATH: Path = (

@@ -1,0 +1,24 @@
+plugins:
+  ui:
+    name: "ui"
+    entry: "@entrypoint socx_plugins.ui"
+
+  git:
+    name: "git"
+    entry: "@entrypoint socx_plugins.git.cli"
+
+  rgr:
+    name: rgr
+    entry: "@entrypoint socx_plugins.rgr"
+
+  config:
+    name: "config"
+    entry: "@entrypoint socx_plugins.config"
+
+  convert:
+    name: "convert"
+    entry: "@entrypoint socx_plugins.convert"
+
+  example:
+    name: "example"
+    entry: "@entrypoint socx_plugins.example"
