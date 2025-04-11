@@ -6,9 +6,10 @@ import enum
 from typing import Final
 from pathlib import Path
 
+from platformdirs import user_log_path
+from click import open_file
 from rich.console import Console
 from rich.logging import RichHandler
-from click import open_file
 
 
 __all__ = (
@@ -53,79 +54,82 @@ class Level(enum.IntEnum):
     CRITICAL = 50
 
 
-DEFAULT_LEVEL: Final[Level] = os.environ.get("SOCX_VERBOSITY", Level.INFO)
-"""
-Default logger level, a.k.a verbosity.
-"""
-
-DEFAULT_FORMAT: Final[str] = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")
-"""
-Default logger message format.
-"""
-
-DEFAULT_TIME_FORMAT: Final[str] = os.environ.get("SOCX_TIME_FORMAT", "[%X]")
-"""
-Default logger date format logs.
-"""
-
-DEFAULT_CHILD_FORMAT: Final[str] = os.environ.get(
-    "SOCX_LOG_FORMAT",
-    "%(asctime)s %(levelname)5s - %(filename)5s:%(lineno)-4d - %(message)s",
-)
-"""
-Default logger message format.
-"""
-
-DEFAULT_CHILD_FORMATTER: Final[str] = logging.Formatter(
-    DEFAULT_FORMAT, DEFAULT_TIME_FORMAT
-)
-"""
-Default logger message format.
-"""
-
-DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
-    RichHandler(
-        level=DEFAULT_LEVEL,
-        console=Console(tab_size=4, markup=True, force_terminal=True),
-        show_time=True,
-        show_level=True,
-        rich_tracebacks=True,
-        omit_repeated_times=False,
-        tracebacks_word_wrap=False,
-        tracebacks_show_locals=True,
-        log_time_format=DEFAULT_TIME_FORMAT,
-    ),
-]
-"""
-Default logging handlers of this module's default `logger`.
-"""
-
-
-def _get_file_handler(path: str | Path) -> logging.Handler:
+def _get_console_handler(level: Level = Level.NOTSET) -> logging.Handler:
+    console = Console(tab_size=4, markup=True, force_terminal=True)
     return RichHandler(
-        level=DEFAULT_LEVEL,
-        console=Console(
-            file=open_file(
-                filename=str(path),
-                mode="w",
-                encoding="utf-8",
-                lazy=True,
-            ),
-            tab_size=4,
-            width=110,
-        ),
-        markup=False,
+        level=level,
+        console=console,
         show_time=True,
         show_level=True,
         rich_tracebacks=True,
-        locals_max_string=None,
-        locals_max_length=None,
-        tracebacks_theme="monokai",
         omit_repeated_times=False,
         tracebacks_word_wrap=False,
         tracebacks_show_locals=True,
         log_time_format=DEFAULT_TIME_FORMAT,
     )
+
+
+def _get_file_handler(
+    path: str | Path, level: Level = Level.NOTSET
+) -> logging.Handler:
+    file = open_file(str(path), mode="w", encoding="utf-8", lazy=True)
+    console = Console(file=file, markup=False, highlight=False, no_color=True)
+    return RichHandler(
+        level=level,
+        console=console,
+        show_time=True,
+        show_level=True,
+        rich_tracebacks=True,
+        locals_max_string=None,
+        locals_max_length=None,
+        tracebacks_theme="nord-darker",
+        omit_repeated_times=False,
+        tracebacks_word_wrap=False,
+        tracebacks_show_locals=True,
+        log_time_format=DEFAULT_TIME_FORMAT,
+    )
+
+
+DEFAULT_ENCODING: Final[str] = "utf-8"
+"""Default text encoding format."""
+
+DEFAULT_LEVEL: Final[Level] = os.environ.get("SOCX_VERBOSITY", Level.INFO)
+"""Default logger level, a.k.a verbosity."""
+
+DEFAULT_FORMAT: Final[str] = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")
+""" Default logger message format. """
+
+DEFAULT_TIME_FORMAT: Final[str] = os.environ.get("SOCX_TIME_FORMAT", "[%X]")
+""" Default logger date format logs. """
+
+DEFAULT_CHILD_FORMAT: Final[str] = os.environ.get(
+    "SOCX_LOG_FORMAT",
+    "%(asctime)s %(levelname)5s - %(filename)5s:%(lineno)-4d - %(message)s",
+)
+""" Default logger message format. """
+
+DEFAULT_CHILD_FORMATTER: Final[str] = logging.Formatter(
+    DEFAULT_FORMAT, DEFAULT_TIME_FORMAT
+)
+""" Default logger message format. """
+
+DEFAULT_LOG_DIRECTORY: Final[Path] = os.environ.get(
+    "SOCX_LOG_DIR",
+    user_log_path(appname=__package__.partition(".")[0], ensure_exists=True),
+)
+"""Default application log directory."""
+
+DEFAULT_LOG_FILE: Final[Path] = os.environ.get(
+    "SOCX_LOG_FILE",
+    DEFAULT_LOG_DIRECTORY / f"{__package__.partition('.')[0]}.log",
+)
+"""Default application log file."""
+
+DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
+    _get_console_handler(DEFAULT_LEVEL),
+    _get_file_handler(DEFAULT_LOG_FILE, Level.DEBUG),
+]
+""" Default logging handlers of this module's default `logger`. """
 
 
 def _get_logger(*args, **kwargs) -> logging.Logger:
@@ -223,7 +227,9 @@ def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
     """See documentation of builtin `logging.setLevel` function."""
     if logger_ is None:
         logger_ = logger
-    logger_.setLevel(Level(level))
+    for handler in logger.handlers:
+        handler.setLevel(Level(level).name)
+    logger_.setLevel(Level(level).name)
 
 
 def add_filter(filter: logging.Filter) -> None:  # noqa: A002
