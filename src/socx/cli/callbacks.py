@@ -8,6 +8,7 @@ from .. import config
 
 @log_it()
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
+    value = config.settings.get("debug", default=False) or value
     if value:
         log.set_level(log.Level.DEBUG, log.logger)
     config.settings.update({param.name: value})
@@ -41,12 +42,10 @@ def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 
 @log_it()
 def verbosity_cb(ctx: Context, param: Parameter, value: str) -> str:
-    if config.settings.get("debug") or ctx.params.get("debug"):
-        rv = log.Level.DEBUG
-    else:
+    if not config.settings.debug:
         new, curr = log.Level[value], log.get_level(log.logger)
         if new and curr != log.Level.DEBUG:
             log.set_level(new, log.logger)
-        rv = log.get_level(log.logger)
+    rv = log.get_level(log.logger)
     config.settings.update({param.name: rv.name})
     return rv.name
