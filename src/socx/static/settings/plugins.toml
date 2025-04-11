@@ -2,9 +2,9 @@
 name = "rgr"
 entry = "@entrypoint socx_plugins.rgr"
 
-[plugins.env]
-name = "env"
-entry = "@entrypoint socx_plugins.env"
+[plugins.git]
+name = "git"
+entry = "@entrypoint socx_plugins.git.cli"
 
 [plugins.config]
 name = "config"
