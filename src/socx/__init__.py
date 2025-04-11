@@ -32,16 +32,10 @@ __all__ = (
     # CLI
     "cli",
     "rich_cfg",
-    "ColorSystem",
-    "MarkupOption",
-    "debug",
-    "configure",
-    "verbosity",
     "add_options",
     "global_options",
-    "debug_cb",
-    "configure_cb",
-    "verbosity_cb",
+    "ColorSystem",
+    "MarkupOption",
     # Regression
     "Test",
     "TestStatus",
@@ -105,16 +99,10 @@ __all__ = (
 
 from .cli import cli as cli
 from .cli import rich_cfg as rich_cfg
-from .cli import ColorSystem as ColorSystem
-from .cli import MarkupOption as MarkupOption
-from .cli import debug as debug
-from .cli import configure as configure
-from .cli import verbosity as verbosity
 from .cli import add_options as add_options
 from .cli import global_options as global_options
-from .cli import debug_cb as debug_cb
-from .cli import configure_cb as configure_cb
-from .cli import verbosity_cb as verbosity_cb
+from .cli import ColorSystem as ColorSystem
+from .cli import MarkupOption as MarkupOption
 from .log import Level as Level
 from .log import log as log
 from .log import info as info
