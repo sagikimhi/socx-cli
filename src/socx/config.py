@@ -88,7 +88,7 @@ which will attempt to find and read the value of the attribute from any of the
 """
 
 
-@log_it
+@log_it()
 def reconfigure(
     path: Path,
     preload: list[Path | str] | None = None,

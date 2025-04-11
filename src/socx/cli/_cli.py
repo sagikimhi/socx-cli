@@ -15,7 +15,7 @@ _context_settings = dict(help_option_names=["--help", "-h"])
 
 
 class _CmdLine(click.RichMultiCommand, click.Group):
-    @log_it
+    @log_it()
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", _context_settings)
         click.RichMultiCommand.__init__(self, *args, **kwargs)
@@ -23,7 +23,7 @@ class _CmdLine(click.RichMultiCommand, click.Group):
         self._plugins = {}
 
     @property
-    @log_it
+    @log_it()
     def plugins(self):
         """The plugins property."""
         if not self._plugins:
@@ -31,17 +31,17 @@ class _CmdLine(click.RichMultiCommand, click.Group):
         return self._plugins
 
     @property
-    @log_it
+    @log_it()
     def plugin_names(self) -> Iterable[str]:
         return tuple(self.plugins.keys())
 
-    @log_it
+    @log_it()
     def list_commands(self, ctx) -> Iterable[str]:
         rv = list(set(super().list_commands(ctx) + list(self.plugin_names)))
         rv.sort(reverse=True)
         return rv
 
-    @log_it
+    @log_it()
     def get_command(self, ctx: click.Context, name: str) -> CodeType:
         if name in self.plugins:
             rv = self.plugins[name]
@@ -49,19 +49,19 @@ class _CmdLine(click.RichMultiCommand, click.Group):
             rv = super().get_command(ctx, name)
         return rv
 
-    @log_it
+    @log_it()
     def _load_plugins(self) -> None:
         for name in settings.plugins:
             if plugin := settings.plugins.get(name):
                 self._load_plugin(plugin)
 
-    @log_it
+    @log_it()
     def _load_plugin(self, plugin: DynaBox) -> click.Command:
         self.add_command(plugin.entry, plugin.name)
         self._plugins[plugin.name] = plugin.entry
 
     @classmethod
-    @log_it
+    @log_it()
     def _unique(cls, args: str | list | tuple | set) -> list:
         lookup = set()
         args = cls._listify(args)
@@ -71,7 +71,7 @@ class _CmdLine(click.RichMultiCommand, click.Group):
         return args
 
     @classmethod
-    @log_it
+    @log_it()
     def _listify(cls, args: str | list | tuple | set | dict) -> list:
         if isinstance(args, list):
             rv = args
@@ -89,7 +89,7 @@ class _CmdLine(click.RichMultiCommand, click.Group):
         return code
 
     @classmethod
-    @log_it
+    @log_it()
     def _plugin_error(cls, name) -> None:
         err = f"""
         failed to load plugin '{name}'

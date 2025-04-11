@@ -6,7 +6,7 @@ from .. import log
 from .. import config
 
 
-@log_it
+@log_it()
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     if value:
         log.set_level(log.Level.DEBUG, log.logger)
@@ -14,7 +14,7 @@ def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     return value
 
 
-@log_it
+@log_it()
 def version_cb(ctx: Context, param: Parameter, value: None) -> None:
     if not value:
         return
@@ -31,7 +31,7 @@ def version_cb(ctx: Context, param: Parameter, value: None) -> None:
     ctx.exit(int(bool(err)))
 
 
-@log_it
+@log_it()
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     if value and param.name not in config.settings:
         config.reconfigure(config.USER_CONFIG_DIR)
@@ -39,7 +39,7 @@ def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     return value
 
 
-@log_it
+@log_it()
 def verbosity_cb(ctx: Context, param: Parameter, value: str) -> str:
     if config.settings.get("debug") or ctx.params.get("debug"):
         rv = log.Level.DEBUG
