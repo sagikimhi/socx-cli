@@ -3,17 +3,14 @@ from dataclasses import fields
 from dataclasses import asdict
 
 from socx import Test
+from socx import Node
+from socx import Adapter
 from socx import Visitor
 from socx import Regression
-from socx import get_logger
-
-from .table import Table
-
-logger = get_logger(__name__)
 
 
-class TableVisitor(Visitor):
-    def __init__(self, table: Table) -> None:
+class _TableVisitor(Visitor):
+    def __init__(self, table: Node | Adapter) -> None:
         self._table = table
         self._table.accept(self)
 
@@ -40,3 +37,6 @@ class TableVisitor(Visitor):
             if isinstance(value, dict) and "line" in value:
                 values[i] = value["line"]
         self._table.add_row(*values)
+
+
+

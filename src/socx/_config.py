@@ -19,12 +19,12 @@ from dynaconf import add_converter
 from dynaconf.base import Settings
 from dynaconf.validator import empty
 from dynaconf.validator import Validator
-from platformdirs import user_log_dir
-from platformdirs import user_data_dir
-from platformdirs import user_state_dir
-from platformdirs import user_cache_dir
-from platformdirs import user_config_dir
-from platformdirs import user_runtime_dir
+from platformdirs import user_log_path
+from platformdirs import user_data_path
+from platformdirs import user_state_path
+from platformdirs import user_cache_path
+from platformdirs import user_config_path
+from platformdirs import user_runtime_path
 
 from .log import logger
 from .log import add_handler
@@ -42,7 +42,7 @@ __version__ = version(PACKAGE_NAME)
 
 PACKAGE_PATH: Final[Path] = Path(
     sys.modules[__package__.partition(".")[0]].__file__
-).parent
+).parent.resolve().absolute()
 """Absolute path to package."""
 
 PACKAGE_AUTHOR: Final[str] = __author__
@@ -60,78 +60,62 @@ APP_AUTHOR: Final[str] = PACKAGE_AUTHOR
 APP_VERSION: Final[str] = PACKAGE_VERSION
 """Application version."""
 
-APP_SETTINGS_DIR: Path = Path(PACKAGE_PATH) / "static" / "settings"
-"""Application builtin settings directory path."""
+APP_STATIC_DIR: Path = PACKAGE_PATH / "static"
+"""Path to application's static files directory."""
 
-APP_USER_SETTINGS_DIR: Path = Path(PACKAGE_PATH) / "templates" / "settings"
-"""Application builtin user_settings directory path."""
+APP_TEMPLATE_DIR: Path = PACKAGE_PATH / "templates"
+"""Path to application's template files directory."""
+
+APP_SETTINGS_DIR: Path = APP_STATIC_DIR / "settings"
+"""Path to application's settings files directory."""
 
 APP_SETTINGS_FILE_NAME: Path = "settings.yaml"
 """File name of application's main settings file."""
 
-APP_SETTINGS_FILE_PATH: Path = (
-    Path(APP_SETTINGS_DIR) / APP_SETTINGS_FILE_NAME
-).resolve()
+APP_SETTINGS_FILE_PATH: Path = APP_SETTINGS_DIR / APP_SETTINGS_FILE_NAME
 """File path to application's main settings file."""
 
-APP_SETTINGS_FILE_PATH: Path = (
-    Path(APP_SETTINGS_DIR) / APP_SETTINGS_FILE_NAME
-).resolve()
-"""File path to application's main settings file."""
-
-USER_LOG_DIR: Final[Path] = Path(
-    user_log_dir(
-        appname=APP_NAME,
-        version=APP_VERSION,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
+USER_LOG_DIR: Final[Path] = user_log_path(
+    appname=APP_NAME,
+    version=APP_VERSION,
+    appauthor=APP_AUTHOR,
+    ensure_exists=True,
 )
 """Absolute path to platform's native application logs directory."""
 
-USER_DATA_DIR: Final[Path] = Path(
-    user_data_dir(
-        appname=APP_NAME,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
+USER_DATA_DIR: Final[Path] = user_data_path(
+    appname=APP_NAME,
+    appauthor=APP_AUTHOR,
+    ensure_exists=True,
+)
 """Absolute path to platform's native application data directory."""
 
-USER_CACHE_DIR: Final[Path] = Path(
-    user_cache_dir(
-        appname=APP_NAME,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
+USER_CACHE_DIR: Final[Path] = user_cache_path(
+    appname=APP_NAME,
+    appauthor=APP_AUTHOR,
+    ensure_exists=True,
+)
 """Absolute path to platform's native application cache directory."""
 
-USER_STATE_DIR: Final[Path] = Path(
-    user_state_dir(
-        appname=APP_NAME,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
+USER_STATE_DIR: Final[Path] = user_state_path(
+    appname=APP_NAME,
+    appauthor=APP_AUTHOR,
+    ensure_exists=True,
+)
 """Absolute path to platform's native application state directory."""
 
-USER_CONFIG_DIR: Final[Path] = Path(
-    user_config_dir(
-        appname=APP_NAME,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
+USER_CONFIG_DIR: Final[Path] = user_config_path(
+    appname=APP_NAME,
+    appauthor=APP_AUTHOR,
+    ensure_exists=True,
+)
 """Absolute path to platform's native application config directory."""
 
-USER_RUNTIME_DIR: Final[Path] = Path(
-    user_runtime_dir(
-        appname=APP_NAME,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
+USER_RUNTIME_DIR: Final[Path] = user_runtime_path(
+    appname=APP_NAME,
+    appauthor=APP_AUTHOR,
+    ensure_exists=True,
+)
 """Absolute path to platform's native application runtime directory."""
 
 USER_LOG_FILE_PATH: Path = USER_LOG_DIR / "socx.log"

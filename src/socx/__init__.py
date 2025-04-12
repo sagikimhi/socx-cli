@@ -50,7 +50,6 @@ __all__ = (
     "APP_AUTHOR",
     "APP_VERSION",
     "APP_SETTINGS_DIR",
-    "APP_USER_SETTINGS_DIR",
     "APP_SETTINGS_FILE_NAME",
     "APP_SETTINGS_FILE_PATH",
     "USER_LOG_DIR",
@@ -136,7 +135,6 @@ from .config import APP_NAME as APP_NAME
 from .config import APP_AUTHOR as APP_AUTHOR
 from .config import APP_VERSION as APP_VERSION
 from .config import APP_SETTINGS_DIR as APP_SETTINGS_DIR
-from .config import APP_USER_SETTINGS_DIR as APP_USER_SETTINGS_DIR
 from .config import APP_SETTINGS_FILE_NAME as APP_SETTINGS_FILE_NAME
 from .config import APP_SETTINGS_FILE_PATH as APP_SETTINGS_FILE_PATH
 from .config import USER_LOG_DIR as USER_LOG_DIR

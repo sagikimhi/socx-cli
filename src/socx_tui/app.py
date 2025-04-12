@@ -1,43 +1,49 @@
 from __future__ import annotations
 
 from typing import ClassVar
+from functools import partial
+from collections.abc import Mapping
+from collections.abc import Iterable
 
+from socx import log_it
+from socx import logger
 from socx import settings
-from socx import get_logger
-from textual.app import App, ComposeResult
+from textual.app import App
+from textual.app import ComposeResult
+from textual.app import SystemCommand
+from textual.screen import Screen
+from textual.widgets import Header
+from textual.widgets import Footer
 from textual.binding import Binding
-from textual.containers import Vertical
-from textual.widgets import Header, Footer
 
-from .regression import Table
-from .regression import TableVisitor
-
-
-logger = get_logger(__name__)
+from socx_tui.screens import TemplateView
+from socx_tui.screens import RegressionView
 
 
 class SoCX(App):
-    BINDINGS: ClassVar[Binding] = [
-        Binding(
-            key="L",
-            action="load_from_file",
-            description="Load regression from file",
-            show=True,
-        ),
+    BINDINGS: ClassVar[Iterable[Binding]] = [
+        Binding("t", "push_screen('template')", "Template", show=True),
+        Binding("r", "push_screen('regression')", "Regression", show=True)
     ]
 
+    SCREENS: ClassVar[Mapping[str, Screen]] = {
+        "template": TemplateView,
+        "regression": RegressionView,
+    }
+
+    MODES: ClassVar[Mapping[str, str]] = {
+        "default": "template",
+        "regression": RegressionView,
+    }
+
     def compose(self) -> ComposeResult:
-        with Vertical():
-            yield Header()
-            yield Table()
-            yield Footer()
+        yield Header()
+        yield Footer()
 
-    def on_mount(self) -> None:
-        self.load_from_file()
-
-    def load_from_file(self) -> None:
-        cfg = settings.regression.rerun_failure_history.input
-        filepath = cfg.directory / cfg.filename
-        table: Table = self.query_one(Table)
-        table.load_from_file(filepath)
-        TableVisitor(table)
+    def get_system_commands(self, screen: Screen) -> Iterable[SystemCommand]:
+        yield from super().get_system_commands(screen)
+        yield SystemCommand(
+            "Log DOM Tree",
+            "Print the current DOM Tree to dev log",
+            partial(self.log, self.tree)
+        )

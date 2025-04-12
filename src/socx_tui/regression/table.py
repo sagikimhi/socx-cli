@@ -1,12 +1,26 @@
+from __future__ import annotations
+
 from pathlib import Path
 
-from socx import Visitor as Visitor
-from socx import Regression as Regression
-from socx import settings as settings
+from socx import settings
+from socx import Regression
 from textual.widgets import DataTable
 
+from socx_tui.modes.vim import Vim
+from ._visitor import _TableVisitor
 
-class Table(DataTable):
+
+class Visitor(_TableVisitor):
+    """Table visitor."""
+
+    pass
+
+
+class Table(Vim, DataTable, inherit_bindings=True):
+    """Regression table."""
+
+    BINDINGS = DataTable.BINDINGS + Vim.BINDINGS
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._data_model = None
@@ -25,7 +39,7 @@ class Table(DataTable):
         return settings.regression
 
     def accept(self, visitor: Visitor) -> None:
-        if self.model:
+        if self.model is not None:
             self.model.accept(visitor)
 
     def load_from_file(self, file: str | Path) -> None:

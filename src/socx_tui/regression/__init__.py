@@ -1,4 +1,4 @@
-__all__ = ("Table", "TableVisitor")
+__all__ = ("Table", "Visitor")
 
 from .table import Table as Table
-from .visitor import TableVisitor as TableVisitor
+from .table import Visitor as Visitor

@@ -65,7 +65,6 @@ from ._config import APP_NAME as APP_NAME
 from ._config import APP_AUTHOR as APP_AUTHOR
 from ._config import APP_VERSION as APP_VERSION
 from ._config import APP_SETTINGS_DIR as APP_SETTINGS_DIR
-from ._config import APP_USER_SETTINGS_DIR as APP_USER_SETTINGS_DIR
 from ._config import APP_SETTINGS_FILE_NAME as APP_SETTINGS_FILE_NAME
 from ._config import APP_SETTINGS_FILE_PATH as APP_SETTINGS_FILE_PATH
 from ._config import USER_LOG_DIR as USER_LOG_DIR
