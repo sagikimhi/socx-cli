@@ -20,7 +20,7 @@ packages = ["src/socx", "src/socx_plugins", "src/socx_patches", "src/socx_tui"]
 socx='socx.__main__:main'
 socx-ui='socx_tui.__main__:main'
 
-[project.gui_scripts]
+[project.gui-scripts]
 socx-ui='socx_tui.__main__:main'
 
 [project]
@@ -77,10 +77,12 @@ dev = [
 ]
 
 [project.entry-points."uvx.run"]
-socx = "socx.__main__:main"
+socx='socx.__main__:main'
+socx-ui='socx_tui.__main__:main'
 
 [project.entry-points."pipx.run"]
-socx = "socx.__main__:main"
+socx='socx.__main__:main'
+socx-ui='socx_tui.__main__:main'
 
 [project.urls]
 Home = "https://github.com/runsonmymachine/socx"
