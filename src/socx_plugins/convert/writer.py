@@ -1,10 +1,12 @@
 import abc
+import logging
 from typing import override
 from pathlib import Path
 from dataclasses import field
 from dataclasses import dataclass
 
-from .log import logger
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

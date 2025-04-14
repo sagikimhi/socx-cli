@@ -54,18 +54,14 @@ class Level(enum.IntEnum):
     CRITICAL = 50
 
 
-def _get_console_handler(level: Level = Level.NOTSET) -> logging.Handler:
+def _get_console_handler(level: Level = Level.INFO) -> logging.Handler:
+    import rich_click
+    import click
     console = Console(tab_size=4, markup=True, force_terminal=True)
     return RichHandler(
         level=level,
         console=console,
-        show_time=True,
-        show_level=True,
-        rich_tracebacks=True,
-        omit_repeated_times=False,
-        tracebacks_word_wrap=False,
-        tracebacks_show_locals=True,
-        log_time_format=DEFAULT_TIME_FORMAT,
+        tracebacks_suppress=(rich_click, click),
     )
 
 
@@ -73,21 +69,8 @@ def _get_file_handler(
     path: str | Path, level: Level = Level.NOTSET
 ) -> logging.Handler:
     file = open_file(str(path), mode="w", encoding="utf-8", lazy=True)
-    console = Console(file=file, markup=False, highlight=False, no_color=True)
-    return RichHandler(
-        level=level,
-        console=console,
-        show_time=True,
-        show_level=True,
-        rich_tracebacks=True,
-        locals_max_string=None,
-        locals_max_length=None,
-        tracebacks_theme="nord-darker",
-        omit_repeated_times=False,
-        tracebacks_word_wrap=False,
-        tracebacks_show_locals=True,
-        log_time_format=DEFAULT_TIME_FORMAT,
-    )
+    console = Console(file=file, markup=False, tab_size=4)
+    return RichHandler(console=console, level=level)
 
 
 DEFAULT_ENCODING: Final[str] = "utf-8"
@@ -99,7 +82,7 @@ DEFAULT_LEVEL: Final[Level] = os.environ.get("SOCX_VERBOSITY", Level.INFO)
 DEFAULT_FORMAT: Final[str] = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")
 """ Default logger message format. """
 
-DEFAULT_TIME_FORMAT: Final[str] = os.environ.get("SOCX_TIME_FORMAT", "[%X]")
+DEFAULT_TIME_FORMAT: Final[str] = os.environ.get("SOCX_TIME_FORMAT", "[%x %X]")
 """ Default logger date format logs. """
 
 DEFAULT_CHILD_FORMAT: Final[str] = os.environ.get(
@@ -127,18 +110,19 @@ DEFAULT_LOG_FILE: Final[Path] = os.environ.get(
 
 DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
     _get_console_handler(DEFAULT_LEVEL),
-    _get_file_handler(DEFAULT_LOG_FILE, Level.DEBUG),
+    _get_file_handler(DEFAULT_LOG_FILE),
 ]
 """ Default logging handlers of this module's default `logger`. """
 
 
-def _get_logger(*args, **kwargs) -> logging.Logger:
+def _get_logger(**kwargs) -> logging.Logger:
     kwargs.setdefault("level", DEFAULT_LEVEL)
     kwargs.setdefault("format", DEFAULT_FORMAT)
-    kwargs.setdefault("datefmt", DEFAULT_TIME_FORMAT)
     kwargs.setdefault("handlers", DEFAULT_HANDLERS)
-    logging.basicConfig(*args, **kwargs)
-    return logging.getLogger(__package__.partition(".")[0])
+    kwargs.setdefault("encoding", DEFAULT_ENCODING)
+    kwargs.setdefault("datefmt", DEFAULT_TIME_FORMAT)
+    logging.basicConfig(**kwargs)
+    return logging.getLogger()
 
 
 logger = _get_logger()
@@ -151,6 +135,10 @@ Generally, it is recommended to use the `get_logger` method instead of the
 default logger whenever your application requires something a bit more complex
 or extensive than a basic write to console functionality.
 """
+
+
+def configure(cfg: dict, *args, **kwargs) -> None:
+    logging.config.dictConfig(cfg)
 
 
 def get_logger(name: str, filename: str | None = None) -> logging.Logger:
@@ -225,11 +213,7 @@ def get_level(logger_: logging.Logger) -> Level:
 
 def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
     """See documentation of builtin `logging.setLevel` function."""
-    if logger_ is None:
-        logger_ = logger
-    for handler in logger.handlers:
-        handler.setLevel(Level(level).name)
-    logger_.setLevel(Level(level).name)
+    logging.getLogger().setLevel(level)
 
 
 def add_filter(filter: logging.Filter) -> None:  # noqa: A002

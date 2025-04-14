@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import rich
@@ -7,11 +8,13 @@ import rich_click as click
 from rich.prompt import Prompt
 from dynaconf.utils.inspect import get_debug_info
 
-from socx import logger
 from socx import console
 from socx import settings
-from socx import settings_tree
+from socx import TreeFormatter
 from socx import global_options
+
+
+logger = logging.getLogger(__name__)
 
 
 @click.group("config")
@@ -73,7 +76,8 @@ def edit(ctx: click.Context):
 @click.pass_context
 def tree(ctx: click.Context):
     """Print a tree of all loaded configurations."""
-    console.print(settings_tree(settings))
+    formatter = TreeFormatter()
+    console.print(formatter(settings))
 
 
 @cli.command("list")
@@ -117,9 +121,10 @@ def inspect(ctx: click.Context):
 @click.pass_context
 def get(ctx: click.Context, field: str):
     """Print a tree of configurations defined under NAME."""
-    try:
-        console.print(settings_tree(settings[field], field))
-    except (KeyError, AttributeError):
+    formatter = TreeFormatter()
+    if value := settings.get(field):
+        console.print(formatter(value, field))
+    else:
         ctx.fail(f"No such field: {field}")
 
 

@@ -1,6 +1,6 @@
 import rich_click as click
 
-from socx import LstConverter
+from .converter import LstConverter
 from socx import global_options
 
 

@@ -13,15 +13,15 @@ __all__ = (
     "verbosity_cb",
 )
 
-from .cli import cli as cli
-from .cfg import rich_cfg as rich_cfg
-from .cfg import ColorSystem as ColorSystem
-from .cfg import MarkupOption as MarkupOption
+from .callbacks import debug_cb as debug_cb
+from .callbacks import configure_cb as configure_cb
+from .callbacks import verbosity_cb as verbosity_cb
 from .options import debug as debug
 from .options import configure as configure
 from .options import verbosity as verbosity
 from .options import add_options as add_options
 from .options import global_options as global_options
-from .callbacks import debug_cb as debug_cb
-from .callbacks import configure_cb as configure_cb
-from .callbacks import verbosity_cb as verbosity_cb
+from .cfg import rich_cfg as rich_cfg
+from .cfg import ColorSystem as ColorSystem
+from .cfg import MarkupOption as MarkupOption
+from .cli import cli as cli

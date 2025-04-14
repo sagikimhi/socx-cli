@@ -5,21 +5,21 @@ git:
 
     columns:
       - name: Repo
-        func: "@entrypoint socx_plugins.git.utils:get_repo_name"
+        func: "@symbol socx_plugins.git.utils:get_repo_name"
         style: green
 
       - name: Branch/Tag
-        func: "@entrypoint socx_plugins.git.utils:get_ref_name"
+        func: "@symbol socx_plugins.git.utils:get_ref_name"
         style: yellow
 
       - name: Commit Hash
-        func: "@entrypoint socx_plugins.git.utils:get_commit_hash"
+        func: "@symbol socx_plugins.git.utils:get_commit_hash"
         style: red
 
       - name: Commit Message
-        func: "@entrypoint socx_plugins.git.utils:get_commit_message"
+        func: "@symbol socx_plugins.git.utils:get_commit_message"
         style: white
 
       - name: Author Date
-        func: "@entrypoint socx_plugins.git.utils:get_author_date"
+        func: "@symbol socx_plugins.git.utils:get_author_date"
         style: cyan

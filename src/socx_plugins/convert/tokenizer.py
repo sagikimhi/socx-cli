@@ -6,9 +6,9 @@ from typing import Self
 from typing import override
 from dataclasses import dataclass
 
+from socx import settings
 from dynaconf.utils.boxing import DynaBox
 
-from .config import settings
 
 
 class Tokenizer(abc.ABC):
@@ -57,5 +57,6 @@ class LstTokenizer(Tokenizer):
         )
         pattern = re.compile(template, flags)
         for line in text.splitlines():
-            matches.extend(match for match in pattern.finditer(line))
+            matches += list(pattern.finditer(line))
+            # matches.extend(match for match in pattern.finditer(line))
         return tuple(matches)

@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-from trogon import tui
 import rich_click as click
+from trogon import tui
 
 from ._cli import socx
-from .options import version
+from .options import tui
 from .options import global_options
 
 
 @tui()
 @socx()
 @global_options()
-@version()
 @click.pass_context
 def cli(ctx: click.Context) -> None:
     """System on chip verification and tooling infrastructure."""

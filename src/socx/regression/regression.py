@@ -22,13 +22,10 @@ from .test import Test
 from .test import TestBase
 from .test import TestStatus
 from .test import TestResult
-from ..log import get_logger
+from ..io import logger
 from ..config import settings
-from ..visitor import Node
-from ..visitor import Visitor
-
-
-logger = get_logger(__name__)
+from ..patterns.visitor import Node
+from ..patterns.visitor import Visitor
 
 
 __all__ = "Regression"

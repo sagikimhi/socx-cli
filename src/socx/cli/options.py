@@ -4,11 +4,12 @@ import logging
 from functools import partial
 
 import rich_click as click
+from trogon import tui as _tui
 
 from .callbacks import debug_cb
-from .callbacks import version_cb
 from .callbacks import verbosity_cb
 from .callbacks import configure_cb
+from ..config import settings
 
 
 def add_options(*options):
@@ -24,19 +25,12 @@ def global_options():
     return add_options(debug, configure, verbosity)
 
 
-version = partial(
-    click.option,
-    "--version",
-    "-V",
-    help="Print version and exit.",
-    is_flag=True,
-    is_eager=False,
-    default=False,
-    show_default=False,
-    expose_value=False,
-    callback=version_cb,
+tui = partial(
+    _tui,
+    # name=settings.metadata.__appname__,
+    command="cli-ui", 
+    help="Open an interactive command-line TUI (Terminal-User-Interface)."
 )
-
 
 debug = click.option(
     "--debug",

@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from types import CodeType
 from collections.abc import Iterable
-from functools import partial
 
 import rich_click as click
 from dynaconf.utils.boxing import DynaBox
 
+from ..io import log_it
 from ..config import settings
-from ..decorators import log_it
 
 
 _context_settings = dict(help_option_names=["--help", "-h"])
@@ -38,7 +37,7 @@ class _CmdLine(click.RichMultiCommand, click.Group):
     @log_it()
     def list_commands(self, ctx) -> Iterable[str]:
         rv = list(set(super().list_commands(ctx) + list(self.plugin_names)))
-        rv.sort(reverse=True)
+        rv.sort(key=lambda x: sum(len(x) * i + ord(c) for i, c in enumerate(x)))
         return rv
 
     @log_it()
@@ -57,8 +56,8 @@ class _CmdLine(click.RichMultiCommand, click.Group):
 
     @log_it()
     def _load_plugin(self, plugin: DynaBox) -> click.Command:
-        self.add_command(plugin.entry, plugin.name)
-        self._plugins[plugin.name] = plugin.entry
+        self.add_command(plugin.command, plugin.name)
+        self._plugins[plugin.name] = plugin.command
 
     @classmethod
     @log_it()
@@ -102,10 +101,7 @@ class _CmdLine(click.RichMultiCommand, click.Group):
         raise exc
 
 
-socx = partial(
-    click.command,
-    "socx",
-    cls=_CmdLine,
-    no_args_is_help=True,
-    invoke_without_command=True,
-)
+def socx():
+    return click.command(
+        "socx", cls=_CmdLine, no_args_is_help=True, invoke_without_command=True
+    )

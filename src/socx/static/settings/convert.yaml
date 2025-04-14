@@ -5,7 +5,7 @@ convert:
     #
     # Typename of the convert class for performing the conversion.
     #
-    type: "@cls socx.convert:LstParser"
+    type: "@symbol socx_plugins.convert.parser:LstParser"
 
     # Field: source
     #

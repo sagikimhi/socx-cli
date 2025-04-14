@@ -2,8 +2,8 @@ from __future__ import annotations
 from dataclasses import field
 from dataclasses import dataclass
 
-from ._meta import _UIDMeta
-from ._meta import _SingletonMeta
+from .meta import _UIDMeta
+from .meta import _SingletonMeta
 
 
 class SingletonMixin(metaclass=_SingletonMeta):
