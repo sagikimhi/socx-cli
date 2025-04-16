@@ -90,9 +90,9 @@ class Manifest:
             return get_repo_name(repo)
 
         def value(repo: Repo) -> Record:
-            return tuple(column.func(repo) for column in self.columns)
+            return {column.name: column.func(repo) for column in self.columns}
 
-        return {key(repo): value(repo) for repo in self.repos}
+        return {"manifest": [value(repo) for repo in self.repos]}
 
     @socx.log_it()
     def as_references(self) -> Iterable[Text]:
