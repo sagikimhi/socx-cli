@@ -23,3 +23,5 @@ git:
       - name: Author-Date
         func: "@symbol socx_plugins.git.utils:get_author_date"
         style: cyan
+
+    default_format: table

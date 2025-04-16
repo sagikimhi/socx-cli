@@ -4,9 +4,14 @@ import rich_click as click
 
 
 def format_():
+    import socx
+
     """Specify an output format for the printed manifest."""
     format_choices = click.Choice(
         ["ref", "json", "table"], case_sensitive=False
+    )
+    default_format = (
+        socx.settings.get("git.manifest.default_format") or "table"
     )
     return click.option(
         "--format",
@@ -16,7 +21,7 @@ def format_():
         type=format_choices,
         help=format_.__doc__,
         is_flag=False,
-        default="table",
+        default=default_format,
         show_choices=True,
         show_default=True,
         expose_value=True,
