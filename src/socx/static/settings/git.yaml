@@ -4,7 +4,7 @@ git:
       headers: underline
 
     columns:
-      - name: Repo
+      - name: Repository
         func: "@symbol socx_plugins.git.utils:get_repo_name"
         style: green
 
@@ -12,14 +12,14 @@ git:
         func: "@symbol socx_plugins.git.utils:get_ref_name"
         style: yellow
 
-      - name: Commit Hash
+      - name: Commit-Hash
         func: "@symbol socx_plugins.git.utils:get_commit_hash"
         style: red
 
-      - name: Commit Message
+      - name: Commit-Message
         func: "@symbol socx_plugins.git.utils:get_commit_message"
         style: white
 
-      - name: Author Date
+      - name: Author-Date
         func: "@symbol socx_plugins.git.utils:get_author_date"
         style: cyan
