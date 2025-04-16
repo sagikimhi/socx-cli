@@ -6,7 +6,7 @@ import rich_click as click
 def format_():
     """Specify an output format for the printed manifest."""
     format_choices = click.Choice(
-        ["reference", "table", "json"], case_sensitive=False
+        ["ref", "json", "table"], case_sensitive=False
     )
     return click.option(
         "--format",

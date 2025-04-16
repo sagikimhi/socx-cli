@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import logging
 from pathlib import Path
 from dataclasses import dataclass
 from collections.abc import Iterable
@@ -24,6 +27,9 @@ Command: type = rich_click.Command
 Console: type = rich.console.Console
 ConsoleOptions: type = rich.console.ConsoleOptions
 RenderResult: type = rich.console.RenderResult
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(init=False)
@@ -85,7 +91,7 @@ class Manifest:
         def value(repo: Repo) -> Record:
             return tuple(column.func(repo) for column in self.columns)
 
-        yield from {key(repo): value(repo) for repo in self.repos}
+        return {key(repo): value(repo) for repo in self.repos}
 
     @socx.log_it()
     def as_references(self) -> Iterable[Text]:
@@ -98,7 +104,7 @@ class Manifest:
             )
             return f"{repo.git.show(args)} <[green]{name}[/]>"
 
-        yield from (reference(repo) for repo in self.repos)
+        return tuple(reference(repo) for repo in self.repos)
 
     @socx.log_it()
     def as_rich_table(
@@ -133,7 +139,7 @@ class Manifest:
                 data=self.as_json(), indent=4, sort_keys=True
             )
         path.write_text(cap.get(), encoding="utf-8")
-        socx.logger.info(f"Manifest written to: '{path}'.")
+        logger.info(f"Manifest written to: '{path}'.")
 
     @socx.log_it()
     def __rich_console__(

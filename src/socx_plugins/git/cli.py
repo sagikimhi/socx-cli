@@ -23,8 +23,9 @@ def manifest(format_: str, root_path: Path):
     """Output a manifest of all git repositories found under a given path."""
     table = Manifest(root_path)
     match format_:
-        case "reference":
-            console.print(next(table.as_references()))
+        case "ref":
+            for ref in table.as_references():
+                console.print(ref)
         case "json":
             console.print_json(data=table.as_json(), indent=4, sort_keys=True)
         case "table":
