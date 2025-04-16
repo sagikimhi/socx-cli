@@ -12,6 +12,7 @@ import rich_click
 from dynaconf.utils.boxing import DynaBox
 
 from socx_plugins.git.utils import get_repo_name
+from socx_plugins.git.utils import get_commit_hash
 from socx_plugins.git.utils import find_repositories
 
 Box: type = rich.box.Box
@@ -96,11 +97,12 @@ class Manifest:
     @socx.log_it()
     def as_references(self) -> Iterable[Text]:
         def reference(repo):
+            ref = get_commit_hash(repo)
             name = get_repo_name(repo)
             args = (
                 "-s",
                 "--date=short",
-                "--pretty=format:[red]%h[/] (%s, [cyan]%ad[/])",
+                f"--pretty=format:[red]%<( 10 ){ref}[/] (%s, [cyan]%ad[/])",
             )
             return f"{repo.git.show(args)} <[green]{name}[/]>"
 

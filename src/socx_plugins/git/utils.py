@@ -33,7 +33,7 @@ def get_author_date(repo: git.Repo) -> str:
 
 
 def get_commit_hash(repo: git.Repo) -> str:
-    return repo.git.show("-s", "--pretty=%h")
+    return repo.git.rev_parse(repo.git.show("-s", "--pretty=%H"), short=8)
 
 
 def get_commit_message(repo: git.Repo) -> str:
