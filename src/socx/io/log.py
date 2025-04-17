@@ -57,6 +57,7 @@ class Level(enum.IntEnum):
 def _get_console_handler(level: Level = Level.INFO) -> logging.Handler:
     import rich_click
     import click
+
     console = Console(tab_size=4, markup=True, force_terminal=True)
     return RichHandler(
         level=level,

@@ -23,6 +23,7 @@ def log_it(level: Level = Level.DEBUG):
             rv = func(*args, **kwargs)
             logger.log(level, f"[{f.__name__}] {rv=}.")
             return rv
+
         return wrapper
 
     return _log_it

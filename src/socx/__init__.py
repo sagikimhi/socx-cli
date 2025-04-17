@@ -19,7 +19,6 @@ __all__ = (
     "is_enabled_for",
     "remove_handler",
     "get_handler_names",
-
     # CLI
     "ColorSystem",
     "MarkupOption",
@@ -27,7 +26,6 @@ __all__ = (
     "rich_cfg",
     "add_options",
     "global_options",
-
     # Config
     "__author__",
     "__project__",
@@ -58,11 +56,9 @@ __all__ = (
     "ValidationError",
     "validate_all",
     "settings",
-
     # Mixins
     "UIDMixin",
     "PtrMixin",
-
     # Patterns
     "Node",
     "Proxy",
@@ -72,7 +68,6 @@ __all__ = (
     "ByLevelTraversal",
     "TopDownTraversal",
     "BottomUpTraversal",
-
     # Regression
     "Test",
     "Regression",

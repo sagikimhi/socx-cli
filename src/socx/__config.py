@@ -40,9 +40,11 @@ __author__ = "Sagi Kimhi <sagi.kim5@gmail.com>"
 
 __version__ = version(PACKAGE_NAME)
 
-PACKAGE_PATH: Final[Path] = Path(
-    sys.modules[__package__.partition(".")[0]].__file__
-).parent.resolve().absolute()
+PACKAGE_PATH: Final[Path] = (
+    Path(sys.modules[__package__.partition(".")[0]].__file__)
+    .parent.resolve()
+    .absolute()
+)
 """Absolute path to package."""
 
 PACKAGE_AUTHOR: Final[str] = __author__

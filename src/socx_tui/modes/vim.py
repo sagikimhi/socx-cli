@@ -107,7 +107,9 @@ class Vim:
         try:
             self._set_hover_cursor(False)
             cursor_type = self.cursor_type
-            if self.show_cursor and (cursor_type == "cell" or cursor_type == "row"):
+            if self.show_cursor and (
+                cursor_type == "cell" or cursor_type == "row"
+            ):
                 _, column_index = self.cursor_coordinate
                 self.cursor_coordinate = Coordinate(0, column_index)
         except Exception:
@@ -120,9 +122,13 @@ class Vim:
         try:
             self._set_hover_cursor(False)
             cursor_type = self.cursor_type
-            if self.show_cursor and (cursor_type == "cell" or cursor_type == "row"):
+            if self.show_cursor and (
+                cursor_type == "cell" or cursor_type == "row"
+            ):
                 _, column_index = self.cursor_coordinate
-                self.cursor_coordinate = Coordinate(self.row_count - 1, column_index)
+                self.cursor_coordinate = Coordinate(
+                    self.row_count - 1, column_index
+                )
         except Exception:
             with suppress(Exception):
                 self.scroll_y = self.max_scroll_x

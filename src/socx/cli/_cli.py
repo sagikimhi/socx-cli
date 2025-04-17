@@ -37,7 +37,9 @@ class _CmdLine(click.RichMultiCommand, click.Group):
     @log_it()
     def list_commands(self, ctx) -> Iterable[str]:
         rv = list(set(super().list_commands(ctx) + list(self.plugin_names)))
-        rv.sort(key=lambda x: sum(len(x) * i + ord(c) for i, c in enumerate(x)))
+        rv.sort(
+            key=lambda x: sum(len(x) * i + ord(c) for i, c in enumerate(x))
+        )
         return rv
 
     @log_it()

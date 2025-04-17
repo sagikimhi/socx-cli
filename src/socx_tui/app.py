@@ -23,7 +23,7 @@ from socx_tui.screens import RegressionView
 class SoCX(App):
     BINDINGS: ClassVar[Iterable[Binding]] = [
         Binding("t", "push_screen('template')", "Template", show=True),
-        Binding("r", "push_screen('regression')", "Regression", show=True)
+        Binding("r", "push_screen('regression')", "Regression", show=True),
     ]
 
     SCREENS: ClassVar[Mapping[str, Screen]] = {
@@ -45,5 +45,5 @@ class SoCX(App):
         yield SystemCommand(
             "Log DOM Tree",
             "Print the current DOM Tree to dev log",
-            partial(self.log, self.tree)
+            partial(self.log, self.tree),
         )

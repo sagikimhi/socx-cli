@@ -14,9 +14,9 @@ from ..io import log_it
 
 logger = logging.getLogger(__name__)
 
+
 @log_it()
 def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
-
     if path is None:
         path = APP_SETTINGS_FILE
 
@@ -38,6 +38,7 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
         sysenv_fallback=True,
         dotenv_override=False,
     )
+
 
 _settings: Settings | Dynaconf = get_settings()
 

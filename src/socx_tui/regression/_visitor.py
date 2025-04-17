@@ -37,6 +37,3 @@ class _TableVisitor(Visitor):
             if isinstance(value, dict) and "line" in value:
                 values[i] = value["line"]
         self._table.add_row(*values)
-
-
-

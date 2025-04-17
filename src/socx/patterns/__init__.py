@@ -10,7 +10,6 @@ __all__ = (
 )
 
 
-
 from .visitor import Node as Node
 from .visitor import Proxy as Proxy
 from .visitor import Adapter as Adapter

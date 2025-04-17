@@ -28,8 +28,8 @@ def global_options():
 tui = partial(
     _tui,
     # name=settings.metadata.__appname__,
-    command="cli-ui", 
-    help="Open an interactive command-line TUI (Terminal-User-Interface)."
+    command="cli-ui",
+    help="Open an interactive command-line TUI (Terminal-User-Interface).",
 )
 
 debug = click.option(

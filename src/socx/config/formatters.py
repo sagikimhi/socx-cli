@@ -27,7 +27,7 @@ def _to_table(key: str, val: Any) -> Table:
         show_header=True,
         show_footer=False,
         expand=False,
-        box=box.ROUNDED
+        box=box.ROUNDED,
     )
     if isinstance(val, list | tuple | set):
         node.add_column("index")
@@ -81,7 +81,6 @@ def settings_tree(
     return root
 
 
-
 class TreeFormatter(Formatter):
     @override
     def __call__(
@@ -89,5 +88,3 @@ class TreeFormatter(Formatter):
     ) -> str:
         label = label or "Settings"
         return settings_tree(settings, label)
-
-

@@ -10,7 +10,6 @@ from socx import settings
 from dynaconf.utils.boxing import DynaBox
 
 
-
 class Tokenizer(abc.ABC):
     """Convert text to tokens."""
 

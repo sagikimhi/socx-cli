@@ -101,6 +101,7 @@ def add_converters(*converters: Iterable[Converter]) -> None:
 @log_it()
 def get_converters() -> Iterable[tuple[str, Converter]]:
     from dynaconf.utils.parse_conf import converters
+
     rv = []
     for name, cvt in converters.items():
         if not isinstance(cvt, Converter):

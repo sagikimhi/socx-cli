@@ -103,10 +103,18 @@ from dynaconf import Dynaconf
 from dynaconf.base import Settings
 
 _settings: Settings = Dynaconf()
-_l_paths = {x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__}
-_u_paths = {x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__}
-_l_metadata = {x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__}
-_u_metadata = {x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__}
+_l_paths = {
+    x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
+}
+_u_paths = {
+    x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
+}
+_l_metadata = {
+    x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
+}
+_u_metadata = {
+    x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
+}
 
 try:
     _settings.update({"paths": _l_paths}, merge=True)

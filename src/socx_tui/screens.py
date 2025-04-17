@@ -19,7 +19,7 @@ from socx_tui.regression.table import Visitor
 class BaseView:
     BINDINGS: ClassVar[Iterable[Binding]] = [
         Binding("ctrl+r", "refresh", "Reload Screen", show=True),
-        Binding("ctrl+o", "pop_screen", "Previous Screen", show=True)
+        Binding("ctrl+o", "pop_screen", "Previous Screen", show=True),
     ]
 
     def __init__(self, *args, **kwargs) -> None:
@@ -43,7 +43,9 @@ class BaseView:
         self.refresh(recompose=True)
 
 
-class TemplateView(BaseView, Screen[BaseView], can_focus=True, inherit_bindings=True):
+class TemplateView(
+    BaseView, Screen[BaseView], can_focus=True, inherit_bindings=True
+):
     @property
     def container(self) -> Container:
         return self.query_one("#container")
@@ -60,7 +62,9 @@ class TemplateView(BaseView, Screen[BaseView], can_focus=True, inherit_bindings=
             self.container.focus()
 
 
-class RegressionView(BaseView, Screen[BaseView], can_focus=True, inherit_bindings=True):
+class RegressionView(
+    BaseView, Screen[BaseView], can_focus=True, inherit_bindings=True
+):
     BINDINGS: ClassVar[Iterable[Binding]] = [
         Binding("L", "load_from_file", "Load new regression file")
     ]
