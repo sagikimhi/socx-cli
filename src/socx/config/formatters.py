@@ -11,8 +11,6 @@ from rich.console import Group
 from dynaconf import Dynaconf
 from dynaconf.utils.boxing import DynaBox
 
-from ..io import console
-
 
 class Formatter(abc.ABC):
     @abc.abstractmethod

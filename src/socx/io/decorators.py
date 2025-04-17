@@ -19,9 +19,9 @@ def log_it(level: Level = Level.DEBUG):
         @wraps(f)
         def wrapper(*args, **kwargs):
             sig = f"{f.__name__}{signature(f)}"
-            logger.log(level, f"[{f.__name__}] entered.")
+            logger.log(level, f"[{f.__name__}{sig}] entered.")
             rv = func(*args, **kwargs)
-            logger.log(level, f"[{f.__name__}] {rv=}.")
+            logger.log(level, f"[{f.__name__}{sig}] {rv=}.")
             return rv
 
         return wrapper

@@ -1,15 +1,12 @@
-from pathlib import Path
 from typing import ClassVar
 from collections.abc import Iterable
-from collections.abc import Mapping
 
 from socx import settings
 from textual.screen import Screen
 from textual.binding import Binding
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import Placeholder, Header, Footer
-from textual.events import Event, InputEvent, Key, Click
 
 from socx_tui.containers import Scrollable
 from socx_tui.regression.table import Table

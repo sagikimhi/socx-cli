@@ -9,7 +9,6 @@ from trogon import tui as _tui
 from .callbacks import debug_cb
 from .callbacks import verbosity_cb
 from .callbacks import configure_cb
-from ..config import settings
 
 
 def add_options(*options):

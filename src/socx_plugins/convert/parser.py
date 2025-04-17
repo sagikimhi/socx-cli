@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-__all__ = ("Parser", "LstParser", "parse")
+__all__ = (
+    "Parser",
+    "LstParser",
+)
 
 
-import re as re
 import abc as abc
 import json as json
 import typing as t
 import pathlib as pathlib
 import dataclasses as dc
-from pathlib import Path as Path
 
-import rich as rich
-import click as click
-from dynaconf.utils.boxing import DynaBox
+from dynaconf.utils.boxing import DynaBox  # type: ignore
 
 from socx import settings
 from .memory import SymbolTable

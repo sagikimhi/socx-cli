@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from collections.abc import Iterable
 
 from dynaconf import Dynaconf
 from dynaconf.base import Settings

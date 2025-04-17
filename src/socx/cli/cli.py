@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import rich_click as click
-from trogon import tui
 
 from ._cli import socx
 from .options import tui

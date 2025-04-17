@@ -1,19 +1,25 @@
-src = ["src", "tests"]
 fix = true
-line-length = 79
-cache-dir = "~/.cache/ruff"
-indent-width = 4
-target-version = "py312"
-respect-gitignore = true
+src = [
+    "src", 
+    "tests"
+]
 exclude = [
     ".git",
     ".venv",
-    "*.pyi",
     "*.eggs",
     ".ruff_cache",
     ".pytest_cache",
     ".gitignore",
+    "__pycache__",
+    "dist",
+    "*.pyi",
 ]
+cache-dir = "~/.cache/ruff"
+line-length = 79
+indent-width = 4
+target-version = "py312"
+respect-gitignore = true
+
 
 [format]
 line-ending = "auto"
@@ -23,18 +29,48 @@ docstring-code-format = true
 skip-magic-trailing-comma = false
 docstring-code-line-length = "dynamic"
 
+
 [lint]
 select = [
-    "A", "B", "C4", "D", "E", "F", "N", "W",
-    "DJ", "PT", "EM", "UP",
-    "NPY", "ISC", "ICN", "SIM", "RUF",
-    "PERF", "ASYNC",
+    "A",
+    "B",
+    "C4",
+    "D",
+    "E",
+    "F",
+    "N",
+    "W",
+    "DJ",
+    "PT",
+    "EM",
+    "UP",
+    "NPY",
+    "ISC",
+    "ICN",
+    "SIM",
+    "RUF",
+    "PERF",
+    "ASYNC",
 ]
 ignore = [
     "C408",
-    "D100", "D101", "D102", "D103", "D104", "D105", "D205",
-    "RUF022", "UP031", "ASYNC110"
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D205",
+    "UP031",
+    "RUF022",
+    "ASYNC110"
 ]
+
 
 [lint.pydocstyle]
 convention = "numpy"
+
+
+[lint.pycodestyle]
+max-doc-length = 79
+max-line-length = 79

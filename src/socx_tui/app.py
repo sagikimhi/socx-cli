@@ -5,9 +5,6 @@ from functools import partial
 from collections.abc import Mapping
 from collections.abc import Iterable
 
-from socx import log_it
-from socx import logger
-from socx import settings
 from textual.app import App
 from textual.app import ComposeResult
 from textual.app import SystemCommand
