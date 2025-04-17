@@ -56,6 +56,7 @@ dependencies = [
     "textual-terminal",
     "python-dotenv[cli]",
     "importlib-metadata",
+    "hoptex>=0.2.0",
 ]
 
 [dependency-groups]
