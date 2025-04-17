@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import abc
+import logging
 from typing import override
 from dataclasses import dataclass
 
+from socx import settings
 from dynaconf.utils.boxing import DynaBox
 
-from .log import logger
-from .config import settings
 from .reader import Reader
 from .reader import FileReader
 from .writer import Writer
@@ -18,6 +18,9 @@ from .tokenizer import Tokenizer
 from .tokenizer import LstTokenizer
 from .formatter import Formatter
 from .formatter import SystemVerilogFormatter
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(unsafe_hash=True)
@@ -58,7 +61,7 @@ class LstConverter(Converter):
 
     def convert(self) -> None:
         inputs = self.reader.read()
-        outputs = {path: "" for path in inputs}
+        outputs = dict.fromkeys(inputs, "")
         self.parser.parse()
         for path, input_text in inputs.items():
             matches = self.tokenizer.tokenize(input_text)

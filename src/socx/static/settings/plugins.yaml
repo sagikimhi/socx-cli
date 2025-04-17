@@ -1,0 +1,29 @@
+plugins:
+  ui:
+    name: ui
+    command: "@symbol socx_plugins.ui:cli"
+
+  git:
+    name: git
+    command: "@symbol socx_plugins.git.cli:cli"
+
+  rgr:
+    name: rgr
+    command: "@symbol socx_plugins.rgr:cli"
+
+  config:
+    name: config
+    command: "@symbol socx_plugins.config:cli"
+
+  convert:
+    name: convert
+    command: "@symbol socx_plugins.convert:cli"
+
+  example:
+    name: example
+    command: "@symbol socx_plugins.example:cli"
+
+  version:
+    name: version
+    command: "@symbol socx_plugins.version:version"
+

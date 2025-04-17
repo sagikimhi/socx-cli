@@ -1,338 +1,115 @@
+"""
+Management of application configuration settings.
+
+Configurations are defined in .toml files located inside the 'config'
+directory.
+
+The default configurations are under settings.toml and can be used as a
+reference.
+
+Local configurations may be defined in 'settings.local.toml'.
+
+Any local configration have priority over the defaults and will either
+override the default, or be merged with it if dynaconf_merge is true,
+and the keys do not conflict.
+
+Reference the settings.toml file for an example of how configurations are
+defined.
+
+For additional information regarding the internals of this module, reference
+dynaconf documentation on its official-site/github-repository.
+"""
+
 from __future__ import annotations
 
-import sys
-from typing import Any
-from typing import Final
 from pathlib import Path
-from importlib.metadata import version
-from collections.abc import Iterable
 
-from click import open_file
 from rich.tree import Tree
 from rich.table import Table
-from rich.console import Group
-from rich.console import Console
-from rich.logging import RichHandler
 from dynaconf import Dynaconf
-from dynaconf import ValidationError
-from dynaconf import add_converter
 from dynaconf.base import Settings
-from dynaconf.validator import empty
-from dynaconf.validator import Validator
-from platformdirs import user_log_dir
-from platformdirs import user_data_dir
-from platformdirs import user_state_dir
-from platformdirs import user_cache_dir
-from platformdirs import user_config_dir
-from platformdirs import user_runtime_dir
+from dynaconf.utils.boxing import DynaBox
 
-from .log import logger
-from .log import add_handler
-from .log import DEFAULT_LEVEL
-from .log import DEFAULT_TIME_FORMAT
-from .validators import PathValidator
+from .decorators import log_it
+from ._config import _to_tree
+from ._config import _get_settings
 
 
-PACKAGE_NAME: Final[str] = "socx-cli"
-"""Package name."""
-
-__author__ = "Sagi Kimhi <sagi.kim5@gmail.com>"
-
-__version__ = version(PACKAGE_NAME)
-
-PACKAGE_PATH: Final[Path] = Path(
-    sys.modules[__package__.partition(".")[0]].__file__
-).parent
-"""Absolute path to package."""
-
-PACKAGE_AUTHOR: Final[str] = __author__
-"""Package author."""
-
-PACKAGE_VERSION: Final[str] = __version__
-"""Package version."""
-
-APP_NAME: Final[str] = "socx"
-"""Application name."""
-
-APP_AUTHOR: Final[str] = PACKAGE_AUTHOR
-"""Application author"""
-
-APP_VERSION: Final[str] = PACKAGE_VERSION
-"""Application version."""
-
-APP_SETTINGS_DIR: Path = Path(PACKAGE_PATH) / "static" / "settings"
-"""Application builtin settings directory path."""
-
-APP_USER_SETTINGS_DIR: Path = Path(PACKAGE_PATH) / "templates" / "settings"
-"""Application builtin user_settings directory path."""
-
-APP_SETTINGS_FILE_NAME: Path = "settings.toml"
-"""File name of application's main settings file."""
-
-APP_SETTINGS_FILE_PATH: Path = (
-    Path(APP_SETTINGS_DIR) / APP_SETTINGS_FILE_NAME
-).resolve()
-"""File path to application's main settings file."""
-
-APP_SETTINGS_FILE_PATH: Path = (
-    Path(APP_SETTINGS_DIR) / APP_SETTINGS_FILE_NAME
-).resolve()
-"""File path to application's main settings file."""
-
-USER_LOG_DIR: Final[Path] = Path(
-    user_log_dir(
-        appname=APP_NAME,
-        version=APP_VERSION,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-)
-"""Absolute path to platform's native application logs directory."""
-
-USER_DATA_DIR: Final[Path] = Path(
-    user_data_dir(
-        appname=APP_NAME,
-        version=APP_VERSION,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
-"""Absolute path to platform's native application data directory."""
-
-USER_CACHE_DIR: Final[Path] = Path(
-    user_cache_dir(
-        appname=APP_NAME,
-        version=APP_VERSION,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
-"""Absolute path to platform's native application cache directory."""
-
-USER_STATE_DIR: Final[Path] = Path(
-    user_state_dir(
-        appname=APP_NAME,
-        version=APP_VERSION,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
-"""Absolute path to platform's native application state directory."""
-
-USER_CONFIG_DIR: Final[Path] = Path(
-    user_config_dir(
-        appname=APP_NAME,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
-"""Absolute path to platform's native application config directory."""
-
-USER_RUNTIME_DIR: Final[Path] = Path(
-    user_runtime_dir(
-        appname=APP_NAME,
-        version=APP_VERSION,
-        appauthor=APP_AUTHOR,
-        ensure_exists=True,
-    )
-).resolve()
-"""Absolute path to platform's native application runtime directory."""
-
-USER_LOG_FILE_PATH: Path = USER_LOG_DIR / "socx.log"
-"""Absolute path to application's main log for the current local user."""
-
-_init_done: bool = False
-
-_default_settings: Dynaconf | dict = {
-    name: value for name, value in locals().items() if name[0] != "_"
-}
-
-_settings_kwargs = dict(
-    encoding="utf-8",
-    lowercase_read=True,
-    envvar_prefix=APP_NAME.upper(),
-    load_dotenv=False,
-    environments=False,
-    dotenv_override=True,
-    sysenv_fallback=True,
-    validate_on_update="all",
-    validators=[Validator(r"convert.*", ne=empty)],
+__all__ = (
+    # API
+    "settings",
+    "reconfigure",
+    "settings_tree",
+    "import_entrypoint",
+    # Metadata
+    "APP_NAME",
+    "APP_AUTHOR",
+    "APP_VERSION",
+    # Application Paths
+    "APP_SETTINGS_DIR",
+    "APP_USER_SETTINGS_DIR",
+    "APP_SETTINGS_FILE_NAME",
+    "APP_SETTINGS_FILE_PATH",
+    # Local User Paths
+    "USER_LOG_DIR",
+    "USER_DATA_DIR",
+    "USER_CACHE_DIR",
+    "USER_STATE_DIR",
+    "USER_CONFIG_DIR",
+    "USER_RUNTIME_DIR",
+    "USER_LOG_FILE_PATH",
 )
 
 
-def _init_module() -> None:
-    global _init_done
-    logger.debug("initializing module.")
-    _init_logger()
-    _init_converters()
-    _load_settings(APP_SETTINGS_FILE_PATH)
-    _validate_settings()
-    _init_done = True
-    logger.debug("module initialized.")
+from ._config import APP_NAME as APP_NAME
+from ._config import APP_AUTHOR as APP_AUTHOR
+from ._config import APP_VERSION as APP_VERSION
+from ._config import APP_SETTINGS_DIR as APP_SETTINGS_DIR
+from ._config import APP_SETTINGS_FILE_NAME as APP_SETTINGS_FILE_NAME
+from ._config import APP_SETTINGS_FILE_PATH as APP_SETTINGS_FILE_PATH
+from ._config import USER_LOG_DIR as USER_LOG_DIR
+from ._config import USER_DATA_DIR as USER_DATA_DIR
+from ._config import USER_CACHE_DIR as USER_CACHE_DIR
+from ._config import USER_STATE_DIR as USER_STATE_DIR
+from ._config import USER_CONFIG_DIR as USER_CONFIG_DIR
+from ._config import USER_RUNTIME_DIR as USER_RUNTIME_DIR
+from ._config import USER_LOG_FILE_PATH as USER_LOG_FILE_PATH
+from ._config import import_entrypoint as import_entrypoint
 
 
-def _init_logger() -> None:
-    global logger
-    logger.debug("initializing logger.")
-    add_handler(
-        RichHandler(
-            level=DEFAULT_LEVEL,
-            console=Console(
-                file=open_file(
-                    filename=str(USER_LOG_FILE_PATH),
-                    mode="w",
-                    encoding="utf-8",
-                    lazy=True,
-                ),
-                tab_size=4,
-                width=110,
-            ),
-            markup=False,
-            show_time=True,
-            show_level=True,
-            rich_tracebacks=True,
-            omit_repeated_times=False,
-            tracebacks_word_wrap=False,
-            tracebacks_show_locals=True,
-            log_time_format=DEFAULT_TIME_FORMAT,
-        )
-    )
-    logger.debug("logging initialized.")
-    logger.debug(f"logging at path: {USER_LOG_FILE_PATH}")
+settings: Settings = _get_settings()
+"""
+Global settings instance.
+
+Any attribute/key accesses to this instance trigger a lazy loading operation
+which will attempt to find and read the value of the attribute from any of the
+.toml configuration files under the 'settings' directory.
+"""
 
 
-def import_entrypoint(entrypoint: str):
-    import importlib
-    parts = entrypoint.partition(":")
-    module, func = parts[0], parts[-1] or "cli"
-    module = importlib.import_module(module)
-    return getattr(module, func)
-
-
-def _init_converters() -> None:
-    logger.debug("initializing settings converters.")
-    add_converter("path", lambda x: Path(str(x)).resolve())
-    add_converter("glob", lambda x: next(Path().glob(x)).resolve())
-    add_converter("entrypoint", import_entrypoint)
-    logger.debug("settings converters initialized.")
-
-
-def _load_settings(
-    path: str | Path | None = None,
-    preload: Iterable[str] | None = None,
-    includes: Iterable[str] | None = None,
-    merge: bool = False,
+@log_it()
+def reconfigure(
+    path: Path,
+    preload: list[Path | str] | None = None,
+    includes: list[Path | str] | None = None,
 ) -> Dynaconf:
-    global _default_settings
+    """Reconfigure the current settings with configurations from path."""
+    from ._config import _load_settings
 
-    if preload is None:
-        preload = []
-
-    if includes is None:
-        includes = []
-
-    if path is None:
-        path = APP_SETTINGS_FILE_PATH
-    elif isinstance(path, str):
-        path = Path(path)
-
-    logger.debug(f"loading settings from {path}.")
-    settings = Dynaconf(
-        preload=preload,
-        root_path=path if path.is_dir() else path.parent,
-        settings_files=["*" if path.is_dir() else path.name],
-        includes=includes,
-        **_settings_kwargs,
-        **_default_settings
-        if isinstance(_default_settings, dict)
-        else _default_settings.as_dict(),
-    )
-    if isinstance(_default_settings, Dynaconf):
-        _default_settings.update(data=settings.as_dict(), merge=merge)
-    else:
-        settings.update(data=_default_settings, merge=merge)
-        _default_settings = settings
-    logger.debug("settings loaded.")
-    return _default_settings
+    if isinstance(preload, Path):
+        preload = str(preload)
+    if isinstance(includes, Path):
+        includes = str(includes)
+    _load_settings(path, preload, includes)
 
 
-def _validate_settings() -> None:
-    global _default_settings
-    logger.debug("Validating settings.")
-    for lang in _default_settings.convert:
-        _default_settings.validators.register(_get_convert_validators(lang))
-    accumulative_errors = ""
-    try:
-        _default_settings.validators.validate_all()
-    except ValidationError as e:
-        accumulative_errors = e.details
-        logger.debug("Settings validation failed.")
-    else:
-        logger.debug("Settings validation passed.")
-    finally:
-        if accumulative_errors:
-            errors = ValidationError(accumulative_errors)
-            logger.exception(accumulative_errors, exc_info=errors)
-
-
-def _get_settings() -> Settings:
-    if not _init_done:
-        _init_module()
-    return _default_settings
-
-
-def _get_convert_validators(lang: str) -> list[Validator]:
-    (
-        Validator(
-            f"convert.{lang}.source",
-            condition=PathValidator.source_validator,
-            must_exist=True,
-            ne=empty,
-        ),
-    )
-    (
-        Validator(
-            f"convert.{lang}.target",
-            condition=PathValidator.target_validator,
-            must_exist=True,
-            ne=empty,
-        ),
-    )
-
-
-def _to_tree(key: str, val: Any) -> Tree | Table:
-    if isinstance(val, list | set | tuple):
-        node = Tree(key)
-        for i, v in enumerate(val):
-            k = f"{key}[{i}]"
-            if isinstance(v, dict):
-                node.add(Group(k, _to_table("", v)))
-            else:
-                node.add(_to_table(k, v))
-    elif isinstance(val, dict):
-        node = Tree(key)
-        for k, v in val.items():
-            node.add(_to_tree(k, v))
-    else:
-        node = _to_table(key, str(val))
-    return node
-
-
-def _to_table(key: str, val: Any) -> Table:
-    node = Table()
-    node.show_lines = True
-    node.show_header = True
-    node.show_footer = False
-    if isinstance(val, list | tuple | set):
-        node.add_column("index")
-        node.add_column(key)
-        for i, v in enumerate(val):
-            node.add_row(str(i), str(v))
-    elif isinstance(val, dict):
-        for k in val:
-            node.add_column(k)
-        node.add_row(*[str(v) for v in val.values()])
-    else:
-        node.add_column(str(key))
-        node.add_row(str(val))
-    return node
+def settings_tree(
+    root: Dynaconf | DynaBox | dict,
+    label: str = "Settings",
+) -> Tree | Table:
+    """Get a tree representation of a dynaconf settings instance."""
+    if isinstance(root, Dynaconf):
+        root = root.as_dict()
+    if not isinstance(root, dict | list | tuple | set):
+        root = str(root)
+    return _to_tree(label, root)

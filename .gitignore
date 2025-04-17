@@ -10,6 +10,7 @@
 
 !/src/*.py
 !/src/socx/**/*.py
+!/src/socx_tui/**/*.py
 !/src/socx_patches/*.py
 !/src/socx_plugins/**/*.py
 !/src/socx/static/**/*

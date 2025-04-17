@@ -15,14 +15,10 @@ import rich as rich
 import click as click
 from dynaconf.utils.boxing import DynaBox
 
-from .console import console as console
-from .config import settings as settings
-from .memory import SymbolTable as SymbolTable
-from .memory import MemorySegment as MemorySegment
-from .memory import DynamicSymbol as DynamicSymbol
-from .tokenizer import Tokenizer as Tokenizer
-from .tokenizer import LstTokenizer as LstTokenizer
-from .validators import PathValidator as PathValidator
+from socx import settings
+from .memory import SymbolTable
+from .memory import MemorySegment
+from .validators import PathValidator
 
 
 class Parser(abc.ABC):

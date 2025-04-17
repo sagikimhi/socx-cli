@@ -1,27 +1,27 @@
 git:
-  root_dir: "@path @format {env[WAREA]}"
   manifest:
-    style: 
-      values: center
+    style:
       headers: underline
 
     columns:
-      - name: Repo
-        func: "@entrypoint socx_plugins._env:get_repo_name"
+      - name: Repository
+        func: "@symbol socx_plugins.git.utils:get_repo_name"
         style: green
 
       - name: Branch/Tag
-        func: "@entrypoint socx_plugins._env:get_ref_name"
+        func: "@symbol socx_plugins.git.utils:get_ref_name"
         style: yellow
 
-      - name: Commit Hash
-        func: "@entrypoint socx_plugins._env:get_commit_hash"
+      - name: Commit-Hash
+        func: "@symbol socx_plugins.git.utils:get_commit_hash"
         style: red
 
-      - name: Commit Message
-        func: "@entrypoint socx_plugins._env:get_commit_message"
+      - name: Commit-Message
+        func: "@symbol socx_plugins.git.utils:get_commit_message"
         style: white
 
-      - name: Author Date
-        func: "@entrypoint socx_plugins._env:get_author_date"
+      - name: Author-Date
+        func: "@symbol socx_plugins.git.utils:get_author_date"
         style: cyan
+
+    default_format: table

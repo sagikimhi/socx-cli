@@ -1,29 +1,33 @@
 from __future__ import annotations
 
-from contextlib import suppress
-from functools import partial
+import logging
 from pathlib import Path
 
 import rich
 import rich_click as click
 from rich.prompt import Prompt
+from dynaconf.utils.inspect import get_debug_info
 
 from socx import console
 from socx import settings
-from socx import get_logger
-from socx import settings_tree
+from socx import TreeFormatter
+from socx import global_options
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @click.group("config")
-def cli():
+@global_options()
+@click.pass_context
+def cli(ctx: click.Context):
     """Get, set, list, or modify settings configuration values."""
 
 
 @cli.command()
-def edit():
+@global_options()
+@click.pass_context
+def edit(ctx: click.Context):
     """Edit settings with nano/vim/nvim/gvim."""
     import os
     from socx import APP_SETTINGS_DIR
@@ -68,38 +72,64 @@ def edit():
 
 
 @cli.command()
-def tree():
+@global_options()
+@click.pass_context
+def tree(ctx: click.Context):
     """Print a tree of all loaded configurations."""
-    console.print(settings_tree(settings))
+    formatter = TreeFormatter()
+    console.print(formatter(settings))
 
 
 @cli.command("list")
-def list_():
+@global_options()
+@click.pass_context
+def list_(ctx: click.Context):
     """Print a list of all current configuration values."""
     console.print(settings.as_dict())
 
 
 @cli.command()
-def inspect():
-    """Inspect the current settings instance and print the results."""
-    console.clear()
-    rich.inspect(settings, console=console, all=True)
+@global_options()
+@click.pass_context
+def debug(ctx: click.Context):
+    """Dump config debug info and modification history."""
+    console.print(get_debug_info(settings))
 
 
 @cli.command()
-@click.argument("name", required=True, type=click.STRING)
-def get(name: str):
+@global_options()
+@click.pass_context
+def inspect(ctx: click.Context):
+    """Inspect the current settings instance and print the results."""
+    settings.update({"cli": ctx.params})
+    console.clear()
+    rich.inspect(
+        settings,
+        title="Inspect Settings",
+        console=console,
+        help=True,
+        methods=True,
+        docs=True,
+        private=True,
+        value=True,
+    )
+
+
+@cli.command()
+@click.argument("field", required=True, type=click.STRING)
+@global_options()
+@click.pass_context
+def get(ctx: click.Context, field: str):
     """Print a tree of configurations defined under NAME."""
-    ctx = click.get_current_context()
-    try:
-        field = settings[name]
-        console.print(settings_tree(field, name))
-    except (KeyError, AttributeError):
-        ctx.fail(f"No such field: {name}")
+    formatter = TreeFormatter()
+    if value := settings.get(field):
+        console.print(formatter(value, field))
+    else:
+        ctx.fail(f"No such field: {field}")
 
 
 get.help = f"""\n\b
-Print a tree of configurations defined under the field name NAME.
+Print a tree of all configurations defined under NAME.
 \n\b
 Possible field names are:
 \b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}

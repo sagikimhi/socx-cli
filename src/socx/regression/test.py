@@ -14,11 +14,11 @@ from typing import override
 from dataclasses import field
 from dataclasses import dataclass
 
-from ..log import logger
+from ..io import logger
 from ..config import settings
 from ..mixins import UIDMixin
-from ..visitor import Node
-from ..visitor import Visitor
+from ..patterns.visitor import Node
+from ..patterns.visitor import Visitor
 
 # TODO: Patch - socrun should be modified to return non-zero value on
 # test failure in the future
@@ -275,7 +275,7 @@ class Test(TestBase, UIDMixin):
     @property
     def stdin(self) -> TextIO | None:
         """The standard input of the test's process or None if not running."""
-        return None # not currently needed, can be overriden by subclass
+        return None  # not currently needed, can be overriden by subclass
 
     @property
     def stdout(self) -> TextIO | None:

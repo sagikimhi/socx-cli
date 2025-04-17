@@ -2,8 +2,8 @@ from __future__ import annotations
 from dataclasses import field
 from dataclasses import dataclass
 
-from ._meta import _UIDMeta
-from ._meta import _SingletonMeta
+from .meta import _UIDMeta
+from .meta import _SingletonMeta
 
 
 class SingletonMixin(metaclass=_SingletonMeta):
@@ -77,7 +77,7 @@ class PtrMixin(UIDMixin):
     >>> ...
     >>> secret_value = input("Place your secret")
     >>> print("your secret key is: {}".format(place_secret(secret_value)))
-    >>> ... # Some time later
+    >>> ...  # Some time later
     >>> secret_key = input("Enter the secret key: ")
     >>> secret_value = input("Enter the secret value: ")
     >>> if Example.dref(secret_key).secret == secret_value:

@@ -1,10 +1,12 @@
 import abc
+import logging
 from typing import override
 from pathlib import Path
 from dataclasses import field
 from dataclasses import dataclass
 
-from .log import logger
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -36,7 +38,7 @@ class FileWriter[T](Writer):
 
     @override
     def write(self, data: str, filename: str) -> None:
-        target = Path(self.target)/filename
+        target = Path(self.target) / filename
         if target.exists():
             target.replace(target.with_suffix(".backup"))
         target.write_text(data)
