@@ -7,7 +7,7 @@ from collections.abc import Iterable
 class Node[NODE](Protocol):
     __slots__ = ()
 
-    def accept(self, v: Visitor[Node]) -> None:
+    def accept(self, v: Visitor[NODE]) -> None:
         """Accept a visit from a visitor."""
         ...
 
@@ -20,54 +20,69 @@ class Visitor[NODE](Protocol):
         ...
 
 
-class Structure[NODE](Iterable[Node]):
+class Structure[NODE](Protocol):
     __slots__ = ()
 
     def accept(self, v: Visitor[NODE]) -> None:
         """Accept a visit from a visitor."""
         ...
 
-    def children(self) -> list[NODE]:
+    def children(self) -> Iterable[NODE]:
         """Retrieve the immediate child nodes of a structure."""
         ...
 
 
-class Proxy[NODE](Protocol):
+class Proxy[Structure](Protocol):
     __slots__ = ()
 
-    def children(self, n: NODE) -> list[NODE]:
+    @classmethod
+    def children(cls, s: Structure) -> Iterable[Structure]:
         """Retrieve the immediate children of a node in a structure."""
         ...
 
 
 class Adapter[NODE](Protocol):
+    """An adapter for a `Node` accepting visits of `NODE` from a `Visitor`."""
+
     __slots__ = ()
 
-    def accept(self, n: NODE, v: Visitor[NODE], p: Proxy[NODE]) -> None:
-        """Adapt a visitor to visit a structure of nodes through a proxy."""
+    @classmethod
+    def accept(cls, n: NODE, v: Visitor[NODE], p: Proxy[NODE]) -> None:
+        """Accept visits of a `NODE` n from a `Visitor` v."""
         ...
 
 
-class TopDownTraversal(Adapter[Node]):
-    def accept(self, n: Node, v: Visitor[Node], p: Proxy[Node]) -> None:
-        n.accept(v)
-        for c in p.children(v):
-            self.accept(c, v, p)
+class TopDownTraversal[NODE](Adapter[NODE]):
+    @classmethod
+    def accept(cls, n: NODE, v: Visitor[NODE], p: Proxy[NODE]) -> None:
+        """Accept visits of a `NODE` n from a `Visitor` v."""
+        v.visit(n)
+
+        for c in p.children(n):
+            cls.accept(c, v, p)
 
 
-class BottomUpTraversal[Node](Adapter[Node]):
-    def accept(self, n: Node, v: Visitor[Node], p: Proxy[Node]) -> None:
-        for c in p.children(v):
-            self.accept(c, v, p)
+class BottomUpTraversal[NODE](Adapter[NODE]):
+    @classmethod
+    def accept(cls, n: NODE, v: Visitor[NODE], p: Proxy[NODE]) -> None:
+        """Accept visits of a `NODE` n from a `Visitor` v."""
+        for c in p.children(n):
+            cls.accept(c, v, p)
+
         v.visit(n)
 
 
-class ByLevelTraversal[Node](Adapter[Node]):
-    def accept(self, n: Node, v: Visitor[Node], p: Proxy[Node]) -> None:
-        q = [n]
+class ByLevelTraversal[NODE](Adapter[NODE]):
+    @classmethod
+    def accept(cls, n: NODE, v: Visitor[NODE], p: Proxy[NODE]) -> None:
+        """Accept visits of a `NODE` n from a `Visitor` v."""
+        q: list[NODE] = [n]
+
         while q:
-            t = []
+            t: list[NODE] = []
+
             for n_ in q:
                 v.visit(n_)
                 t.extend(p.children(n_))
+
             q = t
