@@ -62,7 +62,7 @@ def _write_results(
 
         for test in regression:
             f = pass_fd if test.passed else fail_fd
-            f.write(f"{test.command.line}\n")
+            f.write(f"{test.command.line}")
 
         logger.info(f"passed commands were written to path: {pass_out}")
         logger.info(f"failed commands were written to path: {fail_out}")
