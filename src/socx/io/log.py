@@ -5,11 +5,14 @@ import logging
 import enum
 from typing import Final
 from pathlib import Path
+from collections.abc import Iterable
 
-from platformdirs import user_log_path
 from click import open_file
 from rich.console import Console
 from rich.logging import RichHandler
+
+from ..config.paths import USER_LOG_DIR
+from ..config.paths import USER_LOG_FILE
 
 
 __all__ = (
@@ -77,7 +80,7 @@ def _get_file_handler(
 DEFAULT_ENCODING: Final[str] = "utf-8"
 """Default text encoding format."""
 
-DEFAULT_LEVEL: Final[Level] = os.environ.get("SOCX_VERBOSITY", Level.INFO)
+DEFAULT_LEVEL: Final[Level] = Level[os.environ.get("SOCX_VERBOSITY", "INFO")]
 """Default logger level, a.k.a verbosity."""
 
 DEFAULT_FORMAT: Final[str] = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")
@@ -92,21 +95,15 @@ DEFAULT_CHILD_FORMAT: Final[str] = os.environ.get(
 )
 """ Default logger message format. """
 
-DEFAULT_CHILD_FORMATTER: Final[str] = logging.Formatter(
+DEFAULT_CHILD_FORMATTER: Final[logging.Formatter] = logging.Formatter(
     DEFAULT_FORMAT, DEFAULT_TIME_FORMAT
 )
 """ Default logger message format. """
 
-DEFAULT_LOG_DIRECTORY: Final[Path] = os.environ.get(
-    "SOCX_LOG_DIR",
-    user_log_path(appname=__package__.partition(".")[0], ensure_exists=True),
-)
+DEFAULT_LOG_DIRECTORY: Final[Path] = USER_LOG_DIR
 """Default application log directory."""
 
-DEFAULT_LOG_FILE: Final[Path] = os.environ.get(
-    "SOCX_LOG_FILE",
-    DEFAULT_LOG_DIRECTORY / f"{__package__.partition('.')[0]}.log",
-)
+DEFAULT_LOG_FILE: Final[Path] = USER_LOG_FILE
 """Default application log file."""
 
 DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
@@ -138,10 +135,10 @@ or extensive than a basic write to console functionality.
 """
 
 
-def configure(cfg: dict, *args, **kwargs) -> None:
-    logging.config.dictConfig(cfg)
-
-
+# def configure(cfg: dict, *args, **kwargs) -> None:
+#     logging.config.dictConfig(cfg)
+#
+#
 def get_logger(name: str, filename: str | None = None) -> logging.Logger:
     """
     Get a pretty printing log handler.
@@ -169,7 +166,7 @@ def get_logger(name: str, filename: str | None = None) -> logging.Logger:
 
 def log(level: Level, msg: str, *args, **kwargs) -> None:
     """See documentation of builtin `logging.log` function."""
-    logger.log(msg, *args, **kwargs)
+    logger.log(level, msg, *args, **kwargs)
 
 
 def info(msg: str, *args, **kwargs) -> None:
@@ -227,7 +224,7 @@ def remove_filter(filter: logging.Filter) -> None:  # noqa: A002
     logger.removeFilter(filter)
 
 
-def get_handler(name: str) -> logging.Handler:
+def get_handler(name: str) -> logging.Handler | None:
     """See documentation of builtin `logging.getHandler` function."""
     return logging.getHandlerByName(name)
 
@@ -247,7 +244,7 @@ def remove_handler(handler: logging.Handler) -> None:
     logger.removeHandler(handler)
 
 
-def get_handler_names() -> logging.Handlers:
+def get_handler_names() -> Iterable[str]:
     """See documentation of builtin `logging.getHandlerNames` function."""
     return logging.getHandlerNames()
 
