@@ -16,7 +16,7 @@ from rich.progress import TimeRemainingColumn
 from rich.progress import SpinnerColumn
 from rich.progress import TimeElapsedColumn
 from rich.progress import MofNCompleteColumn
-from dynaconf.utils.boxing import DynaBox
+from dynaconf.utils.boxing import DynaBox  # type: ignore
 
 from .test import Test
 from .test import TestBase
@@ -24,8 +24,7 @@ from .test import TestStatus
 from .test import TestResult
 from ..io import logger
 from ..config import settings
-from ..patterns.visitor import Node
-from ..patterns.visitor import Visitor
+from ..patterns import Visitor
 
 
 __all__ = "Regression"
@@ -85,7 +84,7 @@ class Regression(TestBase):
         tests = deque(Test(line) for line in lines)
         return Regression(name, tests)
 
-    def accept(self, visitor: Visitor[Node]) -> None:
+    def accept(self, visitor: Visitor[TestBase]) -> None:
         """Accept a visit from a visitor."""
         visitor.visit(self)
 

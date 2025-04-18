@@ -13,11 +13,11 @@ from ..config import settings
 _context_settings = dict(help_option_names=["--help", "-h"])
 
 
-class _CmdLine(click.RichMultiCommand, click.Group):
+class _CmdLine(click.RichGroup, click.Group):
     @log_it()
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", _context_settings)
-        click.RichMultiCommand.__init__(self, *args, **kwargs)
+        click.RichGroup.__init__(self, *args, **kwargs)
         click.Group.__init__(self, *args, **kwargs)
         self._plugins = {}
 

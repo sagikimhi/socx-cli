@@ -42,6 +42,11 @@ __all__ = (
     "USER_RUNTIME_DIR",
     "USER_LOG_DIR",
     "USER_LOG_FILE",
+    "USER_CONFIG_FILE",
+    "APP_STATIC_DIR",
+    "APP_TEMPLATES_DIR",
+    "APP_SETTINGS_DIR",
+    "APP_SETTINGS_FILE",
     "Formatter",
     "TreeFormatter",
     "Converter",
@@ -60,16 +65,16 @@ __all__ = (
     "UIDMixin",
     "PtrMixin",
     # Patterns
-    "Node",
-    "Proxy",
     "Visitor",
-    "Adapter",
     "Structure",
+    "Traversal",
+    "Singleton",
     "ByLevelTraversal",
     "TopDownTraversal",
     "BottomUpTraversal",
     # Regression
     "Test",
+    "TestBase",
     "Regression",
     "TestStatus",
     "TestResult",
@@ -114,12 +119,12 @@ from .config import USER_CACHE_DIR as USER_CACHE_DIR
 from .config import USER_STATE_DIR as USER_STATE_DIR
 from .config import USER_CONFIG_DIR as USER_CONFIG_DIR
 from .config import USER_RUNTIME_DIR as USER_RUNTIME_DIR
+from .config import USER_LOG_FILE as USER_LOG_FILE
+from .config import USER_CONFIG_FILE as USER_CONFIG_FILE
 from .config import APP_STATIC_DIR as APP_STATIC_DIR
 from .config import APP_SETTINGS_DIR as APP_SETTINGS_DIR
 from .config import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
-from .config import USER_LOG_FILE as USER_LOG_FILE
-from .config import USER_CONFIG_FILE as USER_CONFIG_FILE
-from .config import APP_SETTINGS_FILE as APP_SETTINGS_FILE_NAME
+from .config import APP_SETTINGS_FILE as APP_SETTINGS_FILE
 from .config import settings as settings
 from .config import Formatter as Formatter
 from .config import TreeFormatter as TreeFormatter
@@ -135,19 +140,18 @@ from .config import Validator as Validator
 from .config import ValidationError as ValidationError
 from .config import validate_all as validate_all
 
-from .mixins import UIDMixin as UIDMixin
-from .mixins import PtrMixin as PtrMixin
-
-from .patterns import Node as Node
-from .patterns import Proxy as Proxy
+from .patterns import UIDMixin as UIDMixin
+from .patterns import PtrMixin as PtrMixin
+from .patterns import Singleton as Singleton
 from .patterns import Visitor as Visitor
-from .patterns import Adapter as Adapter
 from .patterns import Structure as Structure
+from .patterns import Traversal as Traversal
 from .patterns import TopDownTraversal as TopDownTraversal
 from .patterns import BottomUpTraversal as BottomUpTraversal
 from .patterns import ByLevelTraversal as ByLevelTraversal
 
 from .regression import Test as Test
+from .regression import TestBase as TestBase
 from .regression import Regression as Regression
 from .regression import TestStatus as TestStatus
 from .regression import TestResult as TestResult

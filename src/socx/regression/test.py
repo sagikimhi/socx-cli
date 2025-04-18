@@ -16,9 +16,8 @@ from dataclasses import dataclass
 
 from ..io import logger
 from ..config import settings
-from ..mixins import UIDMixin
-from ..patterns.visitor import Node
-from ..patterns.visitor import Visitor
+from ..patterns import UIDMixin
+from ..patterns import Visitor
 
 # TODO: Patch - socrun should be modified to return non-zero value on
 # test failure in the future
@@ -102,7 +101,7 @@ class TestBase:
         self._started_time = None
         self._finished_time = None
 
-    def accept(self, visitor: Visitor[Node]) -> None:
+    def accept(self, visitor: Visitor[TestBase]) -> None:
         visitor.visit(self)
 
     @property

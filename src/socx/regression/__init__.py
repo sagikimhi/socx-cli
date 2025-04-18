@@ -1,5 +1,6 @@
 __all__ = (
     "Test",
+    "TestBase",
     "TestStatus",
     "TestResult",
     "TestCommand",
@@ -7,6 +8,7 @@ __all__ = (
 )
 
 from .test import Test as Test
+from .test import TestBase as TestBase
 from .test import TestStatus as TestStatus
 from .test import TestResult as TestResult
 from .test import TestCommand as TestCommand

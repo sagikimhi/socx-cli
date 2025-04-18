@@ -3,14 +3,14 @@ from dataclasses import fields
 from dataclasses import asdict
 
 from socx import Test
-from socx import Node
-from socx import Adapter
+from socx import TestBase
 from socx import Visitor
 from socx import Regression
+from textual.widgets import DataTable
 
 
-class _TableVisitor(Visitor):
-    def __init__(self, table: Node | Adapter) -> None:
+class _TableVisitor(Visitor[TestBase]):
+    def __init__(self, table: Regression) -> None:
         self._table = table
         self._table.accept(self)
 
