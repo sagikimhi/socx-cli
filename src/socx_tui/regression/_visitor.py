@@ -6,7 +6,6 @@ from socx import Test
 from socx import TestBase
 from socx import Visitor
 from socx import Regression
-from textual.widgets import DataTable
 
 
 class _TableVisitor(Visitor[TestBase]):

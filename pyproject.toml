@@ -74,6 +74,7 @@ dev = [
     "hatch",
     "pytest",
     "debugpy",
+    "pydantic",
     "hatchling",
     "pyupgrade",
     "pre-commit",
@@ -83,6 +84,7 @@ dev = [
     "textual-dev",
     "flake8-bugbear",
     "flake8-simplify",
+    "pydantic-settings",
 ]
 
 [project.urls]
@@ -114,6 +116,19 @@ files = [
 pretty = true
 strict = true
 color_output = true
+follow_imports = "normal"
+warn_no_return = false
 show_error_codes = true
-warn_unreachable = true
+warn_unused_ignores = true
+show_column_numbers = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+disallow_incomplete_defs = false
+plugins = ["pydantic.mypy"]
 python_version = "3.12"
+
+[tool.pydantic-mypy]
+init_typed = true
+init_forbid_extra = true
+warn_untyped_fields = true
+warn_required_dynamic_aliases = true
