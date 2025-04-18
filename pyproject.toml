@@ -36,6 +36,7 @@ dependencies = [
     "textual-terminal",
     "python-dotenv[cli]",
     "importlib-metadata",
+    "textual-autocomplete",
 ]
 
 [project.optional-dependencies]
