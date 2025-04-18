@@ -14,13 +14,15 @@ logger = get_logger(__name__)
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:
     if input_path is None:
-        input_path = settings.regression.rerun_failure_history.input
-        dir_in: Path = input_path.directory
-        file_in: str = input_path.filename
-        path_in: Path = Path(dir_in / file_in)
-    else:
-        path_in: Path = Path(input_path).resolve()
-    return path_in
+        input_cfg = settings.regression.rerun_failure_history.input
+        dir_in = Path(input_cfg.directory)
+        file_in = input_cfg.filename
+        return Path(dir_in/file_in).resolve().absolute()
+
+    if isinstance(input_path, str):
+        return Path(input_path).resolve().absolute()
+
+    return input_path.resolve().absolute()
 
 
 def _correct_paths_out(
@@ -29,13 +31,13 @@ def _correct_paths_out(
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
     if output_path is None:
-        output_path: DynaBox = settings.regression.report.path
-        dir_out: Path = Path(output_path.directory) / today
+        cfg: DynaBox = settings.regression.report.path
+        dir_out: Path = Path(cfg) / today
         fail_out: Path = Path(dir_out) / f"{now}_failed.log"
         pass_out: Path = Path(dir_out) / f"{now}_passed.log"
     else:
-        fail_out: Path = Path(output_path) / f"{now}_failed.log"
-        pass_out: Path = Path(output_path) / f"{now}_passed.log"
+        fail_out = Path(output_path) / f"{now}_failed.log"
+        pass_out = Path(output_path) / f"{now}_passed.log"
     fail_out.parent.mkdir(parents=True, exist_ok=True)
     pass_out.parent.mkdir(parents=True, exist_ok=True)
     return pass_out, fail_out
@@ -46,14 +48,22 @@ def _write_results(
     fail_out: str | Path,
     regression: Regression,
 ) -> None:
+    if isinstance(fail_out, str):
+        fail_out = Path(fail_out)
+
+    if isinstance(pass_out, str):
+        pass_out = Path(pass_out)
+
     with (
         open_file(fail_out, "w", "utf-8", atomic=True) as fail_fd,
         open_file(pass_out, "w", "utf-8", atomic=True) as pass_fd,
     ):
         logger.info(f"writing regression results to: {fail_out.parent}...")
+
         for test in regression:
             f = pass_fd if test.passed else fail_fd
             f.write(f"{test.command.line}\n")
+
         logger.info(f"passed commands were written to path: {pass_out}")
         logger.info(f"failed commands were written to path: {fail_out}")
         logger.info("regression results successfuly written to disk.")
@@ -72,6 +82,7 @@ async def _run_from_file(
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
     pass_out, fail_out = _correct_paths_out(output)
+
     try:
         await regression.start()
     except Exception as e:
