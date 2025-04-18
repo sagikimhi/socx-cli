@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import logging
 import asyncio as aio
 from typing import Any
@@ -11,8 +12,6 @@ from collections import deque
 from collections.abc import Iterator
 from collections.abc import Iterable
 from collections.abc import AsyncIterator
-from collections.abc import AsyncIterable
-from collections.abc import AsyncGenerator
 
 from rich.progress import Progress
 from rich.progress import TextColumn
@@ -30,7 +29,6 @@ from .test import TestStatus
 from .test import TestResult
 from .validator import validate_test_list
 from ..config import settings
-from ..patterns import Visitor
 
 
 logger = logging.getLogger(__name__)
@@ -52,6 +50,7 @@ class Regression(TestBase):
             tests = set()
         tests = set(tests)
         validate_test_list(tests)
+        self._pid = os.getpid()
         self._map = {test: test.name for test in tests}
         self._lock = RLock()
         self._tests = deque(set(tests))

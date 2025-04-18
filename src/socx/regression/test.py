@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 import shlex
 import asyncio
@@ -49,19 +50,23 @@ class TestCommand(UIDMixin):
     arguments: tuple[str, ...] = field(init=False)
 
     def __post_init__(self) -> None:
-        self.args = tuple(arg.strip() for arg in self.line.split())
-        self.name = self.args[0] if self.args else ""
+        self.arguments = tuple(arg.strip() for arg in self.line.split())
+        self.name = self.arguments[0] if self.arguments else ""
         self.escaped = shlex.quote(self.line)
 
     def extract_argv(self, arg: str) -> str | None:
-        for i, attr in enumerate(self.args):
+        for i, attr in enumerate(self.arguments):
             if attr.startswith("--") or attr.startswith("-"):
-                if attr == arg and i + 1 < len(self.args):
-                    return self.args[i + 1]
-                if attr.removeprefix("-") == arg and i + 1 < len(self.args):
-                    return self.args[i + 1]
-                if attr.removeprefix("--") == arg and i + 1 < len(self.args):
-                    return self.args[i + 1]
+                if attr == arg and i + 1 < len(self.arguments):
+                    return self.arguments[i + 1]
+                if attr.removeprefix("-") == arg and i + 1 < len(
+                    self.arguments
+                ):
+                    return self.arguments[i + 1]
+                if attr.removeprefix("--") == arg and i + 1 < len(
+                    self.arguments
+                ):
+                    return self.arguments[i + 1]
         return None
 
     def __getattr__(self, attr: str) -> str:
@@ -73,7 +78,7 @@ class TestCommand(UIDMixin):
             raise AttributeError(err)
 
     def __hash__(self) -> int:
-        return hash(tuple(set(self.args)))
+        return hash(tuple(set(self.arguments)))
 
 
 @dataclass(init=False)
@@ -124,13 +129,12 @@ class TestABC:
 
 class TestBase(TestABC):
     @override
-    def __init__(
-        self, command: str | TestCommand, *args, **kwargs
-    ) -> None:
+    def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
         if command is None:
             command = ""
         if not isinstance(command, TestCommand):
             command = TestCommand(command)
+        self._pid = os.getpid()
         self._name = "BASE"
         self._status = TestStatus.Idle
         self._result = TestResult.NA
