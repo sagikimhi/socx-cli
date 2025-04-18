@@ -1,5 +1,5 @@
 __all__ = (
-
+    "Node",
     "Visitor",
     "PtrMixin",
     "UIDMixin",
@@ -14,6 +14,7 @@ __all__ = (
 
 from .mixins import PtrMixin as PtrMixin
 from .mixins import UIDMixin as UIDMixin
+from .visitor import Node as Node
 from .visitor import Visitor as Visitor
 from .visitor import Structure as Structure
 from .visitor import Traversal as Traversal

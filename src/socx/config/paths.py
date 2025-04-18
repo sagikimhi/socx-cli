@@ -73,8 +73,9 @@ USER_LOG_DIR: Final[Path] = user_log_path(
 """Absolute path to platform's native application logs directory."""
 
 
-USER_LOG_FILE: Path = USER_LOG_DIR / "socx.log"
+USER_LOG_FILE: Path = USER_LOG_DIR / "run.log"
 """Absolute path to application's main log for the current local user."""
+
 
 USER_CONFIG_FILE: Path = USER_CONFIG_DIR / "settings.yaml"
 """Absolute path to application's user config file."""

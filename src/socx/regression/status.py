@@ -49,7 +49,7 @@ class RegressionStatus(IntEnum):
         Test was intentionally terminated by a signal.
     """
 
-    Idle = auto(0)
+    Idle = 0
     Running = auto()
     Stopped = auto()
     Finished = auto()

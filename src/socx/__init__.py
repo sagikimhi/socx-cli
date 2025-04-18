@@ -65,6 +65,7 @@ __all__ = (
     "UIDMixin",
     "PtrMixin",
     # Patterns
+    "Node",
     "Visitor",
     "Structure",
     "Traversal",
@@ -143,6 +144,7 @@ from .config import validate_all as validate_all
 from .patterns import UIDMixin as UIDMixin
 from .patterns import PtrMixin as PtrMixin
 from .patterns import Singleton as Singleton
+from .patterns import Node as Node
 from .patterns import Visitor as Visitor
 from .patterns import Structure as Structure
 from .patterns import Traversal as Traversal

@@ -8,7 +8,15 @@ class Visitor[NODE](Protocol):
     __slots__ = ()
 
     def visit(self, n: NODE) -> None:
-        """Visit a node."""
+        """Visit a node of a structure."""
+        ...
+
+
+class Node[NODE](Protocol):
+    __slots__ = ()
+
+    def accept(self, v: Visitor[NODE]) -> None:
+        """Accept a visit from a `Visitor`."""
         ...
 
 

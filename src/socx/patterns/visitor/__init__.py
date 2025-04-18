@@ -1,4 +1,5 @@
 __all__ = (
+    "Node",
     "Visitor",
     "Structure",
     "Traversal",
@@ -8,6 +9,7 @@ __all__ = (
 )
 
 
+from .protocol import Node as Node
 from .protocol import Visitor as Visitor
 from .protocol import Structure as Structure
 from .protocol import Traversal as Traversal

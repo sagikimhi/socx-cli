@@ -10,9 +10,7 @@ from collections.abc import Iterable
 from click import open_file
 from rich.console import Console
 from rich.logging import RichHandler
-
-from ..config.paths import USER_LOG_DIR
-from ..config.paths import USER_LOG_FILE
+from platformdirs import user_log_path
 
 
 __all__ = (
@@ -100,15 +98,22 @@ DEFAULT_CHILD_FORMATTER: Final[logging.Formatter] = logging.Formatter(
 )
 """ Default logger message format. """
 
-DEFAULT_LOG_DIRECTORY: Final[Path] = USER_LOG_DIR
+DEFAULT_LOG_DIRECTORY: Final[Path] = Path(
+    os.environ.get(
+        "SOCX_LOG_DIR",
+        user_log_path(
+            appname=__package__.partition(".")[0], ensure_exists=True
+        ),
+    )
+)
 """Default application log directory."""
 
-DEFAULT_LOG_FILE: Final[Path] = USER_LOG_FILE
+DEFAULT_LOG_FILE: Final[str] = os.environ.get("SOCX_LOG_FILE", "run.log")
 """Default application log file."""
 
 DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
     _get_console_handler(DEFAULT_LEVEL),
-    _get_file_handler(DEFAULT_LOG_FILE),
+    _get_file_handler(DEFAULT_LOG_DIRECTORY / DEFAULT_LOG_FILE),
 ]
 """ Default logging handlers of this module's default `logger`. """
 

@@ -17,7 +17,7 @@ def _correct_path_in(input_path: str | Path | None = None) -> Path:
         input_cfg = settings.regression.rerun_failure_history.input
         dir_in = Path(input_cfg.directory)
         file_in = input_cfg.filename
-        return Path(dir_in/file_in).resolve().absolute()
+        return Path(dir_in / file_in).resolve().absolute()
 
     if isinstance(input_path, str):
         return Path(input_path).resolve().absolute()
