@@ -37,6 +37,9 @@ dependencies = [
     "python-dotenv[cli]",
     "importlib-metadata",
     "textual-autocomplete",
+    "textual-filedrop",
+    "textual-fspicker",
+    "textual-universal-directorytree",
 ]
 
 [project.optional-dependencies]
