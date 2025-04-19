@@ -189,72 +189,57 @@ class Regression(TestBase):
     async def _scheduler(self, test) -> None:
         try:
             test._status = TestStatus.Pending
-            await self.messages.put(
-                f"Scheduler({test.name}): scheduling test..."
-            )
             await self.pending.put(test)
+        except Exception:
+            pass
+        else:
             await self.messages.put(f"Scheduler({test.name}): test scheduled.")
             self._scheduler_advance()
-        except Exception:
-            logger.exception("An exception occured during scheduling.")
-            raise
+        finally:
+            await self.pending.join()
 
     async def _run_tests(self) -> None:
-        try:
-            while self.pending.empty():
-                await aio.sleep(0.1)
-            await self.messages.put("starting runners...")
-            async with aio.TaskGroup() as tg:
-                for _ in range(self.run_limit):
-                    tg.create_task(self._runner())
-                self._runner_advance()
-            await self.pending.join()
-            await self.messages.put("all tests completed. stopping runners.")
-        except Exception:
-            logger.exception("Failed to start runners due to exception")
-            raise
+        while self.pending.empty():
+            await aio.sleep(0)
+        async with aio.TaskGroup() as tg:
+            for _ in range(self.run_limit):
+                tg.create_task(self._runner())
+            self._runner_advance()
+        await self.pending.join()
 
     async def _runner(self) -> None:
-        try:
-            while self.pending.qsize():
-                try:
-                    test = await self.pending.get()
-                    await self.messages.put(f"Runner({test.name}): running...")
-                    await test.start()
-                    await self.messages.put(f"Runner({test.name}): done.")
-                    self._runner_advance()
-                finally:
-                    self.pending.task_done()
-        except Exception:
-            logger.exception(
-                f"Runner({test.name}): terminated due to exception."
-            )
-            raise
+        while self.pending.qsize():
+            try:
+                test = await self.pending.get()
+                await self.messages.put(f"Runner({test.name}): running...")
+                await test.start()
+            except Exception:
+                pass
+            else:
+                await self.messages.put(f"Runner({test.name}): done.")
+            finally:
+                self._runner_advance()
+                self.pending.task_done()
 
     async def _animate_progress(self) -> None:
-        try:
-            with self.progress as progress:
-                self._scheduler_start()
-                self._runner_start()
-                self._regression_start()
-                while not progress.finished:
-                    msgs = await self._process_messages()
-                    if msgs:
-                        progress.log(msgs)
-                    await aio.sleep(0.02)
-        except Exception:
-            logger.exception("Regression halted due to exception")
-            raise
+        with self.progress as progress:
+            self._scheduler_start()
+            self._runner_start()
+            self._regression_start()
+            while not progress.finished:
+                await self._process_messages()
+                await aio.sleep(0)
 
-    async def _process_messages(self) -> str:
-        msgs = ""
+    async def _process_messages(self) -> None:
         while not self.messages.empty():
             try:
-                msgs += await self.messages.get()
-                msgs += "\n"
+                msg = await self.messages.get()
+            except Exception:
+                pass
+            else:
+                self.progress.log(msg)
             finally:
                 self.messages.task_done()
-        return msgs
 
     def _scheduler_start(self) -> None:
         if self._scheduler_tid is None:
