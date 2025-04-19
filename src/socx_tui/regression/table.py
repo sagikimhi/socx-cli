@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import override
+from dataclasses import fields
+from dataclasses import asdict
 
-from socx import settings
+from socx import Test
+from socx import Visitor
+from socx import TestBase
 from socx import Regression
+from socx import settings
 from textual.widgets import DataTable
 
 from socx_tui.modes.vim import Vim
-from ._visitor import _TableVisitor
-
-
-class Visitor(_TableVisitor):
-    """Table visitor."""
-
-    pass
 
 
 class Table(Vim, DataTable, inherit_bindings=True):
@@ -38,7 +37,7 @@ class Table(Vim, DataTable, inherit_bindings=True):
         """The settings property."""
         return settings.regression
 
-    def accept(self, visitor: Visitor) -> None:
+    def accept(self, visitor: Visitor[Regression]) -> None:
         if self.model is not None:
             self.model.accept(visitor)
 
@@ -49,3 +48,32 @@ class Table(Vim, DataTable, inherit_bindings=True):
             "table_model", file.read_text().splitlines()
         )
         self.model = model
+
+
+class TableVisitor(Visitor[DataTable | TestBase]):
+    def __init__(self, table: Regression) -> None:
+        self._table = table
+
+    @override
+    def visit(self, n: DataTable | TestBase) -> None:
+        if isinstance(n, Regression):
+            self.visit_regression(n)
+        elif isinstance(n, Test):
+            self.visit_test(n)
+
+    def visit_regression(self, n: Regression) -> None:
+        if n.tests:
+            columns = tuple(field.name for field in fields(n.tests[0]))
+            self._table.add_columns(*columns)
+        for test in n.tests:
+            test.accept(self)
+
+    def visit_test(self, n: Test) -> None:
+        columns = fields(n)
+        mapping = asdict(n)
+        values = [mapping[column.name] for column in columns]
+        for i in range(len(values)):
+            value = values[i]
+            if isinstance(value, dict) and "line" in value:
+                values[i] = value["line"]
+        self._table.add_row(*values)

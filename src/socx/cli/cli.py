@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import logging
+
 import rich_click as click
 
 from ._cli import socx
 from .options import tui
 from .options import global_options
+
+
+logger = logging.getLogger(__name__)
 
 
 @tui()

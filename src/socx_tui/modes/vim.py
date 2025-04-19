@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import ClassVar
 from contextlib import suppress
 from collections.abc import Iterable
@@ -79,8 +81,17 @@ class Vim:
         + OperatorPending.BINDINGS
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def scroll_up(self) -> None:
+        pass
+
+    def scroll_down(self) -> None:
+        pass
+
+    def scroll_left(self) -> None:
+        pass
+
+    def scroll_right(self) -> None:
+        pass
 
     def scroll_x_home(self) -> None:
         try:
@@ -99,9 +110,6 @@ class Vim:
                 self.scroll_x = self.max_scroll_x
             with suppress(Exception):
                 self.scroll_end(y_axis=False)
-
-    def action_pop_screen(self) -> None:
-        self.app.pop_screen()
 
     def scroll_y_home(self) -> None:
         try:
