@@ -107,29 +107,29 @@ packages = [
 [tool.uv]
 package = true
 
-# [tool.mypy]
-# files = [
-#     "src/socx",
-#     "src/socx_tui",
-#     "src/socx_patches",
-#     "src/socx_plugins",
-# ]
-# pretty = true
-# strict = true
-# color_output = true
-# follow_imports = "normal"
-# warn_no_return = false
-# show_error_codes = true
-# warn_unused_ignores = true
-# show_column_numbers = true
-# disallow_untyped_defs = false
-# ignore_missing_imports = true
-# disallow_incomplete_defs = false
-# python_version = "3.12"
-# plugins = ["pydantic.mypy"]
+[tool.mypy]
+files = [
+    "src/socx",
+    "src/socx_tui",
+    "src/socx_patches",
+    "src/socx_plugins",
+]
+pretty = true
+strict = true
+color_output = true
+follow_imports = "normal"
+warn_no_return = false
+show_error_codes = true
+warn_unused_ignores = true
+show_column_numbers = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+disallow_incomplete_defs = false
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
 
-# [tool.pydantic-mypy]
-# init_typed = true
-# init_forbid_extra = true
-# warn_untyped_fields = true
-# warn_required_dynamic_aliases = true
+[tool.pydantic-mypy]
+init_typed = true
+init_forbid_extra = true
+warn_untyped_fields = true
+warn_required_dynamic_aliases = true

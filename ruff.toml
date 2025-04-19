@@ -1,8 +1,5 @@
 fix = true
-src = [
-    "src", 
-    "tests"
-]
+src = ["src", "tests"]
 exclude = [
     ".git",
     ".venv",
@@ -20,6 +17,9 @@ indent-width = 4
 target-version = "py312"
 respect-gitignore = true
 
+[analyze]
+direction = "Dependencies"
+detect-string-imports = true
 
 [format]
 line-ending = "auto"
@@ -28,7 +28,6 @@ indent-style = "space"
 docstring-code-format = true
 skip-magic-trailing-comma = false
 docstring-code-line-length = "dynamic"
-
 
 [lint]
 select = [
@@ -63,14 +62,29 @@ ignore = [
     "D205",
     "UP031",
     "RUF022",
-    "ASYNC110"
+    "ASYNC110",
 ]
-
 
 [lint.pydocstyle]
 convention = "numpy"
 
-
 [lint.pycodestyle]
 max-doc-length = 79
 max-line-length = 79
+
+[lint.flake8-quotes]
+avoid-escape = true
+
+[lint.flake8-annotations]
+allow-star-arg-any = true
+suppress-dummy-args = true
+ignore-fully-untyped = true
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true
+
+[lint.flake8-unused-arguments]
+ignore-variadic-names = true

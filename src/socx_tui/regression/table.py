@@ -12,24 +12,25 @@ from socx import Regression
 from socx import settings
 from textual.widgets import DataTable
 
-from socx_tui.modes.vim import Vim
+from socx_tui.bindings import Vim
 
 
-class Table(Vim, DataTable, inherit_bindings=True):
-    """Regression table."""
+class Table(DataTable[TestBase], inherit_bindings=True):
+    """TestBase table."""
 
-    BINDINGS = DataTable.BINDINGS + Vim.BINDINGS
+    __slots__ = ("_data_model",)
+
+    BINDINGS = DataTable.BINDINGS + Vim.Mode.Normal.value
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._data_model = None
 
     @property
-    def model(self) -> Regression:
+    def model(self) -> TestBase:
         return self._data_model
 
     @model.setter
-    def model(self, model: Regression) -> None:
+    def model(self, model: TestBase) -> None:
         self._data_model = model
 
     @property
@@ -37,9 +38,9 @@ class Table(Vim, DataTable, inherit_bindings=True):
         """The settings property."""
         return settings.regression
 
-    def accept(self, visitor: Visitor[Regression]) -> None:
+    def accept(self, visitor: Visitor[Table | Regression | TestBase]) -> None:
         if self.model is not None:
-            self.model.accept(visitor)
+            visitor.visit(self.model)
 
     def load_from_file(self, file: str | Path) -> None:
         if isinstance(file, str):
@@ -50,12 +51,14 @@ class Table(Vim, DataTable, inherit_bindings=True):
         self.model = model
 
 
-class TableVisitor(Visitor[DataTable | TestBase]):
-    def __init__(self, table: Regression) -> None:
+class TableVisitor(Visitor[Table | TestBase]):
+    _table: Table
+
+    def __init__(self, table: Table) -> None:
         self._table = table
 
     @override
-    def visit(self, n: DataTable | TestBase) -> None:
+    def visit(self, n: Table | TestBase) -> None:
         if isinstance(n, Regression):
             self.visit_regression(n)
         elif isinstance(n, Test):
@@ -66,7 +69,7 @@ class TableVisitor(Visitor[DataTable | TestBase]):
             columns = tuple(field.name for field in fields(n.tests[0]))
             self._table.add_columns(*columns)
         for test in n.tests:
-            test.accept(self)
+            self.visit(test)
 
     def visit_test(self, n: Test) -> None:
         columns = fields(n)

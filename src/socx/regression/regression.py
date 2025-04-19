@@ -40,7 +40,7 @@ __all__ = ("Regression",)
 @dataclass(init=False)
 class Regression(TestBase):
     _map: dict[Test, str] = field(default_factory=dict)
-    _tests: list[Test] | deque[Test] = field(default_factory=deque)
+    _tests: deque[Test] = field(default_factory=deque)
 
     def __init__(
         self, name: str, tests: Iterable[Test], *args: Any, **kwargs: Any
@@ -53,7 +53,7 @@ class Regression(TestBase):
         self._pid = os.getpid()
         self._map = {test: test.name for test in tests}
         self._lock = RLock()
-        self._tests = deque(set(tests))
+        self._tests: deque[Test] = deque(set(tests))
         self._runner_tid = None
         self._scheduler_tid = None
         self._regression_tid = None
@@ -101,7 +101,7 @@ class Regression(TestBase):
             return settings.regression
 
     @property
-    def tests(self) -> Iterable[Test]:
+    def tests(self) -> deque[Test]:
         """An iterable of all tests defined in the regression."""
         with self._lock:
             return self._tests
