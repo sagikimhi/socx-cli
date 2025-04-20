@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from .protocol import Visitor
-from .protocol import Structure
-from .protocol import Traversal
+from socx.patterns.visitor.protocol import Visitor
+from socx.patterns.visitor.protocol import Structure
+from socx.patterns.visitor.protocol import Traversal
 
 
 class TopDownTraversal[NODE](Traversal[NODE]):

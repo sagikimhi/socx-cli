@@ -1,3 +1,3 @@
 __all__ = ("Singleton",)
 
-from .singleton import Singleton as Singleton
+from socx.patterns.singleton.singleton import Singleton as Singleton

@@ -12,13 +12,15 @@ __all__ = (
 )
 
 
-from .mixins import PtrMixin as PtrMixin
-from .mixins import UIDMixin as UIDMixin
-from .visitor import Node as Node
-from .visitor import Visitor as Visitor
-from .visitor import Structure as Structure
-from .visitor import Traversal as Traversal
-from .visitor import ByLevelTraversal as ByLevelTraversal
-from .visitor import TopDownTraversal as TopDownTraversal
-from .visitor import BottomUpTraversal as BottomUpTraversal
-from .singleton import Singleton as Singleton
+from socx.patterns.mixins import PtrMixin as PtrMixin
+from socx.patterns.mixins import UIDMixin as UIDMixin
+
+from socx.patterns.visitor import Node as Node
+from socx.patterns.visitor import Visitor as Visitor
+from socx.patterns.visitor import Structure as Structure
+from socx.patterns.visitor import Traversal as Traversal
+from socx.patterns.visitor import ByLevelTraversal as ByLevelTraversal
+from socx.patterns.visitor import TopDownTraversal as TopDownTraversal
+from socx.patterns.visitor import BottomUpTraversal as BottomUpTraversal
+
+from socx.patterns.singleton import Singleton as Singleton

@@ -4,9 +4,9 @@ import logging
 
 import rich_click as click
 
-from ._cli import socx
-from .options import tui
-from .options import global_options
+from socx.cli._cli import socx
+from socx.cli.options import tui
+from socx.cli.options import global_options
 
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 @socx()
 @global_options()
 @click.pass_context
-def cli(ctx: click.Context) -> None:
+def cli(ctx: click.Context) -> int:
     """System on chip verification and tooling infrastructure."""
     if ctx.invoked_subcommand is None:
         formatter = ctx.make_formatter()
-        cli.format_help(ctx, formatter)
+        ctx.command.format_help(ctx, formatter)
+    return 0

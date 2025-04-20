@@ -1,8 +1,8 @@
 import sys
-from . import cli as cli
+from socx.cli import cli as cli
 
 
-def main():
+def main() -> int:
     return cli(obj={})
 
 

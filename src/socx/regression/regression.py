@@ -23,12 +23,12 @@ from rich.progress import TimeElapsedColumn
 from rich.progress import MofNCompleteColumn
 from dynaconf.utils.boxing import DynaBox
 
-from .test import Test
-from .test import TestBase
-from .test import TestStatus
-from .test import TestResult
-from .validator import validate_test_list
-from ..config import settings
+from socx.config import settings
+from socx.regression.test import Test
+from socx.regression.test import TestBase
+from socx.regression.test import TestStatus
+from socx.regression.test import TestResult
+from socx.regression.validator import validate_test_list
 
 
 logger = logging.getLogger(__name__)

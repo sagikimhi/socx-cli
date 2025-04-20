@@ -13,7 +13,7 @@ from dynaconf import Dynaconf
 from dynaconf import add_converter
 from dynaconf.base import Settings
 
-from ..io.decorators import log_it
+from socx.io.decorators import log_it
 
 
 class Converter(abc.ABC):

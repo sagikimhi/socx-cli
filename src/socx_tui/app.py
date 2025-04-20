@@ -1,5 +1,3 @@
-"""Terminal based application UI."""
-
 from __future__ import annotations
 
 from typing import Any

@@ -6,10 +6,10 @@ from pathlib import Path
 from dynaconf import Dynaconf
 from dynaconf.base import Settings
 
-from . import converters
-from .paths import APP_SETTINGS_FILE
-from .metadata import __appname__
-from ..io import log_it
+from socx.io import log_it
+from socx.config import converters
+from socx.config.paths import APP_SETTINGS_FILE
+from socx.config.metadata import __appname__
 
 logger = logging.getLogger(__name__)
 

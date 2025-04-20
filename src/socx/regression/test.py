@@ -16,12 +16,12 @@ from asyncio.subprocess import Process
 import psutil
 from dynaconf.utils.boxing import DynaBox
 
-from ..io import logger
-from ..config import settings
-from ..patterns import Visitor
-from ..patterns import UIDMixin
+from socx.io import logger
+from socx.config import settings
+from socx.patterns import Visitor
+from socx.patterns import UIDMixin
 
-# TODO: Patch - socrun should be modified to return non-zero value on
+# FIXME: Patch - socrun should be modified to return non-zero value on
 # test failure in the future
 from socx_patches import post_process_sim_log as pp_simlog
 

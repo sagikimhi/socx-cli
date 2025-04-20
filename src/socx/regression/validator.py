@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from .test import Test
+from socx.regression.test import Test
 
 
 def _duplicates(tests: Iterable[Test]) -> Iterable[Test]:

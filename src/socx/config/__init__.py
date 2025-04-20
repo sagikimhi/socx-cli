@@ -1,12 +1,8 @@
 import sys
 
 __all__ = (
-    # Metadata
-    "__author__",
-    "__project__",
-    "__version__",
-    "__appname__",
-    "__directory__",
+    # Settings
+    "settings",
     # Paths
     "USER_LOG_DIR",
     "USER_DATA_DIR",
@@ -16,125 +12,115 @@ __all__ = (
     "USER_RUNTIME_DIR",
     "USER_LOG_FILE",
     "USER_CONFIG_FILE",
+    "APP_STATIC_DIR",
+    "APP_TEMPLATES_DIR",
     "APP_SETTINGS_DIR",
     "APP_SETTINGS_FILE",
-    # Settings
-    "settings",
-    # Formatters
-    "Formatter",
-    "TreeFormatter",
+    # Metadata
+    "__author__",
+    "__project__",
+    "__version__",
+    "__appname__",
+    "__directory__",
     # Converters
     "Converter",
     "PathConverter",
     "ImportConverter",
     "SymbolConverter",
     "CompileConverter",
-    "add_converter",
+    "IncludeConverter",
     "add_converters",
     "get_converters",
     # Validators
     "Validator",
-    "OrValidator",
-    "AndValidator",
-    "ValidatorList",
     "ValidationError",
-    "eq",
-    "ne",
-    "gt",
-    "lt",
-    "gte",
-    "lte",
-    "cont",
-    "empty",
-    "is_in",
-    "len_eq",
-    "len_ne",
-    "len_min",
-    "len_max",
-    "endswith",
-    "identity",
-    "is_not_in",
-    "is_type_of",
-    "startswith",
     "validate_all",
+    # Formatters
+    "Formatter",
+    "TreeFormatter",
 )
 
-from .metadata import __author__ as __author__
-from .metadata import __project__ as __project__
-from .metadata import __version__ as __version__
-from .metadata import __appname__ as __appname__
-from .metadata import __directory__ as __directory__
 
-from .paths import USER_LOG_DIR as USER_LOG_DIR
-from .paths import USER_DATA_DIR as USER_DATA_DIR
-from .paths import USER_CACHE_DIR as USER_CACHE_DIR
-from .paths import USER_STATE_DIR as USER_STATE_DIR
-from .paths import USER_CONFIG_DIR as USER_CONFIG_DIR
-from .paths import USER_RUNTIME_DIR as USER_RUNTIME_DIR
-from .paths import USER_LOG_FILE as USER_LOG_FILE
-from .paths import USER_CONFIG_FILE as USER_CONFIG_FILE
-from .paths import APP_STATIC_DIR as APP_STATIC_DIR
-from .paths import APP_SETTINGS_DIR as APP_SETTINGS_DIR
-from .paths import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
-from .paths import APP_SETTINGS_FILE as APP_SETTINGS_FILE
+from socx.config._config import settings as settings
 
-from .formatters import Formatter as Formatter
-from .formatters import TreeFormatter as TreeFormatter
+from socx.config.paths import USER_LOG_DIR as USER_LOG_DIR
+from socx.config.paths import USER_DATA_DIR as USER_DATA_DIR
+from socx.config.paths import USER_CACHE_DIR as USER_CACHE_DIR
+from socx.config.paths import USER_STATE_DIR as USER_STATE_DIR
+from socx.config.paths import USER_CONFIG_DIR as USER_CONFIG_DIR
+from socx.config.paths import USER_RUNTIME_DIR as USER_RUNTIME_DIR
+from socx.config.paths import USER_LOG_FILE as USER_LOG_FILE
+from socx.config.paths import USER_CONFIG_FILE as USER_CONFIG_FILE
+from socx.config.paths import APP_STATIC_DIR as APP_STATIC_DIR
+from socx.config.paths import APP_SETTINGS_DIR as APP_SETTINGS_DIR
+from socx.config.paths import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
+from socx.config.paths import APP_SETTINGS_FILE as APP_SETTINGS_FILE
 
-from .validators import Validator as Validator
-from .validators import ValidationError as ValidationError
-from .validators import validate_all as validate_all
+from socx.config.metadata import __author__ as __author__
+from socx.config.metadata import __project__ as __project__
+from socx.config.metadata import __version__ as __version__
+from socx.config.metadata import __appname__ as __appname__
+from socx.config.metadata import __directory__ as __directory__
 
-from .converters import Converter as Converter
-from .converters import PathConverter as PathConverter
-from .converters import ImportConverter as ImportConverter
-from .converters import SymbolConverter as SymbolConverter
-from .converters import CompileConverter as CompileConverter
-from .converters import IncludeConverter as IncludeConverter
-from .converters import add_converter as add_converter
-from .converters import add_converters as add_converters
-from .converters import get_converters as get_converters
+from socx.config.converters import Converter as Converter
+from socx.config.converters import PathConverter as PathConverter
+from socx.config.converters import ImportConverter as ImportConverter
+from socx.config.converters import SymbolConverter as SymbolConverter
+from socx.config.converters import CompileConverter as CompileConverter
+from socx.config.converters import IncludeConverter as IncludeConverter
+from socx.config.converters import add_converters as add_converters
+from socx.config.converters import get_converters as get_converters
 
-from ._config import settings as settings
+from socx.config.validators import Validator as Validator
+from socx.config.validators import ValidationError as ValidationError
+from socx.config.validators import validate_all as validate_all
 
-from . import paths
-from . import metadata
-from dynaconf import Dynaconf
-from dynaconf.base import Settings
+from socx.config.formatters import Formatter as Formatter
+from socx.config.formatters import TreeFormatter as TreeFormatter
 
-_settings: Settings = Dynaconf()
-_l_paths = {
-    x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
-}
-_u_paths = {
-    x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
-}
-_l_metadata = {
-    x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
-}
-_u_metadata = {
-    x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
-}
 
-try:
-    _settings.update({"paths": _l_paths}, merge=True)
-    _settings.update({"paths": _u_paths}, merge=True)
-except Exception as e:
-    err = f"Failed to load 'paths' configuration due to exception: {e}."
-    raise ImportError(err) from None
-else:
-    del paths
+def init() -> None:
+    from dynaconf import Dynaconf
+    from dynaconf.base import Settings
+    from socx.config import metadata
+    from socx.config import paths
 
-try:
-    _settings.update({"metadata": _l_metadata}, merge=True)
-    _settings.update({"metadata": _u_metadata}, merge=True)
-except Exception as e:
-    err = f"Failed to load 'metadata' configuration due to exception: {e}."
-    raise ImportError(err) from None
-else:
-    del metadata
+    _settings: Settings = Dynaconf()
 
-settings.update(data=_settings.as_dict().copy())
-del Settings
-del Dynaconf
-del sys
+    _l_paths = {
+        x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
+    }
+    _u_paths = {
+        x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
+    }
+    _l_metadata = {
+        x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
+    }
+    _u_metadata = {
+        x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
+    }
+
+    try:
+        _settings.update({"paths": _l_paths}, merge=True)
+        _settings.update({"paths": _u_paths}, merge=True)
+    except Exception as e:
+        err = f"Failed to load 'paths' configuration due to exception: {e}."
+        raise ImportError(err) from None
+    else:
+        del paths
+
+    try:
+        _settings.update({"metadata": _l_metadata}, merge=True)
+        _settings.update({"metadata": _u_metadata}, merge=True)
+    except Exception as e:
+        err = f"Failed to load 'metadata' configuration due to exception: {e}."
+        raise ImportError(err) from None
+    else:
+        del metadata
+
+    settings.update(data=_settings.as_dict().copy())
+    del Dynaconf
+    del Settings
+
+
+init()

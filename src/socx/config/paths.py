@@ -10,10 +10,10 @@ from platformdirs import user_cache_path
 from platformdirs import user_config_path
 from platformdirs import user_runtime_path
 
-from .metadata import __author__
-from .metadata import __version__
-from .metadata import __appname__
-from .metadata import __directory__
+from socx.config.metadata import __author__
+from socx.config.metadata import __version__
+from socx.config.metadata import __appname__
+from socx.config.metadata import __directory__
 
 __all__ = (
     "USER_LOG_DIR",

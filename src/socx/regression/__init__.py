@@ -7,9 +7,9 @@ __all__ = (
     "Regression",
 )
 
-from .test import Test as Test
-from .test import TestBase as TestBase
-from .test import TestStatus as TestStatus
-from .test import TestResult as TestResult
-from .test import TestCommand as TestCommand
-from .regression import Regression as Regression
+from socx.regression.test import Test as Test
+from socx.regression.test import TestBase as TestBase
+from socx.regression.test import TestStatus as TestStatus
+from socx.regression.test import TestResult as TestResult
+from socx.regression.test import TestCommand as TestCommand
+from socx.regression.regression import Regression as Regression

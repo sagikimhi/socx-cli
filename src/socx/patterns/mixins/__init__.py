@@ -3,5 +3,5 @@ __all__ = (
     "PtrMixin",
 )
 
-from .uid import UIDMixin as UIDMixin
-from .uid import PtrMixin as PtrMixin
+from socx.patterns.mixins.uid import UIDMixin as UIDMixin
+from socx.patterns.mixins.uid import PtrMixin as PtrMixin

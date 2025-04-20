@@ -15,22 +15,20 @@ FC = TypeVar("FC", bound=Callable[..., Any])
 def log_it(
     level: str | int = logging.DEBUG,
 ) -> Callable[[FC], FC]:
-    """Add automatic debug logging to decorated functions/methods."""
+    """Add automatic entered/returned logging to decorated callables."""
     if isinstance(level, str):
         level_map: dict[str, int] = logging.getLevelNamesMapping()
         level = level_map[level]
 
     def _log_it(f):
-        func = f.__call__
-        name = f.__name__
         sig = f"{f.__name__}{signature(f)}"
-        logger = logging.getLogger(name)
+        logger = logging.getLogger()
 
         @wraps(f)
         def wrapper(*args, **kwargs):
-            logger.log(level, f"[{name}{sig}] entered.")
-            rv = func(*args, **kwargs)
-            logger.log(level, f"[{f.__name__}{sig}] {rv=}.")
+            logger.log(level, f"[{sig}] entered.")
+            rv = f(*args, **kwargs)
+            logger.log(level, f"[{sig}] returned {rv}.")
             return rv
 
         return wrapper
