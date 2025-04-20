@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import os
+import logging
 import asyncio as aio
+from typing import Any
 from typing import override
 from threading import RLock
+from dataclasses import field
 from dataclasses import dataclass
 from collections import deque
 from collections.abc import Iterator
 from collections.abc import Iterable
+from collections.abc import AsyncIterator
 
 from rich.progress import Progress
 from rich.progress import TextColumn
@@ -18,51 +23,43 @@ from rich.progress import TimeElapsedColumn
 from rich.progress import MofNCompleteColumn
 from dynaconf.utils.boxing import DynaBox
 
-from .test import Test
-from .test import TestBase
-from .test import TestStatus
-from .test import TestResult
-from ..io import logger
-from ..config import settings
-from ..patterns.visitor import Node
-from ..patterns.visitor import Visitor
+from socx.config import settings
+from socx.regression.test import Test
+from socx.regression.test import TestBase
+from socx.regression.test import TestStatus
+from socx.regression.test import TestResult
+from socx.regression.validator import validate_test_list
 
 
-__all__ = "Regression"
+logger = logging.getLogger(__name__)
+
+
+__all__ = ("Regression",)
 
 
 @dataclass(init=False)
 class Regression(TestBase):
-    tests: dict[str, Test]
+    _map: dict[Test, str] = field(default_factory=dict)
+    _tests: deque[Test] = field(default_factory=deque)
 
-    def __init__(self, name: str, tests: Iterable[Test], *args, **kwargs):
+    def __init__(
+        self, name: str, tests: Iterable[Test], *args: Any, **kwargs: Any
+    ) -> None:
         TestBase.__init__(self, name, *args, **kwargs)
         if tests is None:
-            tests = []
-        seen = set()
-        duplicates = [x for x in tests if x in seen and seen.add(x) is None]
-        seen.clear()
-        unique = [x for x in tests if x not in seen and seen.add(x) is None]
-        if len(unique) != len(tests):
-            error = f"""
-            Note that as a set, the total number of tests in the regression
-            has less tests than what the original input list of tests included.
-            (i.e. some hashes of the tests were found to be duplicates).
-
-            The original number of tests was: {len(tests)}.
-
-            The total number of unique tests is: {len(unique)}.
-
-            The suspected duplicate values are: {duplicates}.
-            """
-            logger.exception(error)
-            raise ValueError(error)
-        self.lock = RLock()
+            tests = set()
+        tests = set(tests)
+        validate_test_list(tests)
+        self._pid = os.getpid()
+        self._map = {test: test.name for test in tests}
+        self._lock = RLock()
+        self._tests: deque[Test] = deque(set(tests))
         self._runner_tid = None
         self._scheduler_tid = None
         self._regression_tid = None
-        self._tests: list[Test] = unique
         self._num_tests = len(self._tests)
+        self.pending: aio.Queue[Test] = aio.Queue(self.run_limit)
+        self.messages: aio.Queue[str] = aio.Queue()
         self._progress: Progress = Progress(
             TextColumn("[progress.description]{task.description}"),
             TaskProgressColumn(),
@@ -77,17 +74,11 @@ class Regression(TestBase):
             transient=False,
             expand=False,
         )
-        self.pending: aio.Queue = aio.Queue(self.run_limit)
-        self.messages: aio.Queue[str] = aio.Queue()
 
     @classmethod
     def from_lines(cls, name: str, lines: Iterable[str]) -> Regression:
-        tests = deque(Test(line) for line in lines)
+        tests = [Test(line) for line in lines]
         return Regression(name, tests)
-
-    def accept(self, visitor: Visitor[Node]) -> None:
-        """Accept a visit from a visitor."""
-        visitor.visit(self)
 
     def __len__(self) -> int:
         return self._num_tests
@@ -96,31 +87,35 @@ class Regression(TestBase):
         """Iterate over tests defined in a regression."""
         return iter(self._tests)
 
+    async def __aiter__(self) -> AsyncIterator[Test]:
+        for test in self._tests:
+            yield test
+
     def __contains__(self, test: Test) -> bool:
         return test is not None and test in self._tests
 
     @property
     def cfg(self) -> DynaBox:
         """Regression settings accessed via property."""
-        with self.lock:
+        with self._lock:
             return settings.regression
 
     @property
-    def tests(self) -> dict[str, Test]:
+    def tests(self) -> deque[Test]:
         """An iterable of all tests defined in the regression."""
-        with self.lock:
+        with self._lock:
             return self._tests
 
     @property
     def progress(self):
         """The regression's progress."""
-        with self.lock:
+        with self._lock:
             return self._progress
 
     @property
     def run_limit(self):
         """The max_runs_in_parallel configuration accessed via property."""
-        with self.lock:
+        with self._lock:
             return int(self.cfg.max_runs_in_parallel)
 
     @override
@@ -154,31 +149,31 @@ class Regression(TestBase):
     @override
     def suspend(self) -> None:
         """Suspend the execution of a running test."""
-        for test in self.tests.values():
+        for test in self.tests:
             test.suspend()
 
     @override
-    async def resume(self) -> None:
+    def resume(self) -> None:
         """Resume the execution of a paused test."""
-        for test in self.tests.values():
+        for test in self.tests:
             test.resume()
 
     @override
-    async def interrupt(self) -> None:
+    def interrupt(self) -> None:
         """Interrupt the execution of a running test with a SIGINT signal."""
-        for test in self.tests.values():
+        for test in self.tests:
             test.interrupt()
 
     @override
-    async def terminate(self) -> None:
+    def terminate(self) -> None:
         """Interrupt the execution of a running test with a SIGTERM signal."""
-        for test in self.tests.values():
+        for test in self.tests:
             test.terminate()
 
     @override
-    async def kill(self) -> None:
+    def kill(self) -> None:
         """Interrupt the execution of a running test with a SIGKILL signal."""
-        for test in self.tests.values():
+        for test in self.tests:
             test.kill()
 
     async def _schedule_tests(self) -> None:
@@ -194,72 +189,57 @@ class Regression(TestBase):
     async def _scheduler(self, test) -> None:
         try:
             test._status = TestStatus.Pending
-            await self.messages.put(
-                f"Scheduler({test.name}): scheduling test..."
-            )
             await self.pending.put(test)
+        except Exception:
+            pass
+        else:
             await self.messages.put(f"Scheduler({test.name}): test scheduled.")
             self._scheduler_advance()
-        except Exception:
-            logger.exception("An exception occured during scheduling.")
-            raise
+        finally:
+            await self.pending.join()
 
     async def _run_tests(self) -> None:
-        try:
-            while self.pending.empty():
-                await aio.sleep(0.1)
-            await self.messages.put("starting runners...")
-            async with aio.TaskGroup() as tg:
-                for _ in range(self.run_limit):
-                    tg.create_task(self._runner())
+        while self.pending.empty():
+            await aio.sleep(0)
+        async with aio.TaskGroup() as tg:
+            for _ in range(self.run_limit):
+                tg.create_task(self._runner())
+            self._runner_advance()
+        await self.pending.join()
+
+    async def _runner(self) -> None:
+        while self.pending.qsize():
+            try:
+                test = await self.pending.get()
+                await self.messages.put(f"Runner({test.name}): running...")
+                await test.start()
+            except Exception:
+                pass
+            else:
+                await self.messages.put(f"Runner({test.name}): done.")
+            finally:
                 self._runner_advance()
-            await self.pending.join()
-            await self.messages.put("all tests completed. stopping runners.")
-        except Exception:
-            logger.exception("Failed to start runners due to exception")
-            raise
+                self.pending.task_done()
 
-    async def _runner(self):
-        try:
-            while self.pending.qsize():
-                try:
-                    test = await self.pending.get()
-                    await self.messages.put(f"Runner({test.name}): running...")
-                    await test.start()
-                    await self.messages.put(f"Runner({test.name}): done.")
-                    self._runner_advance()
-                finally:
-                    self.pending.task_done()
-        except Exception:
-            logger.exception(
-                f"Runner({test.name}): terminated due to exception."
-            )
-            raise
+    async def _animate_progress(self) -> None:
+        with self.progress as progress:
+            self._scheduler_start()
+            self._runner_start()
+            self._regression_start()
+            while not progress.finished:
+                await self._process_messages()
+                await aio.sleep(0)
 
-    async def _animate_progress(self):
-        try:
-            with self.progress as progress:
-                self._scheduler_start()
-                self._runner_start()
-                self._regression_start()
-                while not progress.finished:
-                    msgs = await self._process_messages()
-                    if msgs:
-                        progress.log(msgs)
-                    await aio.sleep(0.02)
-        except Exception:
-            logger.exception("Regression halted due to exception")
-            raise
-
-    async def _process_messages(self) -> str:
-        msgs = ""
+    async def _process_messages(self) -> None:
         while not self.messages.empty():
             try:
-                msgs += await self.messages.get()
-                msgs += "\n"
+                msg = await self.messages.get()
+            except Exception:
+                pass
+            else:
+                self.progress.log(msg)
             finally:
                 self.messages.task_done()
-        return msgs
 
     def _scheduler_start(self) -> None:
         if self._scheduler_tid is None:

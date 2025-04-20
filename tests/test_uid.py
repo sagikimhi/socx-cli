@@ -8,16 +8,17 @@ class UIDTest(UIDMixin):
     iteration: int
 
 
-def test():
+def test() -> None:
     inst_ = UIDTest(0)
     for _ in range(1, 999):
         inst = UIDTest(_)
-        console.print(inst)
         assert inst.iteration == inst.uid
         console.print(UIDTest.dref(inst.ref))
+        del inst
+        console.print(UIDTest.dref(_))
 
     console.print(UIDTest.dref(inst_.ref))
-    inst_ = None
+    del inst_
     console.print(UIDTest.dref(0))
 
 

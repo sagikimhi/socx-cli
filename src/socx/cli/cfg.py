@@ -1,6 +1,5 @@
 from typing import Literal
-import rich
-import rich_click.rich_click as rich_cfg
+from rich_click import rich_click
 
 # -----------------------------------------------------------------------------
 # Types
@@ -14,133 +13,129 @@ ColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 # Styles
 # -----------------------------------------------------------------------------
 
-rich_cfg.TEXT_MARKUP = "rich"
-rich_cfg.STYLE_OPTION: rich.style.StyleType = "bright_green"
-rich_cfg.STYLE_SWITCH: rich.style.StyleType = "bright_green"
-rich_cfg.STYLE_COMMAND: rich.style.StyleType = "cyan"
-rich_cfg.STYLE_ARGUMENT: rich.style.StyleType = "green"
-rich_cfg.STYLE_ABORTED: rich.style.StyleType = "red"
-rich_cfg.STYLE_DEPRECATED: rich.style.StyleType = "red"
+rich_click.TEXT_MARKUP = "rich"
+rich_click.STYLE_OPTION = "bright_green"
+rich_click.STYLE_SWITCH = "bright_green"
+rich_click.STYLE_COMMAND = "cyan"
+rich_click.STYLE_ARGUMENT = "green"
+rich_click.STYLE_ABORTED = "red"
+rich_click.STYLE_DEPRECATED = "red"
 
-rich_cfg.STYLE_HEADER_TEXT: rich.style.StyleType = ""
-rich_cfg.STYLE_EPILOG_TEXT: rich.style.StyleType = ""
-rich_cfg.STYLE_FOOTER_TEXT: rich.style.StyleType = ""
+rich_click.STYLE_HEADER_TEXT = ""
+rich_click.STYLE_EPILOG_TEXT = ""
+rich_click.STYLE_FOOTER_TEXT = ""
 
-rich_cfg.STYLE_USAGE: rich.style.StyleType = "yellow"
-rich_cfg.STYLE_USAGE_COMMAND: rich.style.StyleType = "cyan"
+rich_click.STYLE_USAGE = "yellow"
+rich_click.STYLE_USAGE_COMMAND = "cyan"
 
-rich_cfg.STYLE_HELPTEXT: rich.style.StyleType = ""
-rich_cfg.STYLE_HELPTEXT_FIRST_LINE: rich.style.StyleType = ""
+rich_click.STYLE_HELPTEXT = ""
+rich_click.STYLE_HELPTEXT_FIRST_LINE = ""
 
-rich_cfg.STYLE_REQUIRED_LONG: rich.style.StyleType = "red"
-rich_cfg.STYLE_REQUIRED_SHORT: rich.style.StyleType = "red"
+rich_click.STYLE_REQUIRED_LONG = "red"
+rich_click.STYLE_REQUIRED_SHORT = "red"
 
-rich_cfg.STYLE_METAVAR: rich.style.StyleType = "yellow"
-rich_cfg.STYLE_METAVAR_APPEND: rich.style.StyleType = "yellow"
-rich_cfg.STYLE_METAVAR_SEPARATOR: rich.style.StyleType = ""
+rich_click.STYLE_METAVAR = "yellow"
+rich_click.STYLE_METAVAR_APPEND = "yellow"
+rich_click.STYLE_METAVAR_SEPARATOR = ""
 
-rich_cfg.STYLE_OPTION_HELP: rich.style.StyleType = ""
-rich_cfg.STYLE_OPTION_ENVVAR: rich.style.StyleType = "orange3"
-rich_cfg.STYLE_OPTION_DEFAULT: rich.style.StyleType = "magenta"
+rich_click.STYLE_OPTION_HELP = ""
+rich_click.STYLE_OPTION_ENVVAR = "orange3"
+rich_click.STYLE_OPTION_DEFAULT = "magenta"
 
-rich_cfg.ALIGN_OPTIONS_PANEL: rich.align.AlignMethod = "left"
-rich_cfg.STYLE_OPTIONS_PANEL_BOX: str | rich.box.Box | None = "ROUNDED"
-rich_cfg.STYLE_OPTIONS_PANEL_BORDER: rich.style.StyleType = "bright_black"
+rich_click.ALIGN_OPTIONS_PANEL = "left"
+rich_click.STYLE_OPTIONS_PANEL_BOX = "ROUNDED"
+rich_click.STYLE_OPTIONS_PANEL_BORDER = "bright_black"
 
-rich_cfg.STYLE_OPTIONS_TABLE_BOX: str | rich.box.Box | None = "HORIZONTAL"
-rich_cfg.STYLE_OPTIONS_TABLE_LEADING: int = 1
-rich_cfg.STYLE_OPTIONS_TABLE_PADDING: rich.padding.PaddingDimensions = (1, 1)
-rich_cfg.STYLE_OPTIONS_TABLE_PAD_EDGE: bool = False
-rich_cfg.STYLE_OPTIONS_TABLE_SHOW_LINES: bool = False
-rich_cfg.STYLE_OPTIONS_TABLE_BORDER_STYLE: rich.style.StyleType | None = None
-rich_cfg.STYLE_OPTIONS_TABLE_COLUMN_WIDTH_RATIO: tuple[int, int] = (1, 1)
-rich_cfg.STYLE_OPTIONS_TABLE_ROW_STYLES: list[rich.style.StyleType] | None = (
-    None
-)
+rich_click.STYLE_OPTIONS_TABLE_BOX = "HORIZONTAL"
+rich_click.STYLE_OPTIONS_TABLE_LEADING = 1
+rich_click.STYLE_OPTIONS_TABLE_PADDING = (1, 1)
+rich_click.STYLE_OPTIONS_TABLE_PAD_EDGE = False
+rich_click.STYLE_OPTIONS_TABLE_SHOW_LINES = False
+rich_click.STYLE_OPTIONS_TABLE_BORDER_STYLE = None
+rich_click.STYLE_OPTIONS_TABLE_COLUMN_WIDTH_RATIO = (1, 1)
+rich_click.STYLE_OPTIONS_TABLE_ROW_STYLES = None
 
-rich_cfg.ALIGN_COMMANDS_PANEL: rich.align.AlignMethod = "left"
-rich_cfg.STYLE_COMMANDS_PANEL_BOX: str | rich.box.Box | None = "ROUNDED"
-rich_cfg.STYLE_COMMANDS_PANEL_BORDER: rich.style.StyleType = "bright_black"
+rich_click.ALIGN_COMMANDS_PANEL = "left"
+rich_click.STYLE_COMMANDS_PANEL_BOX = "ROUNDED"
+rich_click.STYLE_COMMANDS_PANEL_BORDER = "bright_black"
 
-rich_cfg.STYLE_COMMANDS_TABLE_BOX: str | rich.box.Box | None = ""
-rich_cfg.STYLE_COMMANDS_TABLE_PADDING: rich.padding.PaddingDimensions = (0, 1)
-rich_cfg.STYLE_COMMANDS_TABLE_LEADING: int = 1
-rich_cfg.STYLE_COMMANDS_TABLE_PAD_EDGE: bool = False
-rich_cfg.STYLE_COMMANDS_TABLE_SHOW_LINES: bool = False
-rich_cfg.STYLE_COMMANDS_TABLE_BORDER_STYLE: rich.style.StyleType | None = None
-rich_cfg.STYLE_COMMANDS_TABLE_ROW_STYLES: list[rich.style.StyleType] | None = (
-    None
-)
-rich_cfg.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO: tuple[int, int] = (1, 1)
+rich_click.STYLE_COMMANDS_TABLE_BOX = ""
+rich_click.STYLE_COMMANDS_TABLE_PADDING = (0, 1)
+rich_click.STYLE_COMMANDS_TABLE_LEADING = 1
+rich_click.STYLE_COMMANDS_TABLE_PAD_EDGE = False
+rich_click.STYLE_COMMANDS_TABLE_SHOW_LINES = False
+rich_click.STYLE_COMMANDS_TABLE_BORDER_STYLE = None
+rich_click.STYLE_COMMANDS_TABLE_ROW_STYLES = None
+rich_click.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO = (1, 1)
 
-rich_cfg.ALIGN_ERRORS_PANEL: rich.align.AlignMethod = "left"
-rich_cfg.STYLE_ERRORS_PANEL_BOX: str | rich.box.Box | None = "ROUNDED"
-rich_cfg.STYLE_ERRORS_PANEL_BORDER: rich.style.StyleType = "red"
-rich_cfg.STYLE_ERRORS_SUGGESTION: rich.style.StyleType = ""
-rich_cfg.STYLE_ERRORS_SUGGESTION_COMMAND: rich.style.StyleType = "blue"
+rich_click.ALIGN_ERRORS_PANEL = "left"
+rich_click.STYLE_ERRORS_PANEL_BOX = "ROUNDED"
+rich_click.STYLE_ERRORS_PANEL_BORDER = "red"
+rich_click.STYLE_ERRORS_SUGGESTION = ""
+rich_click.STYLE_ERRORS_SUGGESTION_COMMAND = "blue"
 
 # -----------------------------------------------------------------------------
 # Options
 # -----------------------------------------------------------------------------
 
-rich_cfg.COLOR_SYSTEM: ColorSystem = "auto"
+rich_click.COLOR_SYSTEM = "auto"
 """Set to None to disable colors"""
 
-rich_cfg.USE_MARKDOWN: bool = True
+rich_click.USE_MARKDOWN = True
 """Parse help strings as markdown"""
 
-rich_cfg.SHOW_ARGUMENTS: bool = True
+rich_click.SHOW_ARGUMENTS = True
 """Show positional arguments"""
 
-rich_cfg.USE_RICH_MARKUP: bool = True
+rich_click.USE_RICH_MARKUP = True
 """Parse help strings for rich markup (eg. [red]my text[/])"""
 
-rich_cfg.USE_MARKDOWN_EMOJI: bool = True
+rich_click.USE_MARKDOWN_EMOJI = True
 """Parse emoji codes in markdown :smile:"""
 
-rich_cfg.OPTION_ENVVAR_FIRST: bool = False
+rich_click.OPTION_ENVVAR_FIRST = False
 """Show env vars before option help text instead of avert"""
 
-rich_cfg.APPEND_METAVARS_HELP: bool = False
+rich_click.APPEND_METAVARS_HELP = False
 """Append metavar (eg. [TEXT]) after the help text"""
 
-rich_cfg.USE_CLICK_SHORT_HELP: bool = False
+rich_click.USE_CLICK_SHORT_HELP = False
 """Use click's default function to truncate help text"""
 
-rich_cfg.SHOW_METAVARS_COLUMN: bool = True
+rich_click.SHOW_METAVARS_COLUMN = True
 """Show a column with the option metavar (eg. INTEGER)"""
 
-rich_cfg.GROUP_ARGUMENTS_OPTIONS: bool = False
+rich_click.GROUP_ARGUMENTS_OPTIONS = False
 """Show arguments with options instead of in own panel"""
 
 # -----------------------------------------------------------------------------
 # Texts
 # -----------------------------------------------------------------------------
 
-rich_cfg.HEADER_TEXT: str = ""
-rich_cfg.EPILOG_TEXT: str = ""
-rich_cfg.FOOTER_TEXT: str = ""
-rich_cfg.ABORTED_TEXT: str = ""
+rich_click.HEADER_TEXT = ""
+rich_click.EPILOG_TEXT = ""
+rich_click.FOOTER_TEXT = ""
+rich_click.ABORTED_TEXT = ""
 
-rich_cfg.ERRORS_PANEL_TITLE: str = "Error"
-rich_cfg.OPTIONS_PANEL_TITLE: str = "Options"
-rich_cfg.COMMANDS_PANEL_TITLE: str = "Commands"
-rich_cfg.ARGUMENTS_PANEL_TITLE: str = "Arguments"
+rich_click.ERRORS_PANEL_TITLE = "Error"
+rich_click.OPTIONS_PANEL_TITLE = "Options"
+rich_click.COMMANDS_PANEL_TITLE = "Commands"
+rich_click.ARGUMENTS_PANEL_TITLE = "Arguments"
 
-rich_cfg.RANGE_STRING: str = " [{}]"
-rich_cfg.ENVVAR_STRING: str = "[envvar: {}]"
-rich_cfg.DEFAULT_STRING: str = "[default: {}]"
-rich_cfg.DEPRECATED_STRING: str = "(Deprecated) "
-rich_cfg.REQUIRED_LONG_STRING: str = "[required]"
-rich_cfg.REQUIRED_SHORT_STRING: str = ""
-rich_cfg.APPEND_METAVARS_HELP_STRING: str = "[{}]"
+rich_click.RANGE_STRING = " [{}]"
+rich_click.ENVVAR_STRING = "[envvar: {}]"
+rich_click.DEFAULT_STRING = "[default: {}]"
+rich_click.DEPRECATED_STRING = "(Deprecated) "
+rich_click.REQUIRED_LONG_STRING = "[required]"
+rich_click.REQUIRED_SHORT_STRING = ""
+rich_click.APPEND_METAVARS_HELP_STRING = "[{}]"
 
-rich_cfg.OPTION_GROUPS: dict[str, list[rich_cfg.OptionGroupDict]] = {}
+rich_click.OPTION_GROUPS = {}
 
-rich_cfg.ERRORS_EPILOGUE = """[bright_magenta]\
+rich_click.ERRORS_EPILOGUE = """[bright_magenta]\
 For more info, visit:[/] [link]https://bitbucket.org/wiliot/socx-cli[/]
 """.strip()
 
-rich_cfg.ERRORS_SUGGESTION: str | rich.text.Text | None = """\
+rich_click.ERRORS_SUGGESTION = """\
 Try running with '-h' or '--help' for more information.
 """

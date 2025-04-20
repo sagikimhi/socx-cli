@@ -4,33 +4,23 @@ from pathlib import Path
 from collections.abc import Iterable
 
 from dynaconf import LazySettings
+from dynaconf.validator import empty
+
+
+__all__ = (
+    "Validator",
+    "PathValidator",
+    "ValidationError",
+)
+
+
 from dynaconf.validator import Validator as Validator
-from dynaconf.validator import OrValidator as OrValidator
-from dynaconf.validator import AndValidator as AndValidator
-from dynaconf.validator import ValidatorList as ValidatorList
 from dynaconf.validator import ValidationError as ValidationError
-from dynaconf.validator_conditions import eq as eq
-from dynaconf.validator_conditions import ne as ne
-from dynaconf.validator_conditions import gt as gt
-from dynaconf.validator_conditions import lt as lt
-from dynaconf.validator_conditions import gte as gte
-from dynaconf.validator_conditions import lte as lte
-from dynaconf.validator_conditions import cont as cont
-from dynaconf.validator_conditions import is_in as is_in
-from dynaconf.validator_conditions import len_eq as len_eq
-from dynaconf.validator_conditions import len_ne as len_ne
-from dynaconf.validator_conditions import len_min as len_min
-from dynaconf.validator_conditions import len_max as len_max
-from dynaconf.validator_conditions import endswith as endswith
-from dynaconf.validator_conditions import identity as identity
-from dynaconf.validator_conditions import is_not_in as is_not_in
-from dynaconf.validator_conditions import is_type_of as is_type_of
-from dynaconf.validator_conditions import startswith as startswith
 
 
 class PathValidator:
-    src: ClassVar[Path] = None
-    target: ClassVar[Path] = None
+    src: ClassVar[Path]
+    target: ClassVar[Path]
 
     @classmethod
     def source_validator(cls, src: str | Path) -> bool:
@@ -46,10 +36,7 @@ class PathValidator:
 
     @classmethod
     def includes_validator(
-        cls,
-        src: Path,
-        includes: list[str] | set[str] | tuple[str, ...],
-        excludes: list[str] | set[str] | tuple[str, ...],
+        cls, src: Path, includes: Iterable[str], excludes: Iterable[str]
     ) -> bool:
         if not includes:
             return False
@@ -62,22 +49,26 @@ class PathValidator:
 
     @classmethod
     def _extract_includes(
-        cls, src: Path, includes: set[Path], excludes: set[Path]
+        cls, src: Path, includes: Iterable[str], excludes: Iterable[str]
     ) -> set[Path]:
-        paths = set()
-        globpaths = set()
+        paths: set[Path] = set()
+        globpaths: set[Path] = set()
+
         if not isinstance(src, Path):
             src = Path(src)
+
         for include in includes:
             if "*" not in include:
                 paths.add(Path(src / include))
             else:
                 globpaths = globpaths.union(set(src.glob(str(include))))
+
         for exclude in excludes:
             if "*" not in exclude:
                 paths.discard(Path(src / exclude))
             else:
                 globpaths.difference_update(set(src.glob(str(exclude))))
+
         return paths.union(globpaths)
 
 
@@ -111,9 +102,7 @@ def get_validators(settings: LazySettings):
     yield from _convert_validators(settings)
 
 
-def validate_all(
-    settings: LazySettings | None = None, register: bool = False
-) -> None:
+def validate_all(settings: LazySettings, register: bool = False) -> None:
     if register:
         settings.validators.register(get_validators(settings))
 

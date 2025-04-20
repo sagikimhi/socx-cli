@@ -1,4 +1,7 @@
-__all__ = ("Table", "Visitor")
+__all__ = (
+    "Table",
+    "TableVisitor",
+)
 
-from .table import Table as Table
-from .table import Visitor as Visitor
+from socx_tui.regression.table import Table as Table
+from socx_tui.regression.table import TableVisitor as TableVisitor

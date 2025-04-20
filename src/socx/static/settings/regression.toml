@@ -9,7 +9,7 @@ path = "@path @format /space/users/ci_wiliot/vw_e0_nightly_regression/regression
 max_runs_in_parallel = 10
 
 [regression.report] 
-path = "@path @format {env[RAREA]}/socx/regression/reports"
+path = "@path @format {env[RAREA]}/regression/reports"
 
 # -----------------------------------------------------------------------------
 # Rerun Failure History

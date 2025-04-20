@@ -39,15 +39,14 @@ def edit(ctx: click.Context):
             path = APP_SETTINGS_DIR / file.name
         files[file.stem] = path
 
-    file = files.get(
-        Prompt.ask(
-            console=console,
-            prompt="Which configuration would you like to edit?",
-            choices=[Path(file).stem for file in files],
-            show_choices=True,
-            case_sensitive=True,
-        )
+    filename = Prompt.ask(
+        console=console,
+        prompt="Which configuration would you like to edit?",
+        choices=[Path(file).stem for file in files],
+        show_choices=True,
+        case_sensitive=True,
     )
+    file = files[filename]
     editor = Prompt.ask(
         console=console,
         prompt="Which editor would you like to use?\n\b\n",
@@ -116,8 +115,8 @@ def inspect(ctx: click.Context):
 
 
 @cli.command()
-@click.argument("field", required=True, type=click.STRING)
 @global_options()
+@click.argument("field", required=True, type=click.STRING)
 @click.pass_context
 def get(ctx: click.Context, field: str):
     """Print a tree of configurations defined under NAME."""
@@ -128,8 +127,8 @@ def get(ctx: click.Context, field: str):
         ctx.fail(f"No such field: {field}")
 
 
-get.help = f"""\n\b
-Print a tree of all configurations defined under NAME.
+get.__doc__ = f"""\n\b
+Print a tree of configurations defined under NAME.
 \n\b
 Possible field names are:
 \b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}

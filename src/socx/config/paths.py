@@ -10,10 +10,10 @@ from platformdirs import user_cache_path
 from platformdirs import user_config_path
 from platformdirs import user_runtime_path
 
-from .metadata import __author__
-from .metadata import __version__
-from .metadata import __appname__
-from .metadata import __directory__
+from socx.config.metadata import __author__
+from socx.config.metadata import __version__
+from socx.config.metadata import __appname__
+from socx.config.metadata import __directory__
 
 __all__ = (
     "USER_LOG_DIR",
@@ -73,8 +73,9 @@ USER_LOG_DIR: Final[Path] = user_log_path(
 """Absolute path to platform's native application logs directory."""
 
 
-USER_LOG_FILE: Path = USER_LOG_DIR / "socx.log"
+USER_LOG_FILE: Path = USER_LOG_DIR / "run.log"
 """Absolute path to application's main log for the current local user."""
+
 
 USER_CONFIG_FILE: Path = USER_CONFIG_DIR / "settings.yaml"
 """Absolute path to application's user config file."""

@@ -1,13 +1,12 @@
-from typing import ClassVar
-from collections.abc import Iterable
+from __future__ import annotations
 
-from textual.binding import Binding
+from typing import ClassVar
+
+from textual.binding import BindingType
 from textual.containers import ScrollableContainer
 
-from socx_tui.modes.vim import Vim
+from socx_tui.bindings import Vim
 
 
-class Scrollable(
-    Vim, ScrollableContainer, can_focus=True, inherit_bindings=True
-):
-    BINDINGS: ClassVar[Iterable[Binding]] = Vim.BINDINGS
+class Scrollable(ScrollableContainer, can_focus=True, inherit_bindings=True):
+    BINDINGS: ClassVar[list[BindingType]] = Vim.BINDINGS

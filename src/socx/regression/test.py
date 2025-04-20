@@ -1,26 +1,27 @@
 from __future__ import annotations
 
+import os
 import time
-import abc
 import shlex
-import asyncio as aio
-import psutil as ps
+import asyncio
 from pathlib import Path
-from subprocess import PIPE
 from enum import auto
 from enum import IntEnum
-from typing import TextIO
 from typing import override
+from subprocess import PIPE
 from dataclasses import field
 from dataclasses import dataclass
+from asyncio.subprocess import Process
 
-from ..io import logger
-from ..config import settings
-from ..mixins import UIDMixin
-from ..patterns.visitor import Node
-from ..patterns.visitor import Visitor
+import psutil
+from dynaconf.utils.boxing import DynaBox
 
-# TODO: Patch - socrun should be modified to return non-zero value on
+from socx.io import logger
+from socx.config import settings
+from socx.patterns import Visitor
+from socx.patterns import UIDMixin
+
+# FIXME: Patch - socrun should be modified to return non-zero value on
 # test failure in the future
 from socx_patches import post_process_sim_log as pp_simlog
 
@@ -45,24 +46,27 @@ class TestCommand(UIDMixin):
 
     line: str
     name: str = field(init=False)
-    args: tuple[str] = field(init=False)
     escaped: str = field(init=False)
+    arguments: tuple[str, ...] = field(init=False)
 
     def __post_init__(self) -> None:
-        self.line = self.line.strip()
-        self.args = tuple(arg.strip() for arg in self.line.split())
-        self.name = self.args[0] if self.args else ""
+        self.arguments = tuple(arg.strip() for arg in self.line.split())
+        self.name = self.arguments[0] if self.arguments else ""
         self.escaped = shlex.quote(self.line)
 
-    def extract_argv(self, arg: str) -> str:
-        for i, attr in enumerate(self.args):
+    def extract_argv(self, arg: str) -> str | None:
+        for i, attr in enumerate(self.arguments):
             if attr.startswith("--") or attr.startswith("-"):
-                if attr == arg and i + 1 < len(self.args):
-                    return self.args[i + 1]
-                if attr.removeprefix("-") == arg and i + 1 < len(self.args):
-                    return self.args[i + 1]
-                if attr.removeprefix("--") == arg and i + 1 < len(self.args):
-                    return self.args[i + 1]
+                if attr == arg and i + 1 < len(self.arguments):
+                    return self.arguments[i + 1]
+                if attr.removeprefix("-") == arg and i + 1 < len(
+                    self.arguments
+                ):
+                    return self.arguments[i + 1]
+                if attr.removeprefix("--") == arg and i + 1 < len(
+                    self.arguments
+                ):
+                    return self.arguments[i + 1]
         return None
 
     def __getattr__(self, attr: str) -> str:
@@ -74,41 +78,80 @@ class TestCommand(UIDMixin):
             raise AttributeError(err)
 
     def __hash__(self) -> int:
-        return hash(tuple(set(self.args)))
+        return hash(tuple(set(self.arguments)))
 
 
 @dataclass(init=False)
-class TestBase:
+class TestABC:
     """Definition of basic properties common accross all test types."""
 
-    pid: int
-    name: str
-    command: TestCommand
-    started_time: time.time
-    finished_time: time.time
+    _pid: int
+    _name: str
+    _result: TestResult
+    _status: TestStatus
+    _command: TestCommand
+    _process: Process | None = None
+    _started_time: float | None = None
+    _finished_time: float | None = None
 
-    def __init__(
-        self, command: str | TestCommand | None = None, *args, **kwargs
-    ) -> None:
+    def accept(self, v: Visitor[TestABC]) -> None:
+        """Accept a visit from a `Visitor`."""
+        ...
+
+    async def start(self) -> None:
+        """Start the execution of an idle test."""
+        ...
+
+    def wait(self, timeout: float | None = None) -> None:
+        """Wait for a test to terminate if it is running."""
+        ...
+
+    def kill(self) -> None:
+        """Interrupt the execution of a running test with a SIGKILL signal."""
+        ...
+
+    def suspend(self) -> None:
+        """Suspend the execution of a running test."""
+        ...
+
+    def resume(self) -> None:
+        """Resume the execution of a paused test."""
+        ...
+
+    def interrupt(self) -> None:
+        """Interrupt the execution of a running test with a SIGINT signal."""
+        ...
+
+    def terminate(self) -> None:
+        """Interrupt the execution of a running test with a SIGTERM signal."""
+        ...
+
+
+class TestBase(TestABC):
+    @override
+    def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
         if command is None:
             command = ""
         if not isinstance(command, TestCommand):
             command = TestCommand(command)
+        self._pid = os.getpid()
         self._name = "BASE"
-        self._proc = None
         self._status = TestStatus.Idle
         self._result = TestResult.NA
         self._command = command
+        self._process = None
         self._started_time = None
         self._finished_time = None
 
-    def accept(self, visitor: Visitor[Node]) -> None:
-        visitor.visit(self)
+    @override
+    def accept(self, v: Visitor[TestABC]) -> None:
+        """Accept a visit from a `Visitor`."""
+        v.visit(self)
 
     @property
     def pid(self) -> int | None:
         """Name of a test."""
-        return self._proc.pid if self._proc is not None else None
+        return self._process.pid if self._process is not None else None
 
     @property
     def name(self) -> str:
@@ -131,56 +174,30 @@ class TestBase:
         return self._result
 
     @property
-    def started_time(self) -> time.time:
+    def started_time(self) -> str:
         """Time measured at the begining of a test."""
         return time.ctime(self._started_time)
 
     @property
-    def finished_time(self) -> time.time:
+    def finished_time(self) -> str:
         """Time measured at the end of a test."""
         return time.ctime(self._finished_time)
 
-    @abc.abstractmethod
-    async def start(self) -> None:
-        """Start the execution of an idle test."""
-        ...
-
-    @abc.abstractmethod
-    async def suspend(self) -> None:
-        """Suspend the execution of a running test."""
-        ...
-
-    @abc.abstractmethod
-    async def resume(self) -> None:
-        """Resume the execution of a paused test."""
-        ...
-
-    @abc.abstractmethod
-    async def interrupt(self) -> None:
-        """Interrupt the execution of a running test with a SIGINT signal."""
-        ...
-
-    @abc.abstractmethod
-    async def terminate(self) -> None:
-        """Interrupt the execution of a running test with a SIGTERM signal."""
-        ...
-
-    @abc.abstractmethod
-    async def kill(self) -> None:
-        """Interrupt the execution of a running test with a SIGKILL signal."""
-        ...
-
 
 @dataclass(init=False)
-class Test(TestBase, UIDMixin):
+class Test(UIDMixin, TestBase):
     """Holds information about a test."""
 
-    flow: str
-    seed: int
-    build: int
+    _seed: int = 0
+    _flow: str | None = None
+    _build: str | None = None
+    _stdout: str | None = None
+    _stderr: str | None = None
 
+    @override
     def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
-        super().__init__(command, *args, **kwargs)
+        UIDMixin.__init__(self)
+        TestBase.__init__(self, command, *args, **kwargs)
         try:
             name = self.command.test
         except AttributeError:
@@ -190,12 +207,15 @@ class Test(TestBase, UIDMixin):
             name = name.partition("/")[-1]
         self._name = name
         self._seed = 0
-        self._proc = None
         self._flow = None
         self._build = None
 
     @property
-    def flow(self):
+    def cfg(self) -> DynaBox:
+        return settings.regression
+
+    @property
+    def flow(self) -> str:
         """The selected execution flow of the test."""
         try:
             rv = self.command.flow
@@ -205,7 +225,7 @@ class Test(TestBase, UIDMixin):
             return rv
 
     @property
-    def build(self):
+    def build(self) -> str:
         """Randomization build of a test's RNG."""
         try:
             return str(self.command.build)
@@ -213,7 +233,7 @@ class Test(TestBase, UIDMixin):
             return ""
 
     @property
-    def seed(self):
+    def seed(self) -> int:
         """Randomization seed of a test's RNG."""
         try:
             rv = int(self.command.seed)
@@ -224,22 +244,22 @@ class Test(TestBase, UIDMixin):
     @property
     def idle(self) -> bool:
         """True if test has no active process and has not yet started."""
-        return self._proc is None and self.status is TestStatus.Idle
+        return self._process is None and self.status is TestStatus.Idle
 
     @property
     def pending(self):
         """The test is scheduled to be started soon but has not yet started."""
-        return self._proc is None and self.status == TestStatus.Pending
+        return self._process is None and self.status == TestStatus.Pending
 
     @property
     def started(self) -> bool:
         """True if test was started via a prior call to method `start`."""
-        return self._proc is not None and self.status is TestStatus.Running
+        return self._process is not None and self.status is TestStatus.Running
 
     @property
     def suspended(self) -> bool:
         """True if test was started via a prior call to method `start`."""
-        return self.started and self.process.status() == ps.STATUS_STOPPED
+        return self.started and self.process.status() == psutil.STATUS_STOPPED
 
     @property
     def running(self) -> bool:
@@ -273,12 +293,12 @@ class Test(TestBase, UIDMixin):
         return self.finished and self.result is TestResult.Failed
 
     @property
-    def stdin(self) -> TextIO | None:
+    def stdin(self) -> str | None:
         """The standard input of the test's process or None if not running."""
         return None  # not currently needed, can be overriden by subclass
 
     @property
-    def stdout(self) -> TextIO | None:
+    def stdout(self) -> str | None:
         """The standard output of the test's process or None if not running."""
         if self.finished:
             return self._stdout
@@ -286,7 +306,7 @@ class Test(TestBase, UIDMixin):
             return None
 
     @property
-    def stderr(self) -> TextIO | None:
+    def stderr(self) -> str | None:
         """The standard error of the test's process or None if not running."""
         if self.finished:
             return self._stderr
@@ -294,24 +314,24 @@ class Test(TestBase, UIDMixin):
             return None
 
     @property
-    def process(self) -> ps.Process:
+    def process(self) -> psutil.Process:
         """The active process of the running test or None if not running."""
-        if self._proc is None or not ps.pid_exists(self._proc.pid):
+        if self._process is None or not psutil.pid_exists(self._process.pid):
             return None
         else:
-            return ps.Process(self._proc.pid)
+            return psutil.Process(self._process.pid)
 
     @property
     def returncode(self) -> int | None:
         """The return code from the test process or None if running or idle."""
-        if self._proc is None or self._proc.returncode is None:
+        if self._process is None or self._process.returncode is None:
             return None
-        return self._proc.returncode
+        return self._process.returncode
 
     @property
-    def runtime_cfg(self):
+    def runtime_cfg(self) -> DynaBox:
         """Get the simulation's runtime settings object."""
-        return settings.regression.runtime
+        return self.cfg.runtime
 
     @property
     def runtime_path(self) -> Path:
@@ -321,7 +341,7 @@ class Test(TestBase, UIDMixin):
         The runtime referes to the path where compilation database and run logs
         are dumped by default by the simulator.
         """
-        return self.runtime_cfg.path / self.dirname
+        return Path(self.cfg.runtime.path / self.dirname).resolve().absolute()
 
     @property
     def runtime_logs(self):
@@ -343,19 +363,19 @@ class Test(TestBase, UIDMixin):
             raise exc
 
         self._status = TestStatus.Pending
-        self._proc = await aio.create_subprocess_shell(
+        self._process = await asyncio.create_subprocess_shell(
             cmd=self.command.line, stdin=None, stdout=PIPE, stderr=PIPE
         )
         try:
-            stdout, stderr = await self._proc.communicate()
+            stdout, stderr = await self._process.communicate()
             self._status = TestStatus.Running
             self._started_time = time.time()
             while self.returncode is None:
-                await aio.sleep(0)
+                await asyncio.sleep(0)
             self._finished_time = time.time()
             self._stdout = stdout.decode()
             self._stderr = stderr.decode()
-            await self._proc.wait()
+            await self._process.wait()
             self._status = TestStatus.Finished
             self._result = self._parse_result()
         except Exception:
@@ -407,10 +427,10 @@ class Test(TestBase, UIDMixin):
 
     def _parse_result(self) -> TestResult:
         logger.debug(f"parsing result from {self.runtime_path}")
-        result_hack = pp_simlog.TestResults()
-        result_hack.reset_log(self.runtime_logs / "run.log")
+        result_hack = pp_simlog.TestResults()  # type: ignore
+        result_hack.reset_log(self.runtime_logs / "run.log")  # type: ignore
         try:
-            result_hack.parse_log()
+            result_hack.parse_log()  # type: ignore
         except ValueError:
             return TestResult.Failed
         else:
@@ -453,12 +473,12 @@ class TestResult(IntEnum):
     @classmethod
     def from_temporary_hack(cls, hack: pp_simlog.TestResults) -> TestResult:
         match hack.result:
-            case "NA":
-                return TestResult.NA
             case "PASS":
                 return TestResult.Passed
             case "FAIL":
                 return TestResult.Failed
+            case _:
+                return TestResult.NA
 
 
 class TestStatus(IntEnum):
@@ -486,7 +506,7 @@ class TestStatus(IntEnum):
         Test was intentionally terminated by a signal.
     """
 
-    Idle = auto(0)
+    Idle = 0
     Pending = auto()
     Running = auto()
     Stopped = auto()

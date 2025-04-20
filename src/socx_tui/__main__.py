@@ -1,15 +1,11 @@
 from .app import SoCX
 
-app = None
+
+app = SoCX()
 
 
-def main():
-    global app
-
-    if app is None:
-        app = SoCX()
-
-    app.run()
+def main() -> int:
+    return app.run() or 0
 
 
 if __name__ == "__main__":

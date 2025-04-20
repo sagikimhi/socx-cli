@@ -1,6 +1,5 @@
 __all__ = (
     "cli",
-    "rich_cfg",
     "ColorSystem",
     "MarkupOption",
     "debug",
@@ -13,15 +12,14 @@ __all__ = (
     "verbosity_cb",
 )
 
-from .callbacks import debug_cb as debug_cb
-from .callbacks import configure_cb as configure_cb
-from .callbacks import verbosity_cb as verbosity_cb
-from .options import debug as debug
-from .options import configure as configure
-from .options import verbosity as verbosity
-from .options import add_options as add_options
-from .options import global_options as global_options
-from .cfg import rich_cfg as rich_cfg
-from .cfg import ColorSystem as ColorSystem
-from .cfg import MarkupOption as MarkupOption
-from .cli import cli as cli
+from socx.cli.callbacks import debug_cb as debug_cb
+from socx.cli.callbacks import configure_cb as configure_cb
+from socx.cli.callbacks import verbosity_cb as verbosity_cb
+from socx.cli.options import debug as debug
+from socx.cli.options import configure as configure
+from socx.cli.options import verbosity as verbosity
+from socx.cli.options import add_options as add_options
+from socx.cli.options import global_options as global_options
+from socx.cli.cfg import ColorSystem as ColorSystem
+from socx.cli.cfg import MarkupOption as MarkupOption
+from socx.cli.cli import cli as cli

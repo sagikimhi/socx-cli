@@ -9,69 +9,77 @@ from pathlib import Path
 from importlib import import_module
 from collections.abc import Iterable
 
-import dynaconf
+from dynaconf import Dynaconf
+from dynaconf import add_converter
+from dynaconf.base import Settings
 
-from ..io import log_it
+from socx.io.decorators import log_it
 
 
-class Converter[ORIG_T, NEW_T](abc.ABC):
+class Converter(abc.ABC):
     @property
     def name(self) -> str:
+        """Return the name of the converter."""
         return self.__class__.__name__.lower().removesuffix("converter")
 
     @abc.abstractmethod
-    def __call__(self, value: ORIG_T) -> NEW_T:
-        """Convert `ORIG_T` argument `t` to type `NEW_T` and return it."""
+    def __call__(self, value: Any) -> Any:
+        """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
         ...
 
 
-class PathConverter(Converter[str, Path]):
+class PathConverter(Converter):
     @override
     def __call__(self, value: str) -> Path:
-        """Convert `ORIG_T` argument `t` to type `NEW_T` and return it."""
+        """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
         return Path(value).resolve().absolute()
 
 
-class CompileConverter(Converter[str | Path, CodeType]):
+class CompileConverter(Converter):
     @override
     def __call__(self, value: str | Path) -> CodeType:
-        """Convert `ORIG_T` argument `t` to type `NEW_T` and return it."""
+        """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
         if isinstance(value, str):
             value = Path(value).resolve().absolute()
         code = compile(value.read_text(), value, "exec")
         return code
 
 
-class ImportConverter(Converter[Path, ModuleType]):
+class ImportConverter(Converter):
     @override
-    def __call__(self, value: Path) -> ModuleType:
-        """Convert `ORIG_T` argument `t` to type `NEW_T` and return it."""
+    def __call__(self, value: str) -> ModuleType:
+        """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
         return import_module(value)
 
 
-class SymbolConverter(Converter[str, Any]):
+class SymbolConverter(Converter):
     @override
     def __call__(self, value: str) -> Any:
-        """Convert `ORIG_T` argument `t` to type `NEW_T` and return it."""
+        """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
+        ns: dict[str, Any]
+        parts: tuple[str, str, str]
+        converter: CompileConverter | ImportConverter
+
         parts = value.rpartition(":")
+
         if "/" in value:
             ns = {}
-            cvt = CompileConverter()
-            eval(cvt(parts[0]), ns, ns)
+            converter = CompileConverter()
+            eval(converter(parts[0]), ns, ns)
             return ns[parts[-1]]
         else:
-            cvt = ImportConverter()
-            return getattr(cvt(parts[0]), parts[-1])
+            converter = ImportConverter()
+            return getattr(converter(parts[0]), parts[-1])
 
 
-class IncludeConverter(Converter[str | Path, dynaconf.base.Settings]):
+class IncludeConverter(Converter):
     @override
-    def __call__(self, value: str | Path) -> dynaconf.base.Settings:
-        """Convert `ORIG_T` argument `t` to type `NEW_T` and return it."""
-        return dynaconf.Dynaconf().load_file(value)
+    def __call__(self, value: str | Path) -> Settings:
+        """Convert `ORIG_T` argument t to type `CONVERTED_T`."""
+        return Dynaconf().load_file(value)
 
 
-class GenericConverter(Converter[Any, Any]):
+class GenericConverter(Converter):
     @override
     def __init__(self, name: str, cvt: MethodType | FunctionType) -> None:
         self._cvt = cvt
@@ -88,19 +96,15 @@ class GenericConverter(Converter[Any, Any]):
 
 
 @log_it()
-def add_converter(cvt: Converter) -> None:
-    dynaconf.add_converter(cvt.name, cvt)
-
-
-@log_it()
-def add_converters(*converters: Iterable[Converter]) -> None:
+def add_converters(converters: Iterable[Converter]) -> None:
     for converter in converters:
-        add_converter(converter)
+        add_converter(converter.name, converter)
 
 
 @log_it()
 def get_converters() -> Iterable[tuple[str, Converter]]:
     from dynaconf.utils.parse_conf import converters
+
     rv = []
     for name, cvt in converters.items():
         if not isinstance(cvt, Converter):
@@ -111,10 +115,11 @@ def get_converters() -> Iterable[tuple[str, Converter]]:
 
 @log_it()
 def _init() -> None:
-    add_converters(
+    converters = [
         PathConverter(),
         SymbolConverter(),
         ImportConverter(),
         CompileConverter(),
         IncludeConverter(),
-    )
+    ]
+    add_converters(converters)

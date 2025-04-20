@@ -9,6 +9,7 @@ from ..io import log_it
 
 logger = logging.getLogger(__name__)
 
+
 @log_it()
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     value = settings.get("cli.debug") or value

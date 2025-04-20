@@ -2,21 +2,20 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from collections.abc import Iterable
 
 from dynaconf import Dynaconf
 from dynaconf.base import Settings
 
-from . import converters
-from .paths import APP_SETTINGS_FILE
-from .metadata import __appname__
-from ..io import log_it
+from socx.io import log_it
+from socx.config import converters
+from socx.config.paths import APP_SETTINGS_FILE
+from socx.config.metadata import __appname__
 
 logger = logging.getLogger(__name__)
 
+
 @log_it()
 def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
-
     if path is None:
         path = APP_SETTINGS_FILE
 
@@ -38,6 +37,7 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
         sysenv_fallback=True,
         dotenv_override=False,
     )
+
 
 _settings: Settings | Dynaconf = get_settings()
 
