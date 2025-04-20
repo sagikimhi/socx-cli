@@ -96,7 +96,6 @@ dev = [
 dev = [
     "mypy",
     "ruff",
-    "jedi",
     "twine",
     "build",
     "hatch",
@@ -141,6 +140,7 @@ show_column_numbers = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
 disallow_incomplete_defs = false
+disallow_untyped_decorators = false
 
 [tool.pydantic-mypy]
 init_typed = true
