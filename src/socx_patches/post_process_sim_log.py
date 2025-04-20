@@ -124,7 +124,7 @@ class TestResults:
         str_to_check_re = "(" + "|".join(str_to_check) + ")"
         str_to_check_re = f"\\n(.*{str_to_check_re}.*)\\n"
         targets = re.findall(str_to_check_re, line)
-        for line, error_str in targets:
+        for line, _ in targets:
             if not self.ignore_err(line):
                 self.errorList.append(line)
                 self.numErrors += 1

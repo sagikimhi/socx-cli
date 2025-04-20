@@ -1,4 +1,5 @@
 dynaconf_include = [
+    "git.yaml",
     "plugins.toml",
     "filetypes.toml",
     "converter.toml",

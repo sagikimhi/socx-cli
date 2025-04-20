@@ -1,0 +1,27 @@
+git:
+  manifest:
+    style:
+      headers: underline
+
+    columns:
+      - name: Repository
+        func: "@symbol socx_plugins.git.utils:get_repo_name"
+        style: green
+
+      - name: Branch/Tag
+        func: "@symbol socx_plugins.git.utils:get_ref_name"
+        style: yellow
+
+      - name: Commit-Hash
+        func: "@symbol socx_plugins.git.utils:get_commit_hash"
+        style: red
+
+      - name: Commit-Message
+        func: "@symbol socx_plugins.git.utils:get_commit_message"
+        style: white
+
+      - name: Author-Date
+        func: "@symbol socx_plugins.git.utils:get_author_date"
+        style: cyan
+
+    default_format: table

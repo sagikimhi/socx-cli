@@ -1,37 +1,39 @@
-# Exclude All
+# Exclude all, and then explicitly include relevant files/directories
 
 *
 
-# Unexclude relevant files/directories
-
 !*/
 
-!/bin/*
+!/.github/**/*
+
+!/bin/version
 
 !/src/*.py
 !/src/socx/**/*.py
-!/src/socx_patches/*.py
-!/src/socx_plugins/**/*.py
 !/src/socx/static/**/*
 !/src/socx/template/**/*
 
+!/src/socx_tui/**/*.py
+!/src/socx_plugins/**/*.py
+!/src/socx_patches/**/*.py
+
 !/tests/**/*.py
 
-!/assets/**/inputs/**/*
-!/assets/**/reference/**/*
+!/assets/lst/inputs/**/*
+!/assets/rgr/inputs/**/*
 
 # Unexclude common files
 
+!/.env
 !/.gitignore
 !/.python-version
-!/LICENSE
-!/README.md
-!/Dockerfile
+!/.pre-commit-config.yaml
 
-# Unexclude configurations
-
-!/.env
+!/uv.lock
 !/uv.toml
 !/ruff.toml
 !/pyproject.toml
 
+!/LICENSE
+!/README.md
+!/Dockerfile

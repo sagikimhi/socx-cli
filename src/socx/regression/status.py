@@ -1,6 +1,7 @@
 from enum import IntEnum
 from enum import auto
 
+
 class RegressionResult(IntEnum):
     """
     Represents the result of a regression that had finished and exited
@@ -48,10 +49,8 @@ class RegressionStatus(IntEnum):
         Test was intentionally terminated by a signal.
     """
 
-    Idle = auto(0)
+    Idle = 0
     Running = auto()
     Stopped = auto()
     Finished = auto()
     Terminated = auto()
-
-

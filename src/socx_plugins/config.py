@@ -1,44 +1,33 @@
 from __future__ import annotations
 
-from contextlib import suppress
-from functools import partial
+import logging
 from pathlib import Path
 
 import rich
 import rich_click as click
 from rich.prompt import Prompt
+from dynaconf.utils.inspect import get_debug_info
 
 from socx import console
 from socx import settings
-from socx import get_logger
-from socx import settings_tree
+from socx import TreeFormatter
+from socx import global_options
 
 
-logger = get_logger(__name__)
-
-get_help = f"""
-    \n\b
-    Print a tree of configurations defined under the field name NAME.
-    \n\b
-    Possible field names are:
-    \b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}
-"""
-
-get_cmd = lambda: partial(  # noqa: E731
-    cli.command,
-    help=get_help,
-    short_help="Print a tree of configurations defined under NAME.",
-    no_args_is_help=True,
-)()
+logger = logging.getLogger(__name__)
 
 
 @click.group("config")
-def cli():
+@global_options()
+@click.pass_context
+def cli(ctx: click.Context):
     """Get, set, list, or modify settings configuration values."""
 
 
 @cli.command()
-def edit():
+@global_options()
+@click.pass_context
+def edit(ctx: click.Context):
     """Edit settings with nano/vim/nvim/gvim."""
     import os
     from socx import APP_SETTINGS_DIR
@@ -50,15 +39,14 @@ def edit():
             path = APP_SETTINGS_DIR / file.name
         files[file.stem] = path
 
-    file = files.get(
-        Prompt.ask(
-            console=console,
-            prompt="Which configuration would you like to edit?",
-            choices=[Path(file).stem for file in files],
-            show_choices=True,
-            case_sensitive=True,
-        )
+    filename = Prompt.ask(
+        console=console,
+        prompt="Which configuration would you like to edit?",
+        choices=[Path(file).stem for file in files],
+        show_choices=True,
+        case_sensitive=True,
     )
+    file = files[filename]
     editor = Prompt.ask(
         console=console,
         prompt="Which editor would you like to use?\n\b\n",
@@ -68,7 +56,7 @@ def edit():
         show_default=True,
         case_sensitive=False,
     )
-    user_file = USER_CONFIG_DIR/file.name
+    user_file = USER_CONFIG_DIR / file.name
     if (editor := editor.lower()) == "neovim":
         editor = "nvim"
     if text := click.edit(
@@ -83,33 +71,65 @@ def edit():
 
 
 @cli.command()
-def inspect():
-    """Inspect the current settings instance and print the results."""
-    console.clear()
-    rich.inspect(settings, console=console, all=True)
+@global_options()
+@click.pass_context
+def tree(ctx: click.Context):
+    """Print a tree of all loaded configurations."""
+    formatter = TreeFormatter()
+    console.print(formatter(settings))
 
 
 @cli.command("list")
-def list_():
+@global_options()
+@click.pass_context
+def list_(ctx: click.Context):
     """Print a list of all current configuration values."""
     console.print(settings.as_dict())
 
 
-@cli.command("tree")
-def tree_():
-    """Print a tree of all loaded configurations."""
-    tree = settings_tree(settings)
-    console.print(tree)
+@cli.command()
+@global_options()
+@click.pass_context
+def debug(ctx: click.Context):
+    """Dump config debug info and modification history."""
+    console.print(get_debug_info(settings))
 
 
-@get_cmd()
-@click.argument("name", required=True, type=click.STRING)
-def get(name: str):
-    tree = None
-    with suppress(KeyError, AttributeError):
-        field = settings[name]
-        tree = settings_tree(field, name)
-        console.print(tree)
-    if not tree:
-        console.print(f"No such field: {name}")
-        console.print(click.get_current_context().get_help())
+@cli.command()
+@global_options()
+@click.pass_context
+def inspect(ctx: click.Context):
+    """Inspect the current settings instance and print the results."""
+    settings.update({"cli": ctx.params})
+    console.clear()
+    rich.inspect(
+        settings,
+        title="Inspect Settings",
+        console=console,
+        help=True,
+        methods=True,
+        docs=True,
+        private=True,
+        value=True,
+    )
+
+
+@cli.command()
+@global_options()
+@click.argument("field", required=True, type=click.STRING)
+@click.pass_context
+def get(ctx: click.Context, field: str):
+    """Print a tree of configurations defined under NAME."""
+    formatter = TreeFormatter()
+    if value := settings.get(field):
+        console.print(formatter(value, field))
+    else:
+        ctx.fail(f"No such field: {field}")
+
+
+get.__doc__ = f"""\n\b
+Print a tree of configurations defined under NAME.
+\n\b
+Possible field names are:
+\b\n{"".join(f"  - {name}\n\b\n" for name in settings.as_dict())}
+"""
