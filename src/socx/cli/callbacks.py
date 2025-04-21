@@ -3,9 +3,9 @@ import logging
 from rich_click import Context
 from rich_click import Parameter
 
-from ..config import settings
-from ..io import log
-from ..io import log_it
+from socx.io import log
+from socx.io import log_it
+from socx.config import settings
 
 logger = logging.getLogger(__name__)
 

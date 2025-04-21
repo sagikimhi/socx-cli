@@ -8,8 +8,8 @@ from dynaconf.utils.boxing import DynaBox
 
 from socx.io import log_it
 from socx.config import settings
-from socx.cli._types import Decorator
-from socx.cli._types import AnyCallable
+from socx.cli.types import Decorator
+from socx.cli.types import AnyCallable
 
 
 _context_settings = dict(help_option_names=["--help", "-h"])

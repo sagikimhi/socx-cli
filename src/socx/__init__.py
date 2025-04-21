@@ -21,8 +21,11 @@ __all__ = (
     "get_handler_names",
     # CLI
     "cli",
+    "cli_cfg",
     "add_options",
     "global_options",
+    "Decorator",
+    "AnyCallable",
     # Config
     "__author__",
     "__project__",
@@ -99,8 +102,11 @@ from socx.io import remove_handler as remove_handler
 from socx.io import get_handler_names as get_handler_names
 
 from socx.cli import cli as cli
+from socx.cli import cfg as cli_cfg
 from socx.cli import add_options as add_options
 from socx.cli import global_options as global_options
+from socx.cli import Decorator as Decorator
+from socx.cli import AnyCallable as AnyCallable
 
 from socx.config import __author__ as __author__
 from socx.config import __project__ as __project__
