@@ -1,26 +1,61 @@
 import time
+import logging
 from pathlib import Path
 
-from click import open_file
+import rich_click as click
 from dynaconf.utils.boxing import DynaBox
 
 from socx import Regression
 from socx import settings
-from socx import get_logger
+from socx import add_options
+from socx import Decorator
+from socx import AnyCallable
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
+
+
+def _input() -> Decorator[AnyCallable]:
+    return click.option(
+        "--input",
+        "-i",
+        "input",
+        nargs=1,
+        metavar="FILE",
+        required=False,
+        expose_value=True,
+        help="Input file of failed commands to rerun",
+        type=click.File(mode="r", encoding="utf-8", lazy=True),
+    )
+
+
+def _output() -> Decorator[AnyCallable]:
+    return click.option(
+        "--output",
+        "-o",
+        "output",
+        nargs=1,
+        # type=click.Path
+        metavar="DIRECTORY",
+        required=False,
+        expose_value=True,
+        help="Output directory for writing passed/failed run commands.",
+    )
+
+
+def options() -> Decorator[AnyCallable]:
+    return add_options(_input(), _output())
 
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:
     if input_path is None:
         input_cfg = settings.regression.rerun_failure_history.input
-        dir_in = Path(input_cfg.directory)
+        dir_in = input_cfg.directory
         file_in = input_cfg.filename
-        return Path(dir_in / file_in).resolve().absolute()
+        input_path = dir_in / file_in
 
     if isinstance(input_path, str):
-        return Path(input_path).resolve().absolute()
+        input_path = Path(input_path)
 
     return input_path.resolve().absolute()
 
@@ -55,8 +90,8 @@ def _write_results(
         pass_out = Path(pass_out)
 
     with (
-        open_file(fail_out, "w", "utf-8", atomic=True) as fail_fd,
-        open_file(pass_out, "w", "utf-8", atomic=True) as pass_fd,
+        click.open_file(fail_out, "w", "utf-8", atomic=True) as fail_fd,
+        click.open_file(pass_out, "w", "utf-8", atomic=True) as pass_fd,
     ):
         logger.info(f"writing regression results to: {fail_out.parent}...")
 
@@ -71,7 +106,7 @@ def _write_results(
 
 def _populate_regression(filepath: Path) -> Regression:
     logger.info(f"reading input from file path: {filepath}")
-    with open_file(filepath, mode="r", encoding="utf-8") as file:
+    with click.open_file(filepath, mode="r", encoding="utf-8") as file:
         return Regression.from_lines("rgr", tuple(line for line in file))
 
 
