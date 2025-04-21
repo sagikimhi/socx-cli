@@ -75,6 +75,7 @@ Jira-Issues = "https://bitbucket.org/wiliot/socx-cli/jira"
 dev = [
     "mypy",
     "ruff",
+    "jedi",
     "twine",
     "build",
     "hatch",
@@ -94,8 +95,9 @@ dev = [
 
 [dependency-groups]
 dev = [
-    "mypy",
     "ruff",
+    "mypy",
+    "jedi",
     "twine",
     "build",
     "hatch",
@@ -122,16 +124,16 @@ dev = [
 package = true
 
 [tool.mypy]
+python_version = "3.12"
 files = [
     "src/socx",
     "src/socx_tui",
     # "src/socx_plugins",
+    # "src/socx_patches",
 ]
-plugins = ["pydantic.mypy"]
-python_version = "3.12"
 pretty = true
-strict = true
 color_output = true
+install_types = true
 follow_imports = "normal"
 warn_no_return = false
 show_error_codes = true
@@ -141,9 +143,3 @@ disallow_untyped_defs = false
 ignore_missing_imports = true
 disallow_incomplete_defs = false
 disallow_untyped_decorators = false
-
-[tool.pydantic-mypy]
-init_typed = true
-init_forbid_extra = true
-warn_untyped_fields = true
-warn_required_dynamic_aliases = true
