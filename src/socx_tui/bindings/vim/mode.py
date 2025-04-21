@@ -1,18 +1,19 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import ClassVar
 
 from textual.binding import Binding
 from textual.binding import BindingType
 
 
-class Mode:
+class _Mode:
     """Base class for defining modes."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class Normal(Mode):
+class Normal(_Mode):
     """Normal mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -39,37 +40,49 @@ class Normal(Mode):
     ]
 
 
-class Insert(Mode):
+class Insert(_Mode):
     """Insert mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class Visual(Mode):
+class Visual(_Mode):
     """Visual mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class Select(Mode):
+class Select(_Mode):
     """Select mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class Terminal(Mode):
+class Terminal(_Mode):
     """Terminal mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class CommandLine(Mode):
+class CommandLine(_Mode):
     """CommandLine mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class OperatorPending(Mode):
+class OperatorPending(_Mode):
     """OperatorPending mode key bindings."""
 
     BINDINGS: ClassVar[list[BindingType]] = []
+
+
+class VimMode(Enum):
+    """Vim mode."""
+
+    Normal = Normal.BINDINGS
+    Insert = Insert.BINDINGS
+    Select = Select.BINDINGS
+    Visual = Visual.BINDINGS
+    Terminal = Terminal.BINDINGS
+    CommandLine = CommandLine.BINDINGS
+    OperatorPending = OperatorPending.BINDINGS

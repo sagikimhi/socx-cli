@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 from typing import ClassVar
-from functools import partial
 from collections.abc import Iterable
 from collections.abc import Callable
 
+from hoptex import hoptex
 from textual.app import App
 from textual.app import ComposeResult
 from textual.app import SystemCommand
@@ -19,6 +19,7 @@ from socx_tui.screens import TemplateView
 from socx_tui.screens import RegressionView
 
 
+@hoptex()
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
@@ -41,6 +42,9 @@ class SoCX(App[int]):
         yield Header()
         yield Footer()
 
+    async def on_mount(self) -> None:
+        pass
+
     def get_system_commands(
         self, screen: Screen[None]
     ) -> Iterable[SystemCommand]:
@@ -48,5 +52,5 @@ class SoCX(App[int]):
         yield SystemCommand(
             "Log DOM Tree",
             "Print the current DOM Tree to dev log",
-            partial(self.log, self.tree),
+            lambda: self.log.info(self.tree),
         )
