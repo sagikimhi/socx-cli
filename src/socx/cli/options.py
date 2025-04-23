@@ -9,8 +9,8 @@ import trogon
 from rich_click import option
 from rich_click import Choice
 
-from socx.cli._types import Decorator
-from socx.cli._types import AnyCallable
+from socx.cli.types import Decorator
+from socx.cli.types import AnyCallable
 from socx.cli.callbacks import debug_cb
 from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb

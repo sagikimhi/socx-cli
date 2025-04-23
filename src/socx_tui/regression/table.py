@@ -12,15 +12,15 @@ from socx import Regression
 from socx import settings
 from textual.widgets import DataTable
 
-from socx_tui.bindings import Vim
+from socx_tui.bindings.vim.mode import VimMode
 
 
-class Table(DataTable[TestBase], inherit_bindings=True):
+class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
     """TestBase table."""
 
     __slots__ = ("_data_model",)
 
-    BINDINGS = DataTable.BINDINGS + Vim.Mode.Normal.value
+    BINDINGS = DataTable.BINDINGS + VimMode.Normal.value
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

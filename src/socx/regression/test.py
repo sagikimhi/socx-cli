@@ -427,10 +427,10 @@ class Test(UIDMixin, TestBase):
 
     def _parse_result(self) -> TestResult:
         logger.debug(f"parsing result from {self.runtime_path}")
-        result_hack = pp_simlog.TestResults()  # type: ignore
-        result_hack.reset_log(self.runtime_logs / "run.log")  # type: ignore
+        result_hack = pp_simlog.TestResults()
+        result_hack.reset_log(self.runtime_logs / "run.log")
         try:
-            result_hack.parse_log()  # type: ignore
+            result_hack.parse_log()
         except ValueError:
             return TestResult.Failed
         else:
