@@ -11,7 +11,7 @@ from socx_plugins.git.arguments import root_path
 
 @click.group()
 @global_options()
-def cli() -> int:
+def cli() -> None:
     """Various common git command utilities to manage your environment."""
 
 
@@ -19,7 +19,7 @@ def cli() -> int:
 @format_()
 @root_path()
 @global_options()
-def manifest(format_: str, root_path: Path):
+def mfest(format_: str, root_path: Path):
     """Output a manifest of all git repositories found under a given path."""
     table = Manifest(root_path)
     match format_:

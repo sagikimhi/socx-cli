@@ -1,4 +1,6 @@
 import rich
+import rich.prompt
+import rich.syntax
 import rich_click as click
 from socx import console
 from socx import global_options
@@ -26,10 +28,15 @@ code = rich.syntax.Syntax.from_path(
 )
 
 
-@click.command("example")
+@click.group()
 @global_options()
-@click.pass_context
-def cli(ctx: click.Context, **opts):
+def cli():
+    """Add, create, inspect, and manage extension plugins."""
+
+
+@cli.command()
+@global_options()
+def example():
     """Command-line-interface plugin example."""
     console.line(2)
     console.print(

@@ -1,3 +1,4 @@
+---
 plugins:
   ui:
     name: ui
@@ -11,6 +12,10 @@ plugins:
     name: rgr
     command: "@symbol socx_plugins.rgr:cli"
 
+  example:
+    name: plug
+    command: "@symbol socx_plugins.plugin:cli"
+
   config:
     name: config
     command: "@symbol socx_plugins.config:cli"
@@ -19,11 +24,6 @@ plugins:
     name: convert
     command: "@symbol socx_plugins.convert:cli"
 
-  example:
-    name: example
-    command: "@symbol socx_plugins.example:cli"
-
   version:
     name: version
     command: "@symbol socx_plugins.version:version"
-
