@@ -1,45 +1,29 @@
 from __future__ import annotations
 
-import abc
-import logging
-from typing import override
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from socx import settings
-from dynaconf.utils.boxing import DynaBox
+from socx import settings, get_logger
 
-from .reader import Reader
-from .reader import FileReader
-from .writer import Writer
-from .writer import FileWriter
-from .parser import Parser
-from .parser import LstParser
-from .tokenizer import Tokenizer
-from .tokenizer import LstTokenizer
-from .formatter import Formatter
-from .formatter import SystemVerilogFormatter
+from socx_plugins.convert.reader import Reader, FileReader
+from socx_plugins.convert.writer import Writer, FileWriter
+from socx_plugins.convert.parser import Parser, LstParser
+from socx_plugins.convert.tokenizer import Tokenizer, LstTokenizer
+from socx_plugins.convert.formatter import Formatter, SystemVerilogFormatter
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-@dataclass(unsafe_hash=True)
-class Converter(abc.ABC):
+@dataclass
+class Converter(ABC):
     reader: Reader | None = None
     writer: Writer | None = None
     parser: Parser | None = None
     tokenizer: Tokenizer | None = None
     formatter: Formatter | None = None
 
-    @property
-    def cfg(self) -> DynaBox:
-        return settings.convert[self.lang]
-
-    @property
-    @abc.abstractmethod
-    def lang(self) -> DynaBox: ...
-
-    @abc.abstractmethod
+    @abstractmethod
     def convert(self) -> None: ...
 
 
@@ -54,9 +38,12 @@ class LstConverter(Converter):
         self.tokenizer = LstTokenizer()
         self.formatter = SystemVerilogFormatter()
 
-    @override
     @property
-    def lang(self) -> DynaBox:
+    def cfg(self):
+        return settings.convert.get(self.lang)
+
+    @property
+    def lang(self) -> str:
         return "lst"
 
     def convert(self) -> None:
