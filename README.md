@@ -62,35 +62,40 @@ convenient interface.
 
 ## Getting Started
 
-Once socx is installed (via pip or in a virtual environment), you can
-invoke the CLI by typing `socx` in your terminal. To see available
-commands and general options, run:
+Once socx is installed, you can invoke the CLI by typing `socx` in your
+terminal. To see available commands and general options, run:
 
-```bash
-socx --help
-```
+> ```bash
+> socx --help
+> ```
+>
+> ![socx help command](assets/svg/socx-help.svg)
 
-This will display a list of top-level commands (plugins) such as
-**`config`**, **`convert`**, **`rgr`**, **`git`**, **`version`**, `ui`,
-`cli-ui` and **`plug`**. You can also get help on a specific command, for
-example: `socx rgr --help` or `socx config edit --help` to see usage details
+You can also get help on a specific command, for
+example: `socx rgr --help` or `socx config --help` to see usage details
 and options.
 
 Before running certain commands, ensure any required environment
 variables (like `$WAREA` or `$TOP_VERIF`) are set to match your
-project’s directory structure (see **Configuration** section below).
+project’s directory structure.
 
 ## Commands and Usage
 
-Below is an overview of each main command group in socx, with typical
-usage examples and applications:
+Below is an overview of each main command group in `socx`, with typical usage
+examples and applications:
 
 ### 1. Configuration Management (`socx config`)
 
-The `socx config` command group allows you to view and change socx’s
-configuration settings. This is useful for customizing file paths,
-adjusting parallel run limits, or toggling features to fit your
+The `socx config` command group allows you to view and change `socx`’s
+configuration settings. This is useful for customizing file paths, adjusting
+parallel run limits, or toggling features to fit your
 environment.
+
+> ```bash
+> socx config --help
+> ```
+>
+> ![socx config help menu](assets/svg/socx-config-help.svg)
 
 Available subcommands under `socx config` include:
 
@@ -101,8 +106,8 @@ Available subcommands under `socx config` include:
   dictionary. This is a quick way to see what settings are in effect
   (including defaults and any overrides).
 
-- **`socx config tree`** – Shows the configuration in a hierarchical
-  tree format, which is easier to read for nested settings.
+- **`socx config tree`** – Shows all current configuration in a pretty
+  hierarchical tree format, which is much easier to read for nested settings.
 
 - **`socx config get <name>`** – Retrieves a specific configuration
   value (or group of values) by name. For example:

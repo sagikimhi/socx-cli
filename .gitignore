@@ -21,6 +21,7 @@
 
 !/assets/lst/inputs/**/*
 !/assets/rgr/inputs/**/*
+!/assets/svg/**/*
 
 # Unexclude common files
 
