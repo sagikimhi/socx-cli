@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+import gc
+
 from socx import UIDMixin
-from socx import console
 
 
 @dataclass
@@ -8,19 +9,21 @@ class UIDTest(UIDMixin):
     iteration: int
 
 
-def test() -> None:
-    inst_ = UIDTest(0)
-    for _ in range(1, 999):
-        inst = UIDTest(_)
-        assert inst.iteration == inst.uid
-        console.print(UIDTest.dref(inst.ref))
+def test_uid_increments_and_deref() -> None:
+    first = UIDTest(0)
+    assert first.uid == 0
+    assert UIDTest.dref(first.ref) is first
+
+    for i in range(1, 5):
+        inst = UIDTest(i)
+        assert inst.uid == i
+        assert UIDTest.dref(inst.ref) is inst
+        ref = inst.ref
         del inst
-        console.print(UIDTest.dref(_))
+        gc.collect()
+        assert UIDTest.dref(ref) is None
 
-    console.print(UIDTest.dref(inst_.ref))
-    del inst_
-    console.print(UIDTest.dref(0))
-
-
-if __name__ == "__main__":
-    test()
+    ref_first = first.ref
+    del first
+    gc.collect()
+    assert UIDTest.dref(ref_first) is None
