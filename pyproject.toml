@@ -32,7 +32,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.3.1"
+version = "0.4.1"
 license = "Apache-2.0 OR MIT"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -40,7 +40,7 @@ description = "System on chip verification and tooling infrastructure."
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
-    "pip",
+    "rich",
     "httpx",
     "click",
     "pandas",
@@ -54,7 +54,6 @@ dependencies = [
     "importlib",
     "gitpython",
     "rich-click",
-    "setuptools",
     "platformdirs",
     "textual-serve",
     "textual-terminal",
@@ -71,33 +70,9 @@ Home = "https://bitbucket.org/wiliot/socx-cli"
 Issues = "https://bitbucket.org/wiliot/socx-cli/issues"
 Jira-Issues = "https://bitbucket.org/wiliot/socx-cli/jira"
 
-[project.optional-dependencies]
-dev = [
-    "mypy",
-    "ruff",
-    "jedi",
-    "twine",
-    "build",
-    "hatch",
-    "pytest",
-    "debugpy",
-    "pydantic",
-    "hatchling",
-    "pre-commit",
-    "pytest-cov",
-    "pydocstyle",
-    "pycodestyle",
-    "textual-dev",
-    "flake8-bugbear",
-    "flake8-simplify",
-    "pydantic-settings",
-]
-
 [dependency-groups]
 dev = [
     "ruff",
-    "mypy",
-    "jedi",
     "twine",
     "build",
     "hatch",
@@ -111,9 +86,12 @@ dev = [
     "pydocstyle",
     "pycodestyle",
     "textual-dev",
+    "basedpyright",
     "flake8-bugbear",
     "flake8-simplify",
-    "pydantic-settings",
+    "textual-textarea",
+    "textual-fastdatatable",
+    "docify>=1.1.0",
 ]
 
 # -----------------------------------------------------------------------------
@@ -123,23 +101,24 @@ dev = [
 [tool.uv]
 package = true
 
-[tool.mypy]
-python_version = "3.12"
-files = [
-    "src/socx",
-    "src/socx_tui",
-    # "src/socx_plugins",
-    # "src/socx_patches",
+[tool.basedpyright.analysis]
+include = ["src"]
+exclude = [
+    ".git",
+    "dist",
+    "**/.ruff_cache",
+    "**/.pytest_cache",
+    "**/.gitignore",
+    "**/__pycache__",
+    "**/*.eggs",
+    "**/*.pyc",
+    "**/*.pyd",
 ]
-pretty = true
-color_output = true
-install_types = true
-follow_imports = "normal"
-warn_no_return = false
-show_error_codes = true
-warn_unused_ignores = true
-show_column_numbers = true
-disallow_untyped_defs = false
-ignore_missing_imports = true
-disallow_incomplete_defs = false
-disallow_untyped_decorators = false
+stubPath = "stubs"
+pythonVersion = "3.12"
+pythonPlatform = "All"
+typeCheckingMode = "standard"
+reportMissingImports = "error"
+autoImportCompletions = true
+useLibraryCodeForTypes = true
+reportMissingTypeStubs = true

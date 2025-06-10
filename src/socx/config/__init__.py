@@ -14,8 +14,8 @@ __all__ = (
     "USER_CONFIG_FILE",
     "APP_STATIC_DIR",
     "APP_TEMPLATES_DIR",
-    "APP_SETTINGS_DIR",
-    "APP_SETTINGS_FILE",
+    "APP_CONFIG_DIR",
+    "APP_CONFIG_FILE",
     # Metadata
     "__author__",
     "__project__",
@@ -52,9 +52,9 @@ from socx.config.paths import USER_RUNTIME_DIR as USER_RUNTIME_DIR
 from socx.config.paths import USER_LOG_FILE as USER_LOG_FILE
 from socx.config.paths import USER_CONFIG_FILE as USER_CONFIG_FILE
 from socx.config.paths import APP_STATIC_DIR as APP_STATIC_DIR
-from socx.config.paths import APP_SETTINGS_DIR as APP_SETTINGS_DIR
+from socx.config.paths import APP_CONFIG_DIR as APP_CONFIG_DIR
 from socx.config.paths import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
-from socx.config.paths import APP_SETTINGS_FILE as APP_SETTINGS_FILE
+from socx.config.paths import APP_CONFIG_FILE as APP_CONFIG_FILE
 
 from socx.config.metadata import __author__ as __author__
 from socx.config.metadata import __project__ as __project__

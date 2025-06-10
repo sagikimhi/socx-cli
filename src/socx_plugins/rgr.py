@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import rich_click as click
 from socx import global_options
+import rich_click as click
 
-from socx_tui import SoCX as SoCX
 from socx_plugins._rgr import options
 
 
@@ -17,6 +16,8 @@ def cli() -> None:
 @global_options()
 def tui() -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
+    from socx_tui import SoCX as SoCX
+
     SoCX().run()
 
 

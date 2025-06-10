@@ -1,26 +1,23 @@
 import abc
-import logging
-from typing import override
 from pathlib import Path
 from dataclasses import field
 from dataclasses import dataclass
 
+from socx import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__name__)
 
 
-@dataclass
-class Writer[T](abc.ABC):
-    """Writes data to a target."""
+class Writer(abc.ABC):
+    __slots__ = ()
 
     @abc.abstractmethod
-    def write(self, data: T) -> None:
-        """Write data to a target."""
-        ...
+    def write(self, file: ..., data: ...): ...
 
 
 @dataclass
-class FileWriter[T](Writer):
+class FileWriter:
     """
     Writes data to a file.
 
@@ -36,18 +33,29 @@ class FileWriter[T](Writer):
     target: Path
     options: dict[str, str] = field(default_factory=dict)
 
-    @override
     def write(self, data: str, filename: str) -> None:
         target = Path(self.target) / filename
+        logger.info(f"Preparing to write data to '{target}'...")
+
         if target.exists():
-            target.replace(target.with_suffix(".backup"))
+            backup = target.with_suffix(f"{target.suffix}.backup")
+            message = (
+                f"File '{target}' already exists, renaming file to '{backup}.'"
+            )
+            logger.info(message)
+            target.replace(backup)
+
+        logger.info(f"Writing data to '{target}'...")
         target.write_text(data)
+        logger.info("Done.")
 
     def __post_init__(self) -> None:
         if not isinstance(self.target, Path):
             self.target = Path(self.target)
+
         if self.target.exists() and self.target.is_file():
             self._invalid_target_err()
+
         self.target.mkdir(parents=True, exist_ok=True)
 
     def _invalid_target_err(self) -> None:
