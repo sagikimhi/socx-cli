@@ -32,8 +32,8 @@ __all__ = (
     "__version__",
     "__appname__",
     "__directory__",
-    "APP_SETTINGS_DIR",
-    "APP_SETTINGS_FILE",
+    "APP_CONFIG_DIR",
+    "APP_CONFIG_FILE",
     "USER_DATA_DIR",
     "USER_CACHE_DIR",
     "USER_STATE_DIR",
@@ -44,8 +44,8 @@ __all__ = (
     "USER_CONFIG_FILE",
     "APP_STATIC_DIR",
     "APP_TEMPLATES_DIR",
-    "APP_SETTINGS_DIR",
-    "APP_SETTINGS_FILE",
+    "APP_CONFIG_DIR",
+    "APP_CONFIG_FILE",
     "Formatter",
     "TreeFormatter",
     "Converter",
@@ -122,9 +122,9 @@ from socx.config import USER_RUNTIME_DIR as USER_RUNTIME_DIR
 from socx.config import USER_LOG_FILE as USER_LOG_FILE
 from socx.config import USER_CONFIG_FILE as USER_CONFIG_FILE
 from socx.config import APP_STATIC_DIR as APP_STATIC_DIR
-from socx.config import APP_SETTINGS_DIR as APP_SETTINGS_DIR
+from socx.config import APP_CONFIG_DIR as APP_CONFIG_DIR
 from socx.config import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
-from socx.config import APP_SETTINGS_FILE as APP_SETTINGS_FILE
+from socx.config import APP_CONFIG_FILE as APP_CONFIG_FILE
 from socx.config import settings as settings
 from socx.config import Formatter as Formatter
 from socx.config import TreeFormatter as TreeFormatter

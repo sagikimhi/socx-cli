@@ -17,7 +17,7 @@ __all__ = (
 __project__: str = "socx-cli"
 """Project name."""
 
-__appname__: str = __package__.partition(".")[0]
+__appname__: str = __spec__.name.partition(".")[0]
 """Application name."""
 
 __author__: str = "Sagi Kimhi <sagi.kim5@gmail.com>"
