@@ -91,6 +91,7 @@ dev = [
     "flake8-simplify",
     "textual-textarea",
     "textual-fastdatatable",
+    "docify>=1.1.0",
 ]
 
 # -----------------------------------------------------------------------------
@@ -100,7 +101,7 @@ dev = [
 [tool.uv]
 package = true
 
-[tool.basedpyright]
+[tool.basedpyright.analysis]
 include = ["src"]
 exclude = [
     ".git",
@@ -113,9 +114,11 @@ exclude = [
     "**/*.pyc",
     "**/*.pyd",
 ]
+stubPath = "stubs"
 pythonVersion = "3.12"
 pythonPlatform = "All"
 typeCheckingMode = "standard"
 reportMissingImports = "error"
 autoImportCompletions = true
 useLibraryCodeForTypes = true
+reportMissingTypeStubs = true
