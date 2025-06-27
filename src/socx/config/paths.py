@@ -11,7 +11,6 @@ from platformdirs import user_config_path
 from platformdirs import user_runtime_path
 
 from socx.config.metadata import __author__
-from socx.config.metadata import __version__
 from socx.config.metadata import __appname__
 from socx.config.metadata import __directory__
 
@@ -66,7 +65,6 @@ USER_RUNTIME_DIR: Final[Path] = user_runtime_path(
 
 USER_LOG_DIR: Final[Path] = user_log_path(
     appname=__appname__,
-    version=__version__,
     appauthor=__author__,
     ensure_exists=True,
 )
