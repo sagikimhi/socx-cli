@@ -35,6 +35,7 @@
 !/uv.toml
 !/ruff.toml
 !/pyproject.toml
+!/pyrightconfig.json
 
 !/LICENSE
 !/README.md
