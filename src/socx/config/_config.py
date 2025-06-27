@@ -14,7 +14,7 @@ from socx.config.metadata import __appname__
 logger = logging.getLogger(__name__)
 
 
-@log_it()
+@log_it(logger=logger)
 def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     if path is None:
         path = APP_CONFIG_FILE
