@@ -3,7 +3,7 @@ from typing import override
 from pathlib import Path
 from dataclasses import dataclass
 
-from .validators import PathValidator
+from socx_plugins.convert.validators import PathValidator
 
 
 @dataclass
@@ -23,9 +23,9 @@ class Reader(abc.ABC):
         Names or patterns to exclude from the reading list.
     """
 
-    source: Path | None = None
-    includes: set[Path] | None = None
-    excludes: set[Path] | None = None
+    source: Path
+    includes: set[Path]
+    excludes: set[Path]
 
     @abc.abstractmethod
     def read(self) -> dict[Path, str]:

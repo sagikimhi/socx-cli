@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from typing import Literal
+
 from rich_click import rich_click
 
 # -----------------------------------------------------------------------------
@@ -13,7 +16,7 @@ ColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 # Styles
 # -----------------------------------------------------------------------------
 
-rich_click.TEXT_MARKUP = "rich"
+rich_click.TEXT_MARKUP = "markdown"
 rich_click.STYLE_OPTION = "bright_green"
 rich_click.STYLE_SWITCH = "bright_green"
 rich_click.STYLE_COMMAND = "cyan"
@@ -48,11 +51,10 @@ rich_click.STYLE_OPTIONS_PANEL_BORDER = "bright_black"
 
 rich_click.STYLE_OPTIONS_TABLE_BOX = "HORIZONTAL"
 rich_click.STYLE_OPTIONS_TABLE_LEADING = 1
-rich_click.STYLE_OPTIONS_TABLE_PADDING = (1, 1)
+rich_click.STYLE_OPTIONS_TABLE_PADDING = (0, 1)
 rich_click.STYLE_OPTIONS_TABLE_PAD_EDGE = False
 rich_click.STYLE_OPTIONS_TABLE_SHOW_LINES = False
 rich_click.STYLE_OPTIONS_TABLE_BORDER_STYLE = None
-rich_click.STYLE_OPTIONS_TABLE_COLUMN_WIDTH_RATIO = (1, 1)
 rich_click.STYLE_OPTIONS_TABLE_ROW_STYLES = None
 
 rich_click.ALIGN_COMMANDS_PANEL = "left"
@@ -60,13 +62,13 @@ rich_click.STYLE_COMMANDS_PANEL_BOX = "ROUNDED"
 rich_click.STYLE_COMMANDS_PANEL_BORDER = "bright_black"
 
 rich_click.STYLE_COMMANDS_TABLE_BOX = ""
-rich_click.STYLE_COMMANDS_TABLE_PADDING = (1, 1)
-rich_click.STYLE_COMMANDS_TABLE_LEADING = 1
+rich_click.STYLE_COMMANDS_TABLE_PADDING = (0, 1)
+rich_click.STYLE_COMMANDS_TABLE_LEADING = 0
 rich_click.STYLE_COMMANDS_TABLE_PAD_EDGE = False
 rich_click.STYLE_COMMANDS_TABLE_SHOW_LINES = False
-rich_click.STYLE_COMMANDS_TABLE_BORDER_STYLE = None
 rich_click.STYLE_COMMANDS_TABLE_ROW_STYLES = None
-rich_click.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO = (1, 1)
+rich_click.STYLE_COMMANDS_TABLE_BORDER_STYLE = None
+rich_click.STYLE_COMMANDS_TABLE_COLUMN_WIDTH_RATIO = None, None
 
 rich_click.ALIGN_ERRORS_PANEL = "left"
 rich_click.STYLE_ERRORS_PANEL_BOX = "ROUNDED"
@@ -106,14 +108,13 @@ rich_click.SHOW_METAVARS_COLUMN = True
 """Show a column with the option metavar (eg. INTEGER)"""
 
 rich_click.GROUP_ARGUMENTS_OPTIONS = False
-"""Show arguments with options instead of in own panel"""
+"""Show arguments with options instead of in separate panels"""
 
 # -----------------------------------------------------------------------------
 # Texts
 # -----------------------------------------------------------------------------
 
 rich_click.HEADER_TEXT = ""
-rich_click.EPILOG_TEXT = ""
 rich_click.FOOTER_TEXT = ""
 rich_click.ABORTED_TEXT = ""
 

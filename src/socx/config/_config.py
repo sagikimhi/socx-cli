@@ -8,16 +8,16 @@ from dynaconf.base import Settings
 
 from socx.io import log_it
 from socx.config import converters
-from socx.config.paths import APP_SETTINGS_FILE
+from socx.config.paths import APP_CONFIG_FILE
 from socx.config.metadata import __appname__
 
 logger = logging.getLogger(__name__)
 
 
-@log_it()
+@log_it(logger=logger)
 def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     if path is None:
-        path = APP_SETTINGS_FILE
+        path = APP_CONFIG_FILE
 
     if isinstance(path, str):
         path = Path(path).resolve().absolute()
@@ -39,6 +39,4 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     )
 
 
-_settings: Settings | Dynaconf = get_settings()
-
-settings: Settings | Dynaconf = _settings
+settings: Settings | Dynaconf = get_settings()

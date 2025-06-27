@@ -11,7 +11,6 @@ from platformdirs import user_config_path
 from platformdirs import user_runtime_path
 
 from socx.config.metadata import __author__
-from socx.config.metadata import __version__
 from socx.config.metadata import __appname__
 from socx.config.metadata import __directory__
 
@@ -25,13 +24,13 @@ __all__ = (
     "USER_LOG_FILE",
     "USER_CONFIG_FILE",
     "APP_STATIC_DIR",
-    "APP_SETTINGS_DIR",
+    "APP_CONFIG_DIR",
     "APP_TEMPLATES_DIR",
-    "APP_SETTINGS_FILE",
+    "APP_CONFIG_FILE",
 )
 
 # -----------------------------------------------------------------------------
-# User
+# User Directories
 # -----------------------------------------------------------------------------
 
 USER_DATA_DIR: Final[Path] = user_data_path(
@@ -66,12 +65,14 @@ USER_RUNTIME_DIR: Final[Path] = user_runtime_path(
 
 USER_LOG_DIR: Final[Path] = user_log_path(
     appname=__appname__,
-    version=__version__,
     appauthor=__author__,
     ensure_exists=True,
 )
 """Absolute path to platform's native application logs directory."""
 
+# -----------------------------------------------------------------------------
+# User Files
+# -----------------------------------------------------------------------------
 
 USER_LOG_FILE: Path = USER_LOG_DIR / "run.log"
 """Absolute path to application's main log for the current local user."""
@@ -80,22 +81,24 @@ USER_LOG_FILE: Path = USER_LOG_DIR / "run.log"
 USER_CONFIG_FILE: Path = USER_CONFIG_DIR / "settings.yaml"
 """Absolute path to application's user config file."""
 
-
 # -----------------------------------------------------------------------------
-# Application
+# Application Directories
 # -----------------------------------------------------------------------------
 
 APP_STATIC_DIR: Path = __directory__ / "static"
 """Path to application's static files directory."""
 
 
-APP_TEMPLATES_DIR: Path = __directory__ / "templates"
-"""Path to application's template files directory."""
-
-
-APP_SETTINGS_DIR: Path = APP_STATIC_DIR / "settings"
+APP_CONFIG_DIR: Path = APP_STATIC_DIR / "settings"
 """Path to application's settings files directory."""
 
 
-APP_SETTINGS_FILE: Path = APP_SETTINGS_DIR / "settings.yaml"
+APP_TEMPLATES_DIR: Path = __directory__ / "templates"
+"""Path to application's template files directory."""
+
+# -----------------------------------------------------------------------------
+# Application Files
+# -----------------------------------------------------------------------------
+
+APP_CONFIG_FILE: Path = APP_CONFIG_DIR / "settings.yaml"
 """File path to application's main settings file."""

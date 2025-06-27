@@ -1,17 +1,19 @@
 from rich import pretty
 from rich import traceback
+from rich import reconfigure, get_console
 from rich.console import Console
 
 __all__ = ("console",)
 
-_console: Console = Console(tab_size=4, record=True, markup=True)
-pretty.install(console=_console)
+console: Console = get_console()
+pretty.install(console=console)
 traceback.install(
-    theme="nord-darker",
-    console=_console,
+    theme="nord",
+    console=console,
     word_wrap=True,
-    extra_lines=0,
+    code_width=79,
+    extra_lines=3,
     show_locals=True,
     locals_hide_sunder=False,
 )
-console = _console
+reconfigure(tab_size=4, record=True, markup=True)

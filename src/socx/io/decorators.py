@@ -1,28 +1,31 @@
 import logging
 from typing import Any
-from typing import TypeVar
 from inspect import signature
 from collections.abc import Callable
 
 from functools import wraps
 
+
 __all__ = ("log_it",)
 
 
-FC = TypeVar("FC", bound=Callable[..., Any])
+AnyCallable = Callable[..., Any]
 
 
 def log_it(
     level: str | int = logging.DEBUG,
-) -> Callable[[FC], FC]:
+    logger: logging.Logger | None = None,
+) -> Callable[[AnyCallable], AnyCallable]:
     """Add automatic entered/returned logging to decorated callables."""
     if isinstance(level, str):
         level_map: dict[str, int] = logging.getLevelNamesMapping()
         level = level_map[level]
 
-    def _log_it(f):
+    if logger is None:
+        logger = logging.getLogger("socx-cli")
+
+    def _log_it(f: AnyCallable) -> AnyCallable:
         sig = f"{f.__name__}{signature(f)}"
-        logger = logging.getLogger()
 
         @wraps(f)
         def wrapper(*args, **kwargs):
