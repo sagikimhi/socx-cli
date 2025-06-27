@@ -14,15 +14,18 @@ AnyCallable = Callable[..., Any]
 
 def log_it(
     level: str | int = logging.DEBUG,
+    logger: logging.Logger | None = None,
 ) -> Callable[[AnyCallable], AnyCallable]:
     """Add automatic entered/returned logging to decorated callables."""
     if isinstance(level, str):
         level_map: dict[str, int] = logging.getLevelNamesMapping()
         level = level_map[level]
 
+    if logger is None:
+        logger = logging.getLogger("socx-cli")
+
     def _log_it(f: AnyCallable) -> AnyCallable:
         sig = f"{f.__name__}{signature(f)}"
-        logger = logging.getLogger()
 
         @wraps(f)
         def wrapper(*args, **kwargs):
