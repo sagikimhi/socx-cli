@@ -39,6 +39,4 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     )
 
 
-_settings: Settings | Dynaconf = get_settings()
-
-settings: Settings | Dynaconf = _settings
+settings: Settings | Dynaconf = get_settings()
