@@ -6,7 +6,7 @@ from functools import partial
 from collections.abc import Callable
 
 import trogon
-from rich_click import option, Choice, Group, Command
+from rich_click import option, Choice
 
 from socx.cli.types import Decorator
 from socx.cli.types import AnyCallable
@@ -15,7 +15,7 @@ from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb
 
 
-tui: partial[Callable[[Command | Group], Command | Group]] = partial(
+tui: partial[AnyCallable] = partial(
     trogon.tui,
     name=__spec__.name.partition(".")[0],
     command="cli-ui",
