@@ -63,7 +63,7 @@ rich_click.STYLE_COMMANDS_PANEL_BORDER = "bright_black"
 
 rich_click.STYLE_COMMANDS_TABLE_BOX = ""
 rich_click.STYLE_COMMANDS_TABLE_PADDING = (0, 1)
-rich_click.STYLE_COMMANDS_TABLE_LEADING = 1
+rich_click.STYLE_COMMANDS_TABLE_LEADING = 0
 rich_click.STYLE_COMMANDS_TABLE_PAD_EDGE = False
 rich_click.STYLE_COMMANDS_TABLE_SHOW_LINES = False
 rich_click.STYLE_COMMANDS_TABLE_ROW_STYLES = None
@@ -108,7 +108,7 @@ rich_click.SHOW_METAVARS_COLUMN = True
 """Show a column with the option metavar (eg. INTEGER)"""
 
 rich_click.GROUP_ARGUMENTS_OPTIONS = False
-"""Show arguments with options instead of in own panel"""
+"""Show arguments with options instead of in separate panels"""
 
 # -----------------------------------------------------------------------------
 # Texts
