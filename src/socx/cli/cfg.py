@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from typing import Literal
 
-import rich_click as click
 from rich_click import rich_click
 
 # -----------------------------------------------------------------------------
@@ -139,90 +140,3 @@ For more info, visit:[/] [link]https://bitbucket.org/wiliot/socx-cli[/]
 rich_click.ERRORS_SUGGESTION = """\
 Try running with '-h' or '--help' for more information.
 """
-
-
-def cfg():
-    return click.RichHelpConfiguration(
-        text_markup="rich",
-        style_option="bright_green",
-        style_switch="bright_green",
-        style_command="cyan",
-        style_argument="green",
-        style_aborted="red",
-        style_deprecated="red",
-        style_header_text="",
-        style_epilog_text="",
-        style_footer_text="",
-        style_usage="yellow",
-        style_usage_command="cyan",
-        style_helptext="",
-        style_helptext_first_line="",
-        style_required_long="red",
-        style_required_short="red",
-        style_metavar="yellow",
-        style_metavar_append="yellow",
-        style_metavar_separator="",
-        style_option_help="",
-        style_option_envvar="orange3",
-        style_option_default="magenta",
-        align_options_panel="left",
-        style_options_panel_box="ROUNDED",
-        style_options_panel_border="bright_black",
-        style_options_table_box="HORIZONTAL",
-        style_options_table_leading=1,
-        style_options_table_padding=(1, 1),
-        style_options_table_pad_edge=False,
-        style_options_table_show_lines=False,
-        style_options_table_border_style=None,
-        style_options_table_row_styles=None,
-        align_commands_panel="left",
-        style_commands_panel_box="ROUNDED",
-        style_commands_panel_border="bright_black",
-        style_commands_table_box="",
-        style_commands_table_padding=(1, 1),
-        style_commands_table_leading=1,
-        style_commands_table_pad_edge=False,
-        style_commands_table_show_lines=False,
-        style_commands_table_border_style=None,
-        style_commands_table_row_styles=None,
-        style_commands_table_column_width_ratio=(1, 1),
-        align_errors_panel="left",
-        style_errors_panel_box="ROUNDED",
-        style_errors_panel_border="red",
-        style_errors_suggestion="",
-        style_errors_suggestion_command="blue",
-        # Options
-        color_system="auto",
-        use_markdown=True,
-        show_arguments=True,
-        use_rich_markup=True,
-        use_markdown_emoji=True,
-        option_envvar_first=False,
-        append_metavars_help=False,
-        use_click_short_help=False,
-        show_metavars_column=True,
-        group_arguments_options=False,
-        # Texts
-        header_text="",
-        footer_text="",
-        aborted_text="",
-        errors_panel_title="Error",
-        options_panel_title="Options",
-        commands_panel_title="Commands",
-        arguments_panel_title="Arguments",
-        range_string=" [{}]",
-        envvar_string="[envvar: {}]",
-        default_string="[default: {}]",
-        deprecated_string="(Deprecated) ",
-        required_long_string="[required]",
-        required_short_string="",
-        append_metavars_help_string="[{}]",
-        option_groups={},
-        errors_epilogue="""
-        [bright_magenta]for more info, visit:[/] \
-        [link]https://bitbucket.org/wiliot/socx-cli[/]
-        """.strip(),
-        errors_suggestion="""
-        try running with '-h' or '--help' for more information.
-        """.strip(),
-    )
