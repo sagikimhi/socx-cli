@@ -77,6 +77,7 @@ dev = [
     "build",
     "hatch",
     "pytest",
+    "docify",
     "debugpy",
     "pydantic",
     "hatchling",
@@ -91,7 +92,6 @@ dev = [
     "flake8-simplify",
     "textual-textarea",
     "textual-fastdatatable",
-    "docify>=1.1.0",
 ]
 
 # -----------------------------------------------------------------------------
@@ -100,25 +100,3 @@ dev = [
 
 [tool.uv]
 package = true
-
-[tool.basedpyright.analysis]
-include = ["src"]
-exclude = [
-    ".git",
-    "dist",
-    "**/.ruff_cache",
-    "**/.pytest_cache",
-    "**/.gitignore",
-    "**/__pycache__",
-    "**/*.eggs",
-    "**/*.pyc",
-    "**/*.pyd",
-]
-stubPath = "stubs"
-pythonVersion = "3.12"
-pythonPlatform = "All"
-typeCheckingMode = "standard"
-reportMissingImports = "error"
-autoImportCompletions = true
-useLibraryCodeForTypes = true
-reportMissingTypeStubs = true
