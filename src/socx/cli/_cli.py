@@ -15,14 +15,13 @@ from socx.cli.types import AnyCallable
 _context_settings = dict(help_option_names=["--help", "-h"])
 
 
-class _CmdLine(click.RichGroup, click.Group):
+class _CmdLine(click.RichGroup):
     _plugins: dict[str, click.Command]
 
     @log_it()
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", _context_settings)
-        click.RichGroup.__init__(self, *args, **kwargs)
-        click.Group.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._plugins = {}
 
     @property
