@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import os
 import logging
 import asyncio as aio
-from typing import Any
-from typing import override
+from typing import Any, TypeVar
+from typing import cast, override
 from threading import RLock
-from dataclasses import field
 from dataclasses import dataclass
 from collections import deque
 from collections.abc import Iterator
@@ -28,7 +26,6 @@ from socx.regression.test import Test
 from socx.regression.test import TestBase
 from socx.regression.test import TestStatus
 from socx.regression.test import TestResult
-from socx.regression.validator import validate_test_list
 
 
 logger = logging.getLogger(__name__)
@@ -36,35 +33,29 @@ logger = logging.getLogger(__name__)
 
 __all__ = ("Regression",)
 
+TestType = TypeVar("TestType", bound=Test)
+
 
 @dataclass(init=False)
 class Regression(TestBase):
-    _map: dict[Test, str] = field(default_factory=dict)
-    _tests: deque[Test] = field(default_factory=deque)
+    _tests: deque
 
     def __init__(
-        self, name: str, tests: Iterable[Test], *args: Any, **kwargs: Any
+        self, name: str, tests: Iterable[TestType], *args: Any, **kwargs: Any
     ) -> None:
         TestBase.__init__(self, name, *args, **kwargs)
-        if tests is None:
-            tests = set()
         tests = set(tests)
-        validate_test_list(tests)
-        self._pid = os.getpid()
-        self._map = {test: test.name for test in tests}
         self._lock = RLock()
-        self._tests: deque[Test] = deque(set(tests))
+        self._tests = deque(set(tests))
         self._runner_tid = None
         self._scheduler_tid = None
         self._regression_tid = None
         self._num_tests = len(self._tests)
-        self.pending: aio.Queue[Test] = aio.Queue(self.run_limit)
-        self.messages: aio.Queue[str] = aio.Queue()
         self._progress: Progress = Progress(
+            SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             TaskProgressColumn(),
             BarColumn(),
-            SpinnerColumn(),
             "[green]Completed:",
             MofNCompleteColumn(),
             "[yellow]Elapsed:",
@@ -74,10 +65,14 @@ class Regression(TestBase):
             transient=False,
             expand=False,
         )
+        self.pending: aio.Queue = aio.Queue(self.run_limit)
+        self.messages: aio.Queue = aio.Queue()
 
     @classmethod
-    def from_lines(cls, name: str, lines: Iterable[str]) -> Regression:
-        tests = [Test(line) for line in lines]
+    def from_lines(
+        cls, name: str, lines: Iterable[str], test_cls: type = Test
+    ) -> Regression:
+        tests = [test_cls(line) for line in lines]
         return Regression(name, tests)
 
     def __len__(self) -> int:
@@ -98,7 +93,13 @@ class Regression(TestBase):
     def cfg(self) -> DynaBox:
         """Regression settings accessed via property."""
         with self._lock:
-            return settings.regression
+            return cast(DynaBox, settings.regression)
+
+    @property
+    def options(self) -> DynaBox:
+        """Regression settings accessed via property."""
+        with self._lock:
+            return cast(DynaBox, self.cfg.opts)
 
     @property
     def tests(self) -> deque[Test]:
@@ -113,10 +114,9 @@ class Regression(TestBase):
             return self._progress
 
     @property
-    def run_limit(self):
+    def run_limit(self) -> int:
         """The max_runs_in_parallel configuration accessed via property."""
-        with self._lock:
-            return int(self.cfg.max_runs_in_parallel)
+        return cast(int, self.options.max_runs_in_parallel)
 
     @override
     async def start(self) -> None:
