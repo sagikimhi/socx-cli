@@ -1833,7 +1833,7 @@ dev = [
     { name = "basedpyright" },
     { name = "build" },
     { name = "debugpy" },
-    { name = "docify", specifier = ">=1.1.0" },
+    { name = "docify" },
     { name = "flake8-bugbear" },
     { name = "flake8-simplify" },
     { name = "hatch" },

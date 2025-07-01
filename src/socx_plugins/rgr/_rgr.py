@@ -11,6 +11,8 @@ from socx import add_options
 from socx import Decorator
 from socx import AnyCallable
 
+from socx_plugins.rgr.pixie_test import PixieTest
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,14 @@ def _input() -> Decorator[AnyCallable]:
         required=False,
         expose_value=True,
         help="Input file of failed commands to rerun",
-        type=click.File(mode="r", encoding="utf-8", lazy=True),
+        type=click.Path(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            path_type=Path,
+        ),
     )
 
 
@@ -35,7 +44,6 @@ def _output() -> Decorator[AnyCallable]:
         "-o",
         "output",
         nargs=1,
-        # type=click.Path
         metavar="DIRECTORY",
         required=False,
         expose_value=True,
@@ -49,7 +57,7 @@ def options() -> Decorator[AnyCallable]:
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:
     if input_path is None:
-        input_cfg = settings.regression.rerun_failure_history.input
+        input_cfg = settings.regression.run.input
         dir_in = input_cfg.directory
         file_in = input_cfg.filename
         input_path = dir_in / file_in
@@ -66,8 +74,8 @@ def _correct_paths_out(
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
     if output_path is None:
-        cfg: DynaBox = settings.regression.report.path
-        dir_out: Path = Path(cfg) / today
+        cfg: DynaBox = settings.regression.run.output  # pyright: ignore
+        dir_out: Path = Path(cfg.directory) / today  # pyright: ignore
         fail_out: Path = Path(dir_out) / f"{now}_failed.log"
         pass_out: Path = Path(dir_out) / f"{now}_passed.log"
     else:
@@ -107,7 +115,9 @@ def _write_results(
 def _populate_regression(filepath: Path) -> Regression:
     logger.info(f"reading input from file path: {filepath}")
     with click.open_file(filepath, mode="r", encoding="utf-8") as file:
-        return Regression.from_lines("rgr", tuple(line for line in file))
+        return Regression.from_lines(
+            "rgr", tuple(line for line in file), test_cls=PixieTest
+        )
 
 
 async def _run_from_file(

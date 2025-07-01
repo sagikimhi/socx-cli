@@ -3,7 +3,7 @@ from __future__ import annotations
 from socx import global_options
 import rich_click as click
 
-from socx_plugins._rgr import options
+from socx_plugins.rgr._rgr import options
 
 
 @click.group("rgr")
@@ -33,6 +33,6 @@ def run(input, output):  # noqa: A002
     For more info regarding configurations, check out `socx config` command.
     """
     import uvloop
-    from socx_plugins._rgr import _run_from_file
+    from socx_plugins.rgr._rgr import _run_from_file
 
     uvloop.run(_run_from_file(input, output))

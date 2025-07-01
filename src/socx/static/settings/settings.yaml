@@ -3,4 +3,4 @@ dynaconf_include:
   - git.yaml
   - filetypes.yaml
   - convert.yaml
-  - regression.toml
+  - regression.yaml
