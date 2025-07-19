@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @click.pass_context
 def cli(ctx: click.Context) -> int:
     """System on chip verification and tooling infrastructure."""
+    cli._load_plugins()
     if ctx.invoked_subcommand is None:
         formatter = ctx.make_formatter()
         ctx.command.format_help(ctx, formatter)

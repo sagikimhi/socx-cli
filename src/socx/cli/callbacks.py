@@ -27,18 +27,21 @@ def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 
 @log_it(logger=logger)
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
-    appname = settings.metadata.__appname__  # pyright: ignore
+    from socx.config.metadata import __appname__
+
+    appname = __appname__  # pyright: ignore
     configure = value and not settings.get(f"cli.{param.name}")  # pyright: ignore
-    local_settings = list(
-        Path.cwd().glob(f"{appname}.local.*", case_sensitive=True)
-    )
+    # local_settings = list(
+    #     Path.cwd().glob(f"{appname}.local.*", case_sensitive=True)
+    # )
 
-    if configure:
-        settings.load_file(settings.paths.get("USER_CONFIG_FILE"))  # pyright: ignore
-
-        if local_settings:
-            settings.load_file(local_settings[0])  # pyright: ignore
-
+    if not configure:
+        settings.configure()
+        # settings.load_file(settings.paths.get("USER_CONFIG_FILE"))  # pyright: ignore
+        #
+        # if local_settings:
+        #     settings.load_file(local_settings[0])  # pyright: ignore
+        #
     settings.set("cli", {param.name: configure}, merge=True)  # pyright: ignore
     return configure
 

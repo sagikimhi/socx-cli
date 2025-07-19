@@ -7,7 +7,6 @@ import rich_click as click
 from dynaconf.utils.boxing import DynaBox
 
 from socx.io import log_it
-from socx.config import settings
 from socx.cli.types import Decorator
 from socx.cli.types import AnyCallable
 
@@ -26,20 +25,27 @@ class _CmdLine(click.RichGroup):
 
     @property
     @log_it()
+    def settings(self):
+        """The settings property."""
+        from socx.config import settings
+
+        return settings
+
+    @property
+    @log_it()
     def plugins(self):
         """The plugins property."""
-        if not self._plugins:
-            self._load_plugins()
+        self._load_plugins()
         return self._plugins
 
     @property
     @log_it()
-    def plugin_names(self) -> Iterable[str]:
-        return tuple(self.plugins.keys())
+    def plugin_names(self) -> list[str]:
+        return list(self.plugins)
 
     @log_it()
-    def list_commands(self, ctx) -> list[str]:
-        rv = list(set(super().list_commands(ctx) + list(self.plugin_names)))
+    def list_commands(self, ctx: click.Context) -> list[str]:
+        rv = [*super().list_commands(ctx), *self.plugin_names]
         rv.sort(
             key=lambda x: sum(len(x) * i + ord(c) for i, c in enumerate(x))
         )
@@ -47,30 +53,26 @@ class _CmdLine(click.RichGroup):
 
     @log_it()
     def get_command(self, ctx: click.Context, name: str) -> Any:
-        return self.plugins.get(name, super().get_command(ctx, name))
+        self._load_plugins()
+        return (
+            self.plugins[name]
+            if name in self.plugins
+            else super().get_command(ctx, name)
+        )
 
     @log_it()
     def _load_plugins(self) -> None:
-        for name in settings.plugins:
-            if plugin := settings.plugins.get(name):
-                self._load_plugin(plugin)
+        for plugin in self.settings.plugins.values():
+            self._load_plugin(plugin)
 
     @log_it()
     def _load_plugin(self, plugin: DynaBox) -> None:
+        if plugin.name in self._plugins:
+            return
+        if not plugin.get("enabled", True):
+            return
         self.add_command(plugin.command, plugin.name)
         self._plugins[plugin.name] = plugin.command
-
-    @classmethod
-    @log_it()
-    def _unique(cls, args: Iterable[Any]) -> Iterable[Any]:
-        rv = []
-        args = cls._listify(args)
-        lookup = set()
-        for x in cls._listify(args):
-            if x not in lookup:
-                rv.append(x)
-            lookup.add(x)
-        return rv
 
     @classmethod
     @log_it()
@@ -84,11 +86,6 @@ class _CmdLine(click.RichGroup):
         else:
             rv = [args]
         return rv
-
-    @classmethod
-    def _compile(cls, file, name):
-        code = compile(file.read_text(), name, "exec")
-        return code
 
     @classmethod
     @log_it()

@@ -63,8 +63,11 @@ class SymbolConverter(Converter):
         parts = value.rpartition(":")
 
         if "/" in value:
+            import sys
+
             ns = {}
             converter = CompileConverter()
+            sys.path.append(str(Path(parts[0]).parent))
             eval(converter(parts[0]), ns, ns)
             return ns[parts[-1]]
         else:

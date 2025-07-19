@@ -8,7 +8,7 @@ from dynaconf.base import Settings
 
 from socx.io import log_it
 from socx.config import converters
-from socx.config.paths import APP_CONFIG_FILE
+from socx.config.paths import APP_CONFIG_FILE, USER_CONFIG_FILE
 from socx.config.metadata import __appname__
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,8 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     assert path.is_file()
 
     converters._init()
-    return Dynaconf(
+    local_settings_path = Path.cwd() / f".{__appname__}.yaml"
+    settings = Dynaconf(
         encoding="utf-8",
         root_path=str(path.parent),
         settings_files=[path.name],
@@ -37,6 +38,14 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
         sysenv_fallback=True,
         dotenv_override=False,
     )
+
+    if local_settings_path.exists() and local_settings_path.is_file():
+        settings.load_file(str(local_settings_path))
+
+    if USER_CONFIG_FILE.exists():
+        settings.load_file(USER_CONFIG_FILE)
+
+    return settings
 
 
 settings: Settings | Dynaconf = get_settings()
