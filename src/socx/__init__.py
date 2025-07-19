@@ -1,5 +1,6 @@
 __all__ = (
     # I/O
+    "log",
     "DEFAULT_LEVEL",
     "DEFAULT_FORMAT",
     "DEFAULT_HANDLERS",
@@ -53,7 +54,6 @@ __all__ = (
     "CompileConverter",
     "ImportConverter",
     "SymbolConverter",
-    "add_converter",
     "add_converters",
     "get_converters",
     "Validator",
@@ -81,6 +81,7 @@ __all__ = (
     "TestCommand",
 )
 
+from socx.io import log as log
 from socx.io import DEFAULT_LEVEL as DEFAULT_LEVEL
 from socx.io import DEFAULT_FORMAT as DEFAULT_FORMAT
 from socx.io import DEFAULT_HANDLERS as DEFAULT_HANDLERS
