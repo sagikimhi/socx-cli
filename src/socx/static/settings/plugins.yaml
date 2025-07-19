@@ -12,7 +12,7 @@ plugins:
     name: rgr
     command: "@symbol socx_plugins.rgr.rgr:cli"
 
-  example:
+  plug:
     name: plug
     command: "@symbol socx_plugins.plugin:cli"
 
