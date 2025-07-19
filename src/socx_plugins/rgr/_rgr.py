@@ -12,6 +12,7 @@ from socx import Decorator
 from socx import AnyCallable
 
 from socx_plugins.rgr.pixie_test import PixieTest
+from socx_plugins.rgr.callbacks import input_cb, output_cb
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ def _input() -> Decorator[AnyCallable]:
             resolve_path=True,
             path_type=Path,
         ),
+        callback=input_cb,
     )
 
 
@@ -48,6 +50,7 @@ def _output() -> Decorator[AnyCallable]:
         required=False,
         expose_value=True,
         help="Output directory for writing passed/failed run commands.",
+        callback=output_cb,
     )
 
 
