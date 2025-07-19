@@ -1,9 +1,14 @@
 __all__ = (
+    # Modules
+    "log",
+    # Constants
     "DEFAULT_LEVEL",
     "DEFAULT_FORMAT",
     "DEFAULT_HANDLERS",
     "DEFAULT_TIME_FORMAT",
+    # Classes
     "Level",
+    # Functions
     "log_it",
     "logger",
     "console",
@@ -20,6 +25,7 @@ __all__ = (
     "get_handler_names",
 )
 
+from socx.io import log as log
 from socx.io.log import DEFAULT_LEVEL as DEFAULT_LEVEL
 from socx.io.log import DEFAULT_FORMAT as DEFAULT_FORMAT
 from socx.io.log import DEFAULT_HANDLERS as DEFAULT_HANDLERS
