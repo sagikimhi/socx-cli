@@ -40,7 +40,7 @@ class RegressionView(
         yield Table()
 
     def action_load_from_file(self) -> None:
-        cfg = settings.regression.rerun_failure_history.input
+        cfg = settings.regression.run.input
         filepath = cfg.directory / cfg.filename
         table: Table = self.query_one(Table)
         table.load_from_file(filepath)
