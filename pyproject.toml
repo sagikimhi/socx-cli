@@ -63,6 +63,7 @@ dependencies = [
     "importlib-metadata",
     "textual-autocomplete",
     "textual-universal-directorytree",
+    "textual-speedups>=0.2.0",
 ]
 
 [project.urls]
@@ -90,7 +91,6 @@ dev = [
     "basedpyright",
     "flake8-bugbear",
     "flake8-simplify",
-    "textual-textarea",
     "textual-fastdatatable",
 ]
 
