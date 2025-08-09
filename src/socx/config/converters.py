@@ -75,6 +75,18 @@ class SymbolConverter(Converter):
             return getattr(converter(parts[0]), parts[-1])
 
 
+class CommandConverter(Converter):
+    @override
+    def __call__(self, value: Any) -> Any:
+        import rich_click as click
+
+        @click.command()
+        def cli():
+            return SymbolConverter()(value)()
+
+        return cli
+
+
 class IncludeConverter(Converter):
     @override
     def __call__(self, value: str | Path) -> Settings:
@@ -123,6 +135,7 @@ def _init() -> None:
         SymbolConverter(),
         ImportConverter(),
         CompileConverter(),
+        CommandConverter(),
         IncludeConverter(),
     ]
     add_converters(converters)
