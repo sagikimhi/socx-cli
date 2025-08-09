@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
-import logging
 import enum
+import logging
 from typing import Final
 from pathlib import Path
 from collections.abc import Iterable
@@ -11,7 +11,6 @@ from click import open_file
 from rich.console import Console
 from rich.logging import RichHandler
 from platformdirs import user_log_path
-
 
 __all__ = (
     # Logging
@@ -75,6 +74,9 @@ def _get_file_handler(
     return RichHandler(console=console, level=level)
 
 
+APP_LIB_NAME = __name__.partition(".")[0]
+"""Application library name"""
+
 DEFAULT_ENCODING: Final[str] = "utf-8"
 """Default text encoding format."""
 
@@ -101,9 +103,7 @@ DEFAULT_CHILD_FORMATTER: Final[logging.Formatter] = logging.Formatter(
 DEFAULT_LOG_DIRECTORY: Final[Path] = Path(
     os.environ.get(
         "SOCX_LOG_DIR",
-        user_log_path(
-            appname=__package__.partition(".")[0], ensure_exists=True
-        ),
+        user_log_path(appname=APP_LIB_NAME, ensure_exists=True),
     )
 )
 """Default application log directory."""
@@ -125,7 +125,7 @@ def _get_logger(**kwargs) -> logging.Logger:
     kwargs.setdefault("encoding", DEFAULT_ENCODING)
     kwargs.setdefault("datefmt", DEFAULT_TIME_FORMAT)
     logging.basicConfig(**kwargs)
-    return logging.getLogger()
+    return logging.getLogger(APP_LIB_NAME)
 
 
 logger = _get_logger()
