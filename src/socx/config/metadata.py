@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from inspect import getfile
 from importlib.metadata import version
 from importlib.metadata import metadata
 from importlib.metadata import PackageMetadata
@@ -14,11 +15,11 @@ __all__ = (
 )
 
 
+__appname__: str = "socx"
+"""Application name."""
+
 __project__: str = "socx-cli"
 """Project name."""
-
-__appname__: str = __spec__.name.partition(".")[0]
-"""Application name."""
 
 __author__: str = "Sagi Kimhi <sagi.kim5@gmail.com>"
 """Project author."""
@@ -29,5 +30,5 @@ __version__: str = version(__project__)
 __metadata__: PackageMetadata = metadata(__project__)
 """Project metadata."""
 
-__directory__: Path = Path(__file__).parents[1].resolve().absolute()
+__directory__: Path = Path(getfile(lambda: None)).parents[1].resolve()
 """Project source directory."""
