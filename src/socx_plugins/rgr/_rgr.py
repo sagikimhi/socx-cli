@@ -1,15 +1,18 @@
 import time
 import logging
+import asyncio
 from pathlib import Path
 
 import rich_click as click
 from dynaconf.utils.boxing import DynaBox
 
-from socx import Regression
-from socx import settings
-from socx import add_options
-from socx import Decorator
-from socx import AnyCallable
+from socx import (
+    Regression,
+    Decorator,
+    AnyCallable,
+    settings,
+    add_options,
+)
 
 from socx_plugins.rgr.pixie_test import PixieTest
 from socx_plugins.rgr.callbacks import input_cb, output_cb
@@ -130,13 +133,14 @@ async def _run_from_file(
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
     pass_out, fail_out = _correct_paths_out(output)
+    regression_task = asyncio.create_task(
+        regression.start(), name=regression.name
+    )
 
     try:
-        await regression.start()
-    except Exception as e:
-        logger.exception(
-            f"Encountered exception of type {type(e)} during an "
-            "attempt to run a regression."
-        )
+        await regression_task
+    except asyncio.CancelledError:
+        err = "Task has been cancelled, cleaning up..."
+        logger.exception(err)
     finally:
         _write_results(pass_out, fail_out, regression)
