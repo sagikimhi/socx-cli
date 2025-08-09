@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Final
 from pathlib import Path
+from inspect import getfile
 
 from platformdirs import user_log_path
 from platformdirs import user_data_path
@@ -15,6 +16,7 @@ from socx.config.metadata import __appname__
 from socx.config.metadata import __directory__
 
 __all__ = (
+    "APP_ROOT_DIR",
     "USER_LOG_DIR",
     "USER_DATA_DIR",
     "USER_CACHE_DIR",
@@ -32,6 +34,9 @@ __all__ = (
 # -----------------------------------------------------------------------------
 # User Directories
 # -----------------------------------------------------------------------------
+
+APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[3].resolve()
+"""Absolute path to directory where application is installed."""
 
 USER_DATA_DIR: Final[Path] = user_data_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
