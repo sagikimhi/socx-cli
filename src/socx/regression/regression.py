@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 import logging
 import asyncio as aio
 from typing import Any, TypeVar
@@ -121,28 +122,30 @@ class Regression(TestBase):
     @override
     async def start(self) -> None:
         """Start the regression."""
-        try:
-            self._status = TestStatus.Pending
-            logger.info("regression starting.")
-            logger.debug(f"{self=}")
+        self._status = TestStatus.Pending
+        logger.info("regression starting.")
+        logger.debug(f"{self=}")
+        self._started_time = time.perf_counter()
 
+        try:
             async with aio.TaskGroup() as tg:
+                self._status = TestStatus.Running
                 tg.create_task(self._animate_progress())
                 tg.create_task(self._schedule_tests())
                 tg.create_task(self._run_tests())
-                self._status = TestStatus.Running
-
+        except Exception:
+            self._status = TestStatus.Terminated
+            self._result = TestResult.Failed
+            raise
+        else:
             self._status = TestStatus.Finished
             self._result = (
                 TestResult.Passed
                 if all(test.passed for test in self)
                 else TestResult.Failed
             )
-        except Exception:
-            self._status = TestStatus.Terminated
-            self._result = TestResult.Failed
-            raise
         finally:
+            self._finished_time = time.perf_counter()
             logger.info("regression ending.")
             logger.debug(f"{self=}")
 
