@@ -17,7 +17,7 @@ class PixieTest(Test):
         if self.returncode != 0:
             return TestResult.Failed
 
-        run_log = self.runtime_logs / self.name / "run.log"
+        run_log = self.runtime_logs / self.name / "logs" / "run.log"
         logger.debug(f"parsing result from file: '{run_log}'")
 
         result_parser = TestResults()
