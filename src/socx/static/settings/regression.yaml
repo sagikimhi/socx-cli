@@ -1,6 +1,6 @@
 ---
 regression:
-  path: "@path /space/users/ci_wiliot/vw_e0_nightly_regression/regressions"
+  path: "@path @format {this.paths.APP_ROOT_DIR}/assets/rgr"
 
   opts:
     max_runs_in_parallel: 10
@@ -10,7 +10,7 @@ regression:
       directory: "@path workrun/regression/logs"
     input:
       filename: failed_tests_history.log
-      directory: "@path @format {this.regression.path}/logs/latest"
+      directory: "@path @format {this.regression.path}/inputs"
     output:
       directory: "@path workrun/regression/reports"
 
