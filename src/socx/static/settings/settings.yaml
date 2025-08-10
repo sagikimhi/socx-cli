@@ -1,3 +1,4 @@
+---
 dynaconf_include:
   - plugins.yaml
   - git.yaml
