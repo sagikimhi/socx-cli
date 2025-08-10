@@ -83,9 +83,32 @@ class CommandConverter(Converter):
     def __call__(self, value: Any) -> Any:
         import rich_click as click
 
-        @click.command()
-        def cli():
-            return SymbolConverter()(value)()
+        context_settings = dict(
+            ignore_unknown_options=True, help_option_names=[]
+        )
+        symbolizer = SymbolConverter()
+        symbol = symbolizer(value)
+
+        if symbol is None:
+            return None
+
+        if isinstance(symbol, click.Command):
+            return symbol
+
+        doc = symbol.__globals__.get("__doc__", "")
+
+        @click.command(
+            context_settings=context_settings,
+            help=doc,
+        )
+        @click.argument("args", nargs=-1, type=click.UNPROCESSED)
+        def cli(args: Any):
+            if callable(symbol):
+                tmp = sys.argv[1:]
+                sys.argv[1:] = args
+                res = symbol()
+                sys.argv[1:] = tmp
+                return res
 
         return cli
 
