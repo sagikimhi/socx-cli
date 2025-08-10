@@ -2,28 +2,35 @@
 plugins:
   ui:
     name: ui
-    command: "@symbol socx_plugins.ui:cli"
+    enabled: true
+    command: "@command socx_plugins.ui:cli"
 
   git:
     name: git
-    command: "@symbol socx_plugins.git.cli:cli"
+    enabled: true
+    command: "@command socx_plugins.git.cli:cli"
 
   rgr:
     name: rgr
-    command: "@symbol socx_plugins.rgr.rgr:cli"
+    enabled: true
+    command: "@command socx_plugins.rgr.rgr:cli"
 
   plug:
     name: plug
-    command: "@symbol socx_plugins.plugin:cli"
+    enabled: true
+    command: "@command socx_plugins.plugin:cli"
 
   config:
     name: config
-    command: "@symbol socx_plugins.config:cli"
+    enabled: true
+    command: "@command socx_plugins.config:cli"
 
   convert:
     name: convert
-    command: "@symbol socx_plugins.convert:cli"
+    enabled: true
+    command: "@command socx_plugins.convert:cli"
 
   version:
     name: version
-    command: "@symbol socx_plugins.version:version"
+    enabled: true
+    command: "@command socx_plugins.version:version"
