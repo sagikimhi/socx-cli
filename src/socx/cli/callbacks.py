@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from rich_click import Context
 from rich_click import Parameter
 
-from socx.io import log
-from socx.io import log_it
+from socx.config.paths import (
+    LOCAL_CONFIG_FILENAME,
+    USER_CONFIG_FILENAME,
+)
+from socx.io import log, log_it, Level
 from socx.config import settings
 
 
@@ -16,47 +18,47 @@ logger = logging.getLogger(__name__)
 
 @log_it(logger=logger)
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
-    debug = settings.get("cli.debug") or value  # pyright: ignore
+    value = settings.cli.get(param.name) or value
 
-    if debug:
+    if value and log.get_level(log.logger) != Level.DEBUG:
         log.set_level(log.Level.DEBUG, log.logger)
 
-    settings.set("cli", {param.name: debug}, merge=True)  # pyright: ignore
-    return debug  # pyright: ignore
+    if value != settings.cli.get(param.name):
+        settings.update(cli={param.name: value}, merge=True)
+
+    return value
 
 
 @log_it(logger=logger)
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
-    from socx.config.metadata import __appname__
+    value = settings.cli.get(param.name) and value
 
-    appname = __appname__  # pyright: ignore
-    configure = value and not settings.get(f"cli.{param.name}")  # pyright: ignore
-    # local_settings = list(
-    #     Path.cwd().glob(f"{appname}.local.*", case_sensitive=True)
-    # )
+    if not value:
+        settings.configure(
+            skip_files=[
+                f"**/*{USER_CONFIG_FILENAME}",
+                f"**/*{LOCAL_CONFIG_FILENAME}",
+            ]
+        )
+        settings.reload()
 
-    if not configure:
-        settings.configure()
-        # settings.load_file(settings.paths.get("USER_CONFIG_FILE"))  # pyright: ignore
-        #
-        # if local_settings:
-        #     settings.load_file(local_settings[0])  # pyright: ignore
-        #
-    settings.set("cli", {param.name: configure}, merge=True)  # pyright: ignore
-    return configure
+    if value != settings.cli.get(param.name):
+        settings.update(cli={param.name: value}, merge=True)
+
+    return value
 
 
 @log_it(logger=logger)
 def verbosity_cb(ctx: Context, param: Parameter, value: str) -> str:
-    debug = settings.get("cli.debug")  # pyright: ignore
+    new_verbosity = log.Level[value]
+    curr_verbosity = log.Level[settings.cli.get(param.name)]
 
-    if not debug:
-        new_verbosity = log.Level[value]
-        verbosity = log.get_level(log.logger)
+    if log.get_level(log.logger) == Level.DEBUG:
+        settings.update(cli={param.name: value}, merge=True)
+        return Level.DEBUG.name
 
-        if log.Level.DEBUG < verbosity <= new_verbosity:
-            log.set_level(new_verbosity, log.logger)
+    if curr_verbosity == Level.NOTSET or new_verbosity < curr_verbosity:
+        settings.update(cli={param.name: value}, merge=True)
+        log.set_level(new_verbosity, log.logger)
 
-    verbosity = log.get_level(log.logger)
-    settings.set("cli", {param.name: verbosity.name}, merge=True)  # pyright: ignore
-    return verbosity.name
+    return log.get_level(log.logger).name

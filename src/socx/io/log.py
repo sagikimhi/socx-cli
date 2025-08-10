@@ -108,7 +108,9 @@ DEFAULT_LOG_DIRECTORY: Final[Path] = Path(
 )
 """Default application log directory."""
 
-DEFAULT_LOG_FILE: Final[str] = os.environ.get("SOCX_LOG_FILE", "run.log")
+DEFAULT_LOG_FILE: Final[str] = os.environ.get(
+    "SOCX_LOG_FILE", f"{APP_LIB_NAME}.log"
+)
 """Default application log file."""
 
 DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
@@ -140,10 +142,6 @@ or extensive than a basic write to console functionality.
 """
 
 
-# def configure(cfg: dict, *args, **kwargs) -> None:
-#     logging.config.dictConfig(cfg)
-#
-#
 def get_logger(name: str, filename: str | None = None) -> logging.Logger:
     """
     Get a pretty printing log handler.

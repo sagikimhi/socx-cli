@@ -1,6 +1,11 @@
 __all__ = (
     # Settings
+    "SETTINGS_OPTIONS",
     "settings",
+    "get_includes",
+    "get_excludes",
+    "get_settings",
+    "get_local_settings_files",
     # Paths
     "USER_LOG_DIR",
     "USER_DATA_DIR",
@@ -40,6 +45,13 @@ __all__ = (
 
 
 from socx.config._config import settings as settings
+from socx.config._config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+from socx.config._config import get_includes as get_includes
+from socx.config._config import get_excludes as get_excludes
+from socx.config._config import get_settings as get_settings
+from socx.config._config import (
+    get_local_settings_files as get_local_settings_files,
+)
 
 from socx.config.paths import USER_LOG_DIR as USER_LOG_DIR
 from socx.config.paths import USER_DATA_DIR as USER_DATA_DIR

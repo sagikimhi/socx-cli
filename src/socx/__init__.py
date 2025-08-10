@@ -28,6 +28,7 @@ __all__ = (
     "Decorator",
     "AnyCallable",
     # Config
+    "settings",
     "__author__",
     "__project__",
     "__version__",
@@ -59,7 +60,6 @@ __all__ = (
     "Validator",
     "ValidationError",
     "validate_all",
-    "settings",
     # Mixins
     "UIDMixin",
     "PtrMixin",
@@ -109,6 +109,7 @@ from socx.cli import global_options as global_options
 from socx.cli import Decorator as Decorator
 from socx.cli import AnyCallable as AnyCallable
 
+from socx.config import settings as settings
 from socx.config import __author__ as __author__
 from socx.config import __project__ as __project__
 from socx.config import __version__ as __version__
@@ -126,7 +127,13 @@ from socx.config import APP_STATIC_DIR as APP_STATIC_DIR
 from socx.config import APP_CONFIG_DIR as APP_CONFIG_DIR
 from socx.config import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
 from socx.config import APP_CONFIG_FILE as APP_CONFIG_FILE
-from socx.config import settings as settings
+from socx.config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+from socx.config import get_includes as get_includes
+from socx.config import get_excludes as get_excludes
+from socx.config import get_settings as get_settings
+from socx.config import (
+    get_local_settings_files as get_local_settings_files,
+)
 from socx.config import Formatter as Formatter
 from socx.config import TreeFormatter as TreeFormatter
 from socx.config import Converter as Converter
