@@ -71,6 +71,8 @@ class _CmdLine(click.RichGroup):
             return
         if not plugin.get("enabled", True):
             return
+        if not isinstance(plugin.command, click.Command):
+            return
         self.add_command(plugin.command, plugin.name)
         self._plugins[plugin.name] = plugin.command
 
@@ -102,6 +104,6 @@ class _CmdLine(click.RichGroup):
 
 
 def socx() -> Decorator[AnyCallable]:
-    return click.command(
+    return click.group(
         "socx", cls=_CmdLine, no_args_is_help=True, invoke_without_command=True
     )
