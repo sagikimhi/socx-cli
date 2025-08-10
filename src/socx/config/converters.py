@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import sys
 import abc
 from types import CodeType
 from types import ModuleType
@@ -9,9 +12,7 @@ from upath import UPath as Path
 from importlib import import_module
 from collections.abc import Iterable
 
-from dynaconf import Dynaconf
 from dynaconf import add_converter
-from dynaconf.base import Settings
 
 from socx.io.decorators import log_it
 
@@ -40,9 +41,13 @@ class CompileConverter(Converter):
     def __call__(self, value: str | Path) -> CodeType:
         """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
         if isinstance(value, str):
-            value = Path(value).resolve().absolute()
-        code = compile(value.read_text(), value, "exec")
-        return code
+            value = Path(value)
+        try:
+            value = value.resolve()
+        except OSError:
+            return compile("lambda: None", value, "single")
+        else:
+            return compile(value.read_text(), value, "exec")
 
 
 class ImportConverter(Converter):
@@ -56,23 +61,21 @@ class SymbolConverter(Converter):
     @override
     def __call__(self, value: str) -> Any:
         """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
-        ns: dict[str, Any]
-        parts: tuple[str, str, str]
-        converter: CompileConverter | ImportConverter
-
         parts = value.rpartition(":")
-
-        if "/" in value:
-            import sys
-
-            ns = {}
-            converter = CompileConverter()
-            sys.path.append(str(Path(parts[0]).parent))
-            eval(converter(parts[0]), ns, ns)
-            return ns[parts[-1]]
-        else:
+        path, symbol = parts[0], parts[-1]
+        if "/" in path:
+            ns = {**globals(), **locals()}
+            path = Path(path)
+            compiler = CompileConverter()
+            if path.is_file():
+                sys.path.append(str(path.parent))
+                code = compiler(path)
+                eval(code, ns, ns)
+            return ns.get(symbol) if symbol else ns
+        elif path and symbol:
             converter = ImportConverter()
-            return getattr(converter(parts[0]), parts[-1])
+            return getattr(converter(path), symbol)
+        return None
 
 
 class CommandConverter(Converter):
@@ -89,9 +92,16 @@ class CommandConverter(Converter):
 
 class IncludeConverter(Converter):
     @override
-    def __call__(self, value: str | Path) -> Settings:
+    def __call__(self, value: str | Path) -> str:
         """Convert `ORIG_T` argument t to type `CONVERTED_T`."""
-        return Dynaconf().load_file(value)
+        path = Path(value) if isinstance(value, str) else value
+        try:
+            path = path.resolve()
+        except OSError:
+            return ""
+        if not path.is_file():
+            return ""
+        return path.read_text()
 
 
 class GenericConverter(Converter):
