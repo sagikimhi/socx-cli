@@ -5,7 +5,7 @@ from types import MethodType
 from types import FunctionType
 from typing import Any
 from typing import override
-from pathlib import Path
+from upath import UPath as Path
 from importlib import import_module
 from collections.abc import Iterable
 
