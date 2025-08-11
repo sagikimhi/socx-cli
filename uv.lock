@@ -1862,7 +1862,7 @@ requires-dist = [
     { name = "textual-filedrop" },
     { name = "textual-fspicker" },
     { name = "textual-serve" },
-    { name = "textual-speedups", specifier = ">=0.2.0" },
+    { name = "textual-speedups" },
     { name = "textual-terminal" },
     { name = "textual-universal-directorytree" },
     { name = "trogon" },
