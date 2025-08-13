@@ -117,7 +117,7 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
         **SETTINGS_OPTIONS,
         env="default",
         includes=get_local_settings_files(),
-        settings_files=[str(path)],
+        settings_files=settings_files,
         **ModuleSerializer.serialize(paths),
         **ModuleSerializer.serialize(metadata),
     )
