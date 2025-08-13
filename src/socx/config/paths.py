@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from typing import Final
-from pathlib import Path
 from inspect import getfile
 
+from upath import UPath as Path
 from platformdirs import user_log_path
 from platformdirs import user_data_path
 from platformdirs import user_state_path
