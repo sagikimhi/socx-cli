@@ -29,7 +29,7 @@ class _CmdLine(click.RichGroup):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", _context_settings)
         super().__init__(*args, **kwargs)
-        self._plugins = dict()
+        self._plugins = {}
 
     @property
     @log_it(logger=logger)
