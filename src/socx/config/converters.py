@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import sys
 import abc
 from types import CodeType
 from types import ModuleType
@@ -5,13 +8,11 @@ from types import MethodType
 from types import FunctionType
 from typing import Any
 from typing import override
-from pathlib import Path
+from upath import UPath as Path
 from importlib import import_module
 from collections.abc import Iterable
 
-from dynaconf import Dynaconf
 from dynaconf import add_converter
-from dynaconf.base import Settings
 
 from socx.io.decorators import log_it
 
@@ -40,9 +41,13 @@ class CompileConverter(Converter):
     def __call__(self, value: str | Path) -> CodeType:
         """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
         if isinstance(value, str):
-            value = Path(value).resolve().absolute()
-        code = compile(value.read_text(), value, "exec")
-        return code
+            value = Path(value)
+        try:
+            value = value.resolve()
+        except OSError:
+            return compile("lambda: None", value, "single")
+        else:
+            return compile(value.read_text(), value, "exec")
 
 
 class ImportConverter(Converter):
@@ -56,27 +61,70 @@ class SymbolConverter(Converter):
     @override
     def __call__(self, value: str) -> Any:
         """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
-        ns: dict[str, Any]
-        parts: tuple[str, str, str]
-        converter: CompileConverter | ImportConverter
-
         parts = value.rpartition(":")
-
-        if "/" in value:
-            ns = {}
-            converter = CompileConverter()
-            eval(converter(parts[0]), ns, ns)
-            return ns[parts[-1]]
-        else:
+        path, symbol = parts[0], parts[-1]
+        if "/" in path:
+            ns = {**globals(), **locals()}
+            path = Path(path)
+            compiler = CompileConverter()
+            if path.is_file():
+                sys.path.append(str(path.parent))
+                code = compiler(path)
+                eval(code, ns, ns)
+            return ns.get(symbol) if symbol else ns
+        elif path and symbol:
             converter = ImportConverter()
-            return getattr(converter(parts[0]), parts[-1])
+            return getattr(converter(path), symbol)
+        return None
+
+
+class CommandConverter(Converter):
+    @override
+    def __call__(self, value: Any) -> Any:
+        import rich_click as click
+
+        context_settings = dict(
+            ignore_unknown_options=True, help_option_names=[]
+        )
+        symbolizer = SymbolConverter()
+        symbol = symbolizer(value)
+
+        if symbol is None:
+            return None
+
+        if isinstance(symbol, click.Command):
+            return symbol
+
+        doc = symbol.__globals__.get("__doc__", "")
+
+        @click.command(
+            context_settings=context_settings,
+            help=doc,
+        )
+        @click.argument("args", nargs=-1, type=click.UNPROCESSED)
+        def cli(args: Any):
+            if callable(symbol):
+                tmp = sys.argv[1:]
+                sys.argv[1:] = args
+                res = symbol()
+                sys.argv[1:] = tmp
+                return res
+
+        return cli
 
 
 class IncludeConverter(Converter):
     @override
-    def __call__(self, value: str | Path) -> Settings:
+    def __call__(self, value: str | Path) -> str:
         """Convert `ORIG_T` argument t to type `CONVERTED_T`."""
-        return Dynaconf().load_file(value)
+        path = Path(value) if isinstance(value, str) else value
+        try:
+            path = path.resolve()
+        except OSError:
+            return ""
+        if not path.is_file():
+            return ""
+        return path.read_text()
 
 
 class GenericConverter(Converter):
@@ -120,6 +168,7 @@ def _init() -> None:
         SymbolConverter(),
         ImportConverter(),
         CompileConverter(),
+        CommandConverter(),
         IncludeConverter(),
     ]
     add_converters(converters)

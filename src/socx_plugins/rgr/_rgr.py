@@ -1,15 +1,21 @@
 import time
 import logging
+import asyncio
 from pathlib import Path
 
 import rich_click as click
 from dynaconf.utils.boxing import DynaBox
 
-from socx import Regression
-from socx import settings
-from socx import add_options
-from socx import Decorator
-from socx import AnyCallable
+from socx import (
+    Regression,
+    Decorator,
+    AnyCallable,
+    settings,
+    add_options,
+)
+
+from socx_plugins.rgr.pixie_test import PixieTest
+from socx_plugins.rgr.callbacks import input_cb, output_cb
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +31,15 @@ def _input() -> Decorator[AnyCallable]:
         required=False,
         expose_value=True,
         help="Input file of failed commands to rerun",
-        type=click.File(mode="r", encoding="utf-8", lazy=True),
+        type=click.Path(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            path_type=Path,
+        ),
+        callback=input_cb,
     )
 
 
@@ -35,11 +49,11 @@ def _output() -> Decorator[AnyCallable]:
         "-o",
         "output",
         nargs=1,
-        # type=click.Path
         metavar="DIRECTORY",
         required=False,
         expose_value=True,
         help="Output directory for writing passed/failed run commands.",
+        callback=output_cb,
     )
 
 
@@ -49,7 +63,7 @@ def options() -> Decorator[AnyCallable]:
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:
     if input_path is None:
-        input_cfg = settings.regression.rerun_failure_history.input
+        input_cfg = settings.regression.run.input
         dir_in = input_cfg.directory
         file_in = input_cfg.filename
         input_path = dir_in / file_in
@@ -66,8 +80,8 @@ def _correct_paths_out(
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
     if output_path is None:
-        cfg: DynaBox = settings.regression.report.path
-        dir_out: Path = Path(cfg) / today
+        cfg: DynaBox = settings.regression.run.output  # pyright: ignore
+        dir_out: Path = Path(cfg.directory) / today  # pyright: ignore
         fail_out: Path = Path(dir_out) / f"{now}_failed.log"
         pass_out: Path = Path(dir_out) / f"{now}_passed.log"
     else:
@@ -107,7 +121,9 @@ def _write_results(
 def _populate_regression(filepath: Path) -> Regression:
     logger.info(f"reading input from file path: {filepath}")
     with click.open_file(filepath, mode="r", encoding="utf-8") as file:
-        return Regression.from_lines("rgr", tuple(line for line in file))
+        return Regression.from_lines(
+            "rgr", tuple(line for line in file), test_cls=PixieTest
+        )
 
 
 async def _run_from_file(
@@ -117,13 +133,14 @@ async def _run_from_file(
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
     pass_out, fail_out = _correct_paths_out(output)
+    regression_task = asyncio.create_task(
+        regression.start(), name=regression.name
+    )
 
     try:
-        await regression.start()
-    except Exception as e:
-        logger.exception(
-            f"Encountered exception of type {type(e)} during an "
-            "attempt to run a regression."
-        )
+        await regression_task
+    except asyncio.CancelledError:
+        err = "Task has been cancelled, cleaning up..."
+        logger.exception(err)
     finally:
         _write_results(pass_out, fail_out, regression)

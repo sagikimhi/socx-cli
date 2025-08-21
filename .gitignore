@@ -4,39 +4,38 @@
 
 !*/
 
-!/.github/**/*
+!.github/**/*
 
-!/bin/version
-!/bin/socrun
+!bin/version
+!bin/socrun
 
-!/src/*.py
-!/src/socx/**/*.py
-!/src/socx/static/**/*
-!/src/socx/template/**/*
+!src/*.py
+!src/socx/**/*.py
+!src/socx/static/**/*
+!src/socx/template/**/*
 
-!/src/socx_tui/**/*.py
-!/src/socx_plugins/**/*.py
-!/src/socx_patches/**/*.py
+!src/socx_tui/**/*.py
+!src/socx_plugins/**/*.py
+!src/socx_patches/**/*.py
 
-!/tests/**/*.py
+!tests/**/*.py
 
-!/assets/lst/inputs/**/*
-!/assets/rgr/inputs/**/*
-!/assets/svg/**/*
+!assets/svg/**/*
+!assets/lst/inputs/**/*.in
+!assets/rgr/inputs/**/*.in
 
 # Unexclude common files
 
-!/.env
-!/.gitignore
-!/.python-version
-!/.pre-commit-config.yaml
+!.env
+!.gitignore
+!.python-version
+!.pre-commit-config.yaml
 
-!/uv.lock
-!/uv.toml
-!/ruff.toml
-!/pyproject.toml
-!/pyrightconfig.json
+!uv.toml
+!ruff.toml
+!pyproject.toml
+!pyrightconfig.json
 
-!/LICENSE
-!/README.md
-!/Dockerfile
+!LICENSE
+!README.md
+!Dockerfile

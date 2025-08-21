@@ -1,10 +1,19 @@
+from __future__ import annotations
+
+__all__ = (
+    "cli",
+    "lst",
+    "LstConverter",
+)
+
 import rich_click as click
 
-from .converter import LstConverter
 from socx import global_options
 
+from socx_plugins.convert.converter import LstConverter
 
-@click.group("lst")
+
+@click.group()
 @global_options()
 def cli():
     """Perform a conversion based on current configurations."""
@@ -14,4 +23,7 @@ def cli():
 @global_options()
 def lst():
     """Convert symbol tables from an LST file to SystemVerilog covergroups."""
-    LstConverter().convert()
+    from socx import settings
+
+    cls = settings.get("convert.lst.cls", default=LstConverter)
+    cls().convert()

@@ -1,50 +1,23 @@
 ---
-REGRESSION:
-  logs:
-    files:
-      errors_summary:
-        description: ''
-        directory: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/latest
-        filename: errors_summary.log
-        name: errors_smmary
-      failure_history:
-        description: ''
-        directory: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/latest
-        filename: failed_tests_history.log
-        name: failure_history
-      regression_summary:
-        description: ''
-        directory: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/latest
-        filename: regression_summary.log
-        name: regression_summary
-      rerun_list:
-        description: ''
-        directory: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/latest
-        filename: rerun_list.cfg
-        name: rerun_list
-    latest: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/latest
-    path: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs
-    prev: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/prev
-    rerun_failures: /home/skimhi/.project/git/users/sagikimhi/organizations/wiliot/socx-cli/assets/rgr/rerun_failures
-  max_runs_in_parallel: 10
-  path: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions
-  report:
-    path: /home/skimhi/.project/git/users/sagikimhi/organizations/wiliot/socx-cli/workrun/regression/reports
-  rerun_failure_history:
+regression:
+  path: "@path @format {this.paths.APP_ROOT_DIR}/assets/rgr"
+
+  opts:
+    max_runs_in_parallel: 10
+
+  run:
+    logs:
+      directory: "@path workrun/regression/logs"
     input:
-      description: ''
-      directory: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/logs/latest
       filename: failed_tests_history.log
-      name: failure_history
+      directory: "@path @format {this.regression.path}/inputs"
     output:
-      description: ''
-      directory: /home/skimhi/.project/git/users/sagikimhi/organizations/wiliot/socx-cli/assets/rgr/rerun_failures
-      filename: failure_history.log
-      name: failure_history_rerun
+      directory: "@path workrun/regression/reports"
+
   runtime:
-    files:
-    - filename: socRgrDB.pyclass
-      name: soc_rgr_db_pickled
+    path: "@path @format {this.regression.path}/nightly"
     logs:
       directory: logs
-    path: /space/users/ci_wiliot/vw_e0_nightly_regression/regressions/nightly
+    files:
+      - filename: socRgrDB.pyclass
+        name: soc_rgr_db_pickled

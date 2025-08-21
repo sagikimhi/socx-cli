@@ -4,8 +4,7 @@ from typing import Any
 from typing import ClassVar
 from weakref import WeakValueDictionary
 from threading import RLock
-from dataclasses import field
-from dataclasses import dataclass
+from dataclasses import field, dataclass
 from collections.abc import MutableMapping
 from collections.abc import Iterable
 
@@ -44,15 +43,16 @@ class _UIDMeta(type):
 
 
 class UIDBase(metaclass=_UIDMeta):
-    __slots__ = ("__uid", "__weakref__")
-    __uid: int
+    __slots__ = ("__dict__", "__uid", "__weakref__")
 
-    def __init__(self, *args: Iterable[Any], **kwargs: dict[str, Any]) -> None:
-        super().__init__(*args, **kwargs)
 
-    @property
-    def uid(self) -> int:
-        return UIDBase._get_uid(self)
+class PtrMixin(UIDBase):
+    """
+    Pointer mixin class.
+
+    Extending this class adds the `ref` property to subclass instances and the
+    `dref` class method to the subclass.
+    """
 
     @property
     def ref(self) -> int:
@@ -63,8 +63,8 @@ class UIDBase(metaclass=_UIDMeta):
         return UIDBase._get_inst(ref)
 
 
-@dataclass(init=False)
-class UIDMixin(UIDBase):
+@dataclass
+class UIDMixin(PtrMixin):
     """
     Unique instance ID mixin class.
 
@@ -72,22 +72,8 @@ class UIDMixin(UIDBase):
     extending subclass.
     """
 
-    uid: int = field(init=False)
-
-    def __init__(self) -> None:
-        pass
-
-
-@dataclass(init=False)
-class PtrMixin(UIDBase):
-    """
-    Pointer mixin class.
-
-    Extending this class adds the `ref` property to subclass instances and the
-    `dref` class method to the subclass.
-    """
-
-    ref: int = field(init=False)
-
-    def __init__(self) -> None:
-        pass
+    uid: property = field(
+        init=False,
+        repr=True,
+        default=property(lambda self: UIDBase._get_uid(self)),
+    )

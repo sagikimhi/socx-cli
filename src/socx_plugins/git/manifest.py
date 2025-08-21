@@ -6,8 +6,11 @@ from dataclasses import dataclass
 from collections.abc import Iterable
 
 import git
-import rich
 import socx
+import rich
+import rich.box
+import rich.text
+import rich.table
 import rich_click
 from dynaconf.utils.boxing import DynaBox
 
@@ -15,19 +18,19 @@ from socx_plugins.git.utils import get_repo_name
 from socx_plugins.git.utils import get_commit_hash
 from socx_plugins.git.utils import find_repositories
 
-Box: type = rich.box.Box
-Repo: type = git.Repo
-Text: type = str | rich.text.Text
-Table: type = rich.table.Table
-Style: type = DynaBox
-Header: type = Text
-Column: type = DynaBox
-Record: type = Iterable[Text]
-Option: type = rich_click.Option
-Command: type = rich_click.Command
-Console: type = rich.console.Console
-ConsoleOptions: type = rich.console.ConsoleOptions
-RenderResult: type = rich.console.RenderResult
+Box = rich.box.Box
+Repo = git.Repo
+Text = str | rich.text.Text
+Table = rich.table.Table
+Style = DynaBox
+Header = Text
+Column = DynaBox
+Record = Iterable[Text]
+Option = rich_click.Option
+Command = rich_click.Command
+Console = rich.console.Console
+ConsoleOptions = rich.console.ConsoleOptions
+RenderResult = rich.console.RenderResult
 
 
 logger = logging.getLogger(__name__)

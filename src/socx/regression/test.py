@@ -4,14 +4,11 @@ import os
 import time
 import shlex
 import asyncio
+from enum import auto, IntEnum
+from typing import cast, override
 from pathlib import Path
-from enum import auto
-from enum import IntEnum
-from typing import override
-from subprocess import PIPE
-from dataclasses import field
 from dataclasses import dataclass
-from asyncio.subprocess import Process
+from asyncio.subprocess import Process, PIPE
 
 import psutil
 from dynaconf.utils.boxing import DynaBox
@@ -21,12 +18,8 @@ from socx.config import settings
 from socx.patterns import Visitor
 from socx.patterns import UIDMixin
 
-# FIXME: Patch - socrun should be modified to return non-zero value on
-# test failure in the future
-from socx_patches import post_process_sim_log as pp_simlog
 
-
-@dataclass
+@dataclass(init=False)
 class TestCommand(UIDMixin):
     """
     Representation of a 'run test' command-line as an object.
@@ -45,11 +38,16 @@ class TestCommand(UIDMixin):
     """
 
     line: str
-    name: str = field(init=False)
-    escaped: str = field(init=False)
-    arguments: tuple[str, ...] = field(init=False)
+    name: str
+    escaped: str
+    arguments: tuple[str, ...]
 
-    def __post_init__(self) -> None:
+    def __init__(self, line: str | TestCommand) -> None:
+        if isinstance(line, TestCommand):
+            self = line
+            return
+
+        self.line = line
         self.arguments = tuple(arg.strip() for arg in self.line.split())
         self.name = self.arguments[0] if self.arguments else ""
         self.escaped = shlex.quote(self.line)
@@ -128,17 +126,15 @@ class TestABC:
 
 
 class TestBase(TestABC):
-    @override
     def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
-        if command is None:
-            command = ""
-        if not isinstance(command, TestCommand):
+        if isinstance(command, str):
             command = TestCommand(command)
+
         self._pid = os.getpid()
         self._name = "BASE"
         self._status = TestStatus.Idle
         self._result = TestResult.NA
-        self._command = command
+        self._command = cast(TestCommand, command)
         self._process = None
         self._started_time = None
         self._finished_time = None
@@ -149,9 +145,9 @@ class TestBase(TestABC):
         v.visit(self)
 
     @property
-    def pid(self) -> int | None:
+    def pid(self) -> int:
         """Name of a test."""
-        return self._process.pid if self._process is not None else None
+        return self._process.pid if self._process is not None else os.getpid()
 
     @property
     def name(self) -> str:
@@ -196,15 +192,18 @@ class Test(UIDMixin, TestBase):
 
     @override
     def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
-        UIDMixin.__init__(self)
         TestBase.__init__(self, command, *args, **kwargs)
+        UIDMixin.__init__(self)
+
         try:
             name = self.command.test
         except AttributeError:
             self._missing_test_name_err(command)
             raise
+
         if "/" in name:
             name = name.partition("/")[-1]
+
         self._name = name
         self._seed = 0
         self._flow = None
@@ -212,7 +211,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def cfg(self) -> DynaBox:
-        return settings.regression
+        return cast(DynaBox, settings.regression)
 
     @property
     def flow(self) -> str:
@@ -316,10 +315,10 @@ class Test(UIDMixin, TestBase):
     @property
     def process(self) -> psutil.Process:
         """The active process of the running test or None if not running."""
-        if self._process is None or not psutil.pid_exists(self._process.pid):
-            return None
+        if self.pid == -1:
+            return psutil.Process()
         else:
-            return psutil.Process(self._process.pid)
+            return psutil.Process(self.pid)
 
     @property
     def returncode(self) -> int | None:
@@ -331,7 +330,7 @@ class Test(UIDMixin, TestBase):
     @property
     def runtime_cfg(self) -> DynaBox:
         """Get the simulation's runtime settings object."""
-        return self.cfg.runtime
+        return cast(DynaBox, self.cfg.run)
 
     @property
     def runtime_path(self) -> Path:
@@ -341,12 +340,18 @@ class Test(UIDMixin, TestBase):
         The runtime referes to the path where compilation database and run logs
         are dumped by default by the simulator.
         """
-        return Path(self.cfg.runtime.path / self.dirname).resolve().absolute()
+        path = cast(str | Path, self.runtime_cfg.get("logs.path"))
+
+        if isinstance(path, str):
+            path = Path(path)
+
+        return (path / self.dirname).resolve()
 
     @property
     def runtime_logs(self):
         """Get the simulation's configured runtime path for ouput logs."""
-        return self.runtime_path / self.runtime_cfg.logs.directory
+        log_dir = cast(str | Path, self.runtime_cfg.get("logs.directory"))
+        return self.runtime_path / log_dir
 
     @property
     def dirname(self):
@@ -370,24 +375,24 @@ class Test(UIDMixin, TestBase):
             stdout, stderr = await self._process.communicate()
             self._status = TestStatus.Running
             self._started_time = time.time()
+
             while self.returncode is None:
                 await asyncio.sleep(0)
+
             self._finished_time = time.time()
             self._stdout = stdout.decode()
             self._stderr = stderr.decode()
-            await self._process.wait()
             self._status = TestStatus.Finished
-            self._result = self._parse_result()
         except Exception:
             self.terminate()
             self._status = TestStatus.Terminated
             self._result = TestResult.Failed
-            logger.exception(
-                f"""Test failed: an exception was raised during execution \
-                of '{self.name}'""".strip(),
-                exc_info=True,
-            )
             raise
+
+        if self.returncode == 0:
+            self._result = self._parse_result()
+        else:
+            self._result = TestResult.Failed
 
     @override
     def suspend(self) -> None:
@@ -426,15 +431,7 @@ class Test(UIDMixin, TestBase):
             self.process.kill()
 
     def _parse_result(self) -> TestResult:
-        logger.debug(f"parsing result from {self.runtime_path}")
-        result_hack = pp_simlog.TestResults()
-        result_hack.reset_log(self.runtime_logs / "run.log")
-        try:
-            result_hack.parse_log()
-        except ValueError:
-            return TestResult.Failed
-        else:
-            return TestResult.from_temporary_hack(result_hack)
+        return TestResult.Failed if self.returncode != 0 else TestResult.Passed
 
     def __hash__(self) -> int:
         return hash(self.command)
@@ -469,16 +466,6 @@ class TestResult(IntEnum):
     NA = auto()
     Passed = auto()
     Failed = auto()
-
-    @classmethod
-    def from_temporary_hack(cls, hack: pp_simlog.TestResults) -> TestResult:
-        match hack.result:
-            case "PASS":
-                return TestResult.Passed
-            case "FAIL":
-                return TestResult.Failed
-            case _:
-                return TestResult.NA
 
 
 class TestStatus(IntEnum):

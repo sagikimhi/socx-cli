@@ -1,8 +1,11 @@
-import sys
-
 __all__ = (
     # Settings
+    "SETTINGS_OPTIONS",
     "settings",
+    "get_includes",
+    "get_excludes",
+    "get_settings",
+    "get_local_settings_files",
     # Paths
     "USER_LOG_DIR",
     "USER_DATA_DIR",
@@ -42,6 +45,13 @@ __all__ = (
 
 
 from socx.config._config import settings as settings
+from socx.config._config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+from socx.config._config import get_includes as get_includes
+from socx.config._config import get_excludes as get_excludes
+from socx.config._config import get_settings as get_settings
+from socx.config._config import (
+    get_local_settings_files as get_local_settings_files,
+)
 
 from socx.config.paths import USER_LOG_DIR as USER_LOG_DIR
 from socx.config.paths import USER_DATA_DIR as USER_DATA_DIR
@@ -77,50 +87,3 @@ from socx.config.validators import validate_all as validate_all
 
 from socx.config.formatters import Formatter as Formatter
 from socx.config.formatters import TreeFormatter as TreeFormatter
-
-
-def init() -> None:
-    from dynaconf import Dynaconf
-    from dynaconf.base import Settings
-    from socx.config import metadata
-    from socx.config import paths
-
-    _settings: Settings = Dynaconf()
-
-    _l_paths = {
-        x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
-    }
-    _u_paths = {
-        x.lower(): getattr(sys.modules[__name__], x) for x in paths.__all__
-    }
-    _l_metadata = {
-        x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
-    }
-    _u_metadata = {
-        x.lower(): getattr(sys.modules[__name__], x) for x in metadata.__all__
-    }
-
-    try:
-        _settings.update({"paths": _l_paths}, merge=True)
-        _settings.update({"paths": _u_paths}, merge=True)
-    except Exception as e:
-        err = f"Failed to load 'paths' configuration due to exception: {e}."
-        raise ImportError(err) from None
-    else:
-        del paths
-
-    try:
-        _settings.update({"metadata": _l_metadata}, merge=True)
-        _settings.update({"metadata": _u_metadata}, merge=True)
-    except Exception as e:
-        err = f"Failed to load 'metadata' configuration due to exception: {e}."
-        raise ImportError(err) from None
-    else:
-        del metadata
-
-    settings.update(data=_settings.as_dict().copy())
-    del Dynaconf
-    del Settings
-
-
-init()

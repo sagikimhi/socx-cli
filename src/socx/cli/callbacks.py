@@ -1,38 +1,64 @@
+from __future__ import annotations
+
 import logging
 
 from rich_click import Context
 from rich_click import Parameter
 
-from socx.io import log
-from socx.io import log_it
+from socx.config.paths import (
+    LOCAL_CONFIG_FILENAME,
+    USER_CONFIG_FILENAME,
+)
+from socx.io import log, log_it, Level
 from socx.config import settings
+
 
 logger = logging.getLogger(__name__)
 
 
-@log_it()
+@log_it(logger=logger)
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
-    value = settings.get("cli.debug") or value
-    if value:
+    value = settings.cli.get(param.name) or value
+
+    if value and log.get_level(log.logger) != Level.DEBUG:
         log.set_level(log.Level.DEBUG, log.logger)
-    settings.set("cli", {param.name: value}, merge=True)
+
+    if value != settings.cli.get(param.name):
+        settings.update(cli={param.name: value}, merge=True)
+
     return value
 
 
-@log_it()
+@log_it(logger=logger)
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
-    if value and not settings.get(f"cli.{param.name}"):
-        settings.load_file(settings.paths.USER_CONFIG_FILE)
-    settings.set("cli", {param.name: value}, merge=True)
+    value = settings.cli.get(param.name) and value
+
+    if not value:
+        settings.configure(
+            skip_files=[
+                f"**/*{USER_CONFIG_FILENAME}",
+                f"**/*{LOCAL_CONFIG_FILENAME}",
+            ]
+        )
+        settings.reload()
+
+    if value != settings.cli.get(param.name):
+        settings.update(cli={param.name: value}, merge=True)
+
     return value
 
 
-@log_it()
+@log_it(logger=logger)
 def verbosity_cb(ctx: Context, param: Parameter, value: str) -> str:
-    if not settings.get("cli.debug"):
-        new, curr = log.Level[value], log.get_level(log.logger)
-        if new and curr != log.Level.DEBUG:
-            log.set_level(new, log.logger)
-    rv = log.get_level(log.logger)
-    settings.set("cli", {param.name: rv.name}, merge=True)
-    return rv.name
+    new_verbosity = log.Level[value]
+    curr_verbosity = log.Level[settings.cli.get(param.name)]
+
+    if log.get_level(log.logger) == Level.DEBUG:
+        settings.update(cli={param.name: value}, merge=True)
+        return Level.DEBUG.name
+
+    if curr_verbosity == Level.NOTSET or new_verbosity < curr_verbosity:
+        settings.update(cli={param.name: value}, merge=True)
+        log.set_level(new_verbosity, log.logger)
+
+    return log.get_level(log.logger).name

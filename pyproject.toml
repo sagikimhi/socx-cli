@@ -32,7 +32,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.4.1"
+version = "0.4.3"
 license = "Apache-2.0 OR MIT"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -56,6 +56,7 @@ dependencies = [
     "rich-click",
     "platformdirs",
     "textual-serve",
+    "textual-speedups",
     "textual-terminal",
     "textual-fspicker",
     "textual-filedrop",
@@ -90,7 +91,6 @@ dev = [
     "basedpyright",
     "flake8-bugbear",
     "flake8-simplify",
-    "textual-textarea",
     "textual-fastdatatable",
 ]
 
