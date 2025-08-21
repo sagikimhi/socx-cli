@@ -31,7 +31,6 @@
 !.python-version
 !.pre-commit-config.yaml
 
-!uv.lock
 !uv.toml
 !ruff.toml
 !pyproject.toml
