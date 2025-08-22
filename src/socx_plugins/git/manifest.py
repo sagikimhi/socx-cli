@@ -57,12 +57,23 @@ class Manifest:
     @classmethod
     @socx.log_it()
     def get_header(cls, column: Column, style: Style) -> Header:
-        return f"[{style.headers}][{column.style}]{column.name}"
+        header = str(column.name or "")
+        if style.get("headers") is not None:
+            header = f"[{style.headers or ''}]{header}"
+        if column.get("style") is not None:
+            header = f"[{column.style or ''}]{header}"
+        return header
 
     @classmethod
     @socx.log_it()
     def get_content(cls, column: Column, repo: Repo) -> Text:
-        return f"[{column.style}]{column.func(repo)}[/]"
+        def empty(_: Repo) -> str:
+            return ""
+
+        content = str(column.get("func", default=empty)(repo))  # pyright: ignore[reportCallIssue, reportOptionalCall]
+        if column.get("style") is not None:
+            content = f"[{column.style}]{content}[/]"
+        return content
 
     @classmethod
     @socx.log_it()
