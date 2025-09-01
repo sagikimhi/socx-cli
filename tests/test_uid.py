@@ -1,25 +1,23 @@
 from dataclasses import dataclass
 from socx import UIDMixin
-from socx import console
 
 
 @dataclass
 class UIDTest(UIDMixin):
-    iteration: int
+    pass
 
 
 def test() -> None:
-    inst_ = UIDTest(0)
-    for _ in range(1, 999):
-        inst = UIDTest(_)
-        assert inst.iteration == inst.uid
-        console.print(UIDTest.dref(inst.ref))
-        del inst
-        console.print(UIDTest.dref(_))
+    for i in range(0, 10):
+        inst = UIDTest()
+        assert i == inst.uid
 
-    console.print(UIDTest.dref(inst_.ref))
-    del inst_
-    console.print(UIDTest.dref(0))
+    inst = UIDTest()
+    ref = inst.ref
+
+    assert UIDTest.dref(ref) is inst
+    del inst
+    assert UIDTest.dref(ref) is None
 
 
 if __name__ == "__main__":

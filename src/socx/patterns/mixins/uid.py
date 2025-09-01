@@ -6,7 +6,6 @@ from weakref import WeakValueDictionary
 from threading import RLock
 from dataclasses import field, dataclass
 from collections.abc import MutableMapping
-from collections.abc import Iterable
 
 
 InstMapType = MutableMapping[int, "UIDBase"]
@@ -19,9 +18,7 @@ class _UIDMeta(type):
     __uid_map: ClassVar[dict[type, int]] = {}
     __inst_map: ClassVar[InstMapType] = WeakValueDictionary()
 
-    def __call__(
-        cls, *args: Iterable[Any], **kwargs: MutableMapping[str, Any]
-    ) -> Any:
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         inst = super().__call__(*args, **kwargs)
         inst.__uid = cls._next_uid()
         cls.__inst_map[inst.__uid] = inst
