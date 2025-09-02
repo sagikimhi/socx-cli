@@ -133,18 +133,8 @@ format: uv
 publish: build
 	$(HIDE)devpi upload --verbose --no-vcs --only-latest $(BUILD_DIR)
 
-changelog: $(CHANGELOG)
-	$(HIDE)$(UV) run --with git-changelog python -m git_changelog \
-		--convention $(COMMIT_CONVENTION) \
-		--input $(CHANGELOG) \
-		--output $(CHANGELOG) \
-		--trailers
-
-$(CHANGELOG):
-	$(HIDE)$(UV) run --with git-changelog python -m git_changelog \
-		--convention $(COMMIT_CONVENTION) \
-		--output $(CHANGELOG) \
-		--trailers
+changelog:
+	$(HIDE)git-cliff --workdir $(CWD) --config cliff.toml --output CHANGELOG.md
 
 export_svg: uv sync $(SVG_DIR)
 	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &
