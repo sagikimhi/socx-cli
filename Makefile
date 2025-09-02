@@ -18,6 +18,10 @@ PYTHON ?= uv run python
 
 CWD:=$(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
+CHANGELOG ?= $(CWD)/CHANGELOG.md
+
+COMMIT_CONVENTION ?= angular
+
 SVG_DIR ?= $(CWD)/images
 
 BUILD_DIR ?= $(CWD)/dist
@@ -100,6 +104,7 @@ endef
 	clean \
 	format \
 	publish \
+	changelog \
 	export_svg
 
 
@@ -116,7 +121,7 @@ lint: uv
 test: uv
 	$(HIDE)$(UV) run pytest
 
-build: clean sync lint format test export_svg
+build: clean sync lint format test changelog export_svg
 	$(HIDE)$(UV) build --refresh --upgrade --sdist --wheel
 
 clean:
@@ -127,6 +132,19 @@ format: uv
 
 publish: build
 	$(HIDE)devpi upload --verbose --no-vcs --only-latest $(BUILD_DIR)
+
+changelog: $(CHANGELOG)
+	$(HIDE)$(UV) run --with git-changelog python -m git_changelog \
+		--convention $(COMMIT_CONVENTION) \
+		--input $(CHANGELOG) \
+		--output $(CHANGELOG) \
+		--trailers
+
+$(CHANGELOG):
+	$(HIDE)$(UV) run --with git-changelog python -m git_changelog \
+		--convention $(COMMIT_CONVENTION) \
+		--output $(CHANGELOG) \
+		--trailers
 
 export_svg: uv sync $(SVG_DIR)
 	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &
