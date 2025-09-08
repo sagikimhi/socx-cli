@@ -1,26 +1,32 @@
 # -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+
+CWD:=$(shell realpath $(dir $(lastword $(MAKEFILE_LIST))))
+
+CHANGELOG:=$(CWD)/CHANGELOG.md
+
+UV_INSTALL_URL:=https://astral.sh/uv/install.sh
+
+# -----------------------------------------------------------------------------
 # Commands
 # -----------------------------------------------------------------------------
 
 UV ?= uv
 
-RM ?= rm -r
+RM ?= rm
 
-PIP ?= uv pip
+RMDIR ?= rm -r
+
+PIP ?= $(UV) pip
 
 MKDIR ?= mkdir -p
 
-PYTHON ?= uv run python
+PYTHON ?= $(UV) run python
 
 # -----------------------------------------------------------------------------
-# Paths
+# Variables
 # -----------------------------------------------------------------------------
-
-CWD:=$(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-
-CHANGELOG ?= $(CWD)/CHANGELOG.md
-
-COMMIT_CONVENTION ?= angular
 
 SVG_DIR ?= $(CWD)/images
 
@@ -34,20 +40,17 @@ WORKRUN_DIR ?= $(CWD)/workrun
 
 CLEAN_ARTIFACTS ?= $(SVG_DIR) $(BUILD_DIR) $(WORKRUN_DIR)
 
-UV_INSTALL_URL:=https://astral.sh/uv/install.sh
-
-
 # -----------------------------------------------------------------------------
 # Options
 # -----------------------------------------------------------------------------
 
-VERBOSE=true
+VERBOSE ?=
 
 # -----------------------------------------------------------------------------
 # Options appliance
 # -----------------------------------------------------------------------------
 
-ifeq ($(VERBOSE),true)
+ifneq ($(VERBOSE),)
 	HIDE =
 else
 	HIDE = @
@@ -125,7 +128,7 @@ build: clean sync lint format test changelog export_svg
 	$(HIDE)$(UV) build --refresh --upgrade --sdist --wheel
 
 clean:
-	$(HIDE)$(RM) $(CLEAN_ARTIFACTS) 2> /dev/null || exit 0
+	$(HIDE)$(RMDIR) $(CLEAN_ARTIFACTS) 2> /dev/null || exit 0
 
 format: uv
 	$(HIDE)$(UV) run ruff format
