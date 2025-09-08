@@ -122,9 +122,8 @@ class IncludeConverter(Converter):
             path = path.resolve()
         except OSError:
             return ""
-        if not path.is_file():
-            return ""
-        return path.read_text()
+        else:
+            return path.read_text() if path.is_file() else ""
 
 
 class GenericConverter(Converter):

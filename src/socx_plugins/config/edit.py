@@ -4,18 +4,26 @@ from logging import Logger
 
 import rich_click as click
 from rich.prompt import Prompt
-from dynaconf import loaders, Dynaconf
+from dynaconf import loaders
 
-from socx import APP_CONFIG_DIR, USER_CONFIG_DIR, settings, console, get_logger
+from socx import (
+    APP_CONFIG_DIR,
+    USER_CONFIG_DIR,
+    console,
+    get_logger,
+    get_settings,
+)
 
 
 logger: Logger = get_logger(__name__)
 
 
 def edit():
+    settings = get_settings(auto_cast=False)
     file_choices = {
-        Path(name).stem: Path(settings.path_for(name))
-        for name in settings.dynaconf_include
+        Path(path).stem: Path(path)
+        for _path in settings._loaded_files
+        if (path := Path(_path)).exists() and path.stem in settings
     }
     editor_choices = ["vim", "gvim", "nano"]
     format_choices = ["ini", "json", "yaml", "toml", "py"]
@@ -52,16 +60,13 @@ def edit():
         show_default=True,
         case_sensitive=True,
     )
-    source_file = file_choices[file_choice]
     target_path = (USER_CONFIG_DIR / file_choice).with_suffix(
         f".{format_choice}"
     )
     tmp_path = Path(f"{target_path.with_name('tmp')}.{format_choice}")
-    data = Dynaconf()
-    data.load_file(path=str(source_file))
     loaders.write(
         filename=str(tmp_path),
-        data=data.as_dict(),
+        data=settings.get(file_choice).to_dict(),
         merge=False,
     )
     modified_text = click.edit(

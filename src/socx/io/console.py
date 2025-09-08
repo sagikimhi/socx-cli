@@ -1,4 +1,3 @@
-import rich_click as click
 from rich import pretty
 from rich import traceback
 from rich import reconfigure, get_console
@@ -10,7 +9,7 @@ reconfigure(tab_size=4, record=True, markup=True)
 pretty.install(indent_guides=True)
 traceback.install(
     theme="nord",
-    suppress=[click],
+    suppress=["click", "rich_click", "dynaconf"],
     word_wrap=True,
     code_width=79,
     extra_lines=3,

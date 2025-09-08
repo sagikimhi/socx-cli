@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from upath import UPath as Path
+import dynaconf
 from dynaconf import Dynaconf
 from dynaconf.base import Settings
 from dynaconf.utils import ensure_a_list
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 SETTINGS_OPTIONS: dict[str, Any] = dict(
     encoding="utf-8",
     load_dotenv=True,
-    yaml_loader="safe_load",
+    yaml_loader="full_load",
     core_loaders=["yaml"],
     environments=False,
     envvar_prefix=__appname__.upper(),
@@ -97,7 +98,7 @@ def get_includes(settings: Settings) -> list[str]:
 
 
 @log_it(logger=logger)
-def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
+def get_settings(path: str | Path | None = None, *args, **kwargs) -> Dynaconf:
     from socx.config import paths
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer
@@ -107,6 +108,7 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     if isinstance(path, str):
         path = Path(path).resolve()
 
+    includes = get_local_settings_files()
     settings_files = [str(path)]
 
     if USER_CONFIG_FILE.exists():
@@ -114,13 +116,16 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
 
     converters._init()
     settings = Dynaconf(
-        **SETTINGS_OPTIONS,
+        *args,
         env="default",
-        includes=get_local_settings_files(),
+        includes=includes,
         settings_files=settings_files,
+        **SETTINGS_OPTIONS,
+        **kwargs,
         **ModuleSerializer.serialize(paths),
         **ModuleSerializer.serialize(metadata),
     )
+    dynaconf.settings = settings
     return settings
 
 
