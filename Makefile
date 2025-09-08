@@ -137,12 +137,12 @@ changelog:
 	$(HIDE)git-cliff --workdir $(CWD) --config cliff.toml --output CHANGELOG.md
 
 export_svg: uv sync $(SVG_DIR)
-	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &
-	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- git -h > images/socx-git.svg &
-	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- rgr -h > images/socx-rgr.svg &
-	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- config -h > images/socx-config.svg &
-	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- plugin -h > images/socx-rgr.svg &
-	$(HIDE)uv run rich-click -o svg socx.cli.cli:cli -- convert -h > images/socx-convert.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- git -h > images/socx-git.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- rgr -h > images/socx-rgr.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- config -h > images/socx-config.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- plugin -h > images/socx-rgr.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- convert -h > images/socx-convert.svg &
 
 $(SVG_DIR):
 	$(HIDE)$(MKDIR) $(SVG_DIR)
