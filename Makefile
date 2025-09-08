@@ -40,6 +40,16 @@ WORKRUN_DIR ?= $(CWD)/workrun
 
 CLEAN_ARTIFACTS ?= $(SVG_DIR) $(BUILD_DIR) $(WORKRUN_DIR)
 
+CHANGELOG_BIN ?= git-cliff
+
+CHANGELOG_CONFIG ?= cliff.toml
+
+CHANGELOG_FLAGS ?= \
+	--workdir $(CWD) \
+	--output $(CHANGELOG) \
+	--config $(CHANGELOG_CONFIG)
+
+
 # -----------------------------------------------------------------------------
 # Options
 # -----------------------------------------------------------------------------
@@ -97,21 +107,24 @@ endef
 # -----------------------------------------------------------------------------
 
 .PHONY: \
-	all \
 	uv \
+	all \
 	cwd \
 	sync \
 	lint \
+	help \
 	test \
 	build \
 	clean \
 	format \
+	default \
 	publish \
 	changelog \
 	export_svg
 
 
-all: build
+all default: build
+
 uv:
 	$(HIDE)$(UV) > /dev/null -h 2>&1 || curl -LsSf  $(UV_INSTALL_URL) | sh
 
@@ -137,7 +150,7 @@ publish: build
 	$(HIDE)devpi upload --verbose --no-vcs --only-latest $(BUILD_DIR)
 
 changelog:
-	$(HIDE)git-cliff --workdir $(CWD) --config cliff.toml --output CHANGELOG.md
+	$(HIDE)$(CHANGELOG_BIN) $(CHANGELOG_FLAGS)
 
 export_svg: uv sync $(SVG_DIR)
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &

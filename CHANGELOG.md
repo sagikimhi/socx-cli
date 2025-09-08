@@ -59,6 +59,8 @@
 
 - *(.env)* correct dotenv development env variables [bfe012e](https://bitbucket.org/wiliot/socenv/commits/bfe012e20a896e3efbf6a9d1f0a633b85ae5f373)
 
+- *(Makefile)* fix `make clean` rules [ab17ac2](https://bitbucket.org/wiliot/socenv/commits/ab17ac21cf22269760af8a2a4b0d990968a1bc16)
+
 - *(_CmdLine)* fix _CmdLine inheritence [0126aef](https://bitbucket.org/wiliot/socenv/commits/0126aef8692abe3a638866254e42482bf0de48da)
 
 - *(cli)* fix tui decorator type annotation [a1b194f](https://bitbucket.org/wiliot/socenv/commits/a1b194f16b01f37538d53d3ffe3348ce46257a1c)
@@ -139,6 +141,8 @@
 
 - *(socx.regression.regression)* set start and finish times [9c0b64c](https://bitbucket.org/wiliot/socenv/commits/9c0b64cbcd62b721e362da19e0ef87ba19ce5c2e)
 
+- *(socx_plugins.config.edit)* fix edit command [7133779](https://bitbucket.org/wiliot/socenv/commits/71337798f37918f47c720840c4e3231bda1708eb)
+
 - *(socx_plugins.git)* minor typing fixes in git manifest plugin [64acf03](https://bitbucket.org/wiliot/socenv/commits/64acf03864dd9be029f3956967e2c710ad4de786)
 
 - *(socx_plugins.rgr.pixie_test)* correct path to test's log file [f525fa5](https://bitbucket.org/wiliot/socenv/commits/f525fa568cb4cb37195bb0c080dc9395c9680817)
@@ -163,6 +167,8 @@
 
 
 ### 🚜 Refactor
+
+- *(Makefile)* use `$(UV)` instead of `uv` in export_svg [893daa8](https://bitbucket.org/wiliot/socenv/commits/893daa82215e0a567ed253ce6e95e5ca73dfb821)
 
 - *(cli.cfg)* adjust default configurations [ddc414b](https://bitbucket.org/wiliot/socenv/commits/ddc414b855d38778344bf3d096844dafc69d743e)
 
@@ -223,7 +229,7 @@
 
 - *(socx.cli.cfg)* correct docs of `GROUP_ARGUMENT_OPTIONS` [9864f7b](https://bitbucket.org/wiliot/socenv/commits/9864f7bb3d841722a518774dc565d2f1bfef565b)
 
-- add CHANGELOG.md [d9ce7c2](https://bitbucket.org/wiliot/socenv/commits/d9ce7c261748e96d4b7b5f4f02a3c1e4c3f02aaf)
+- add CHANGELOG.md [218eabd](https://bitbucket.org/wiliot/socenv/commits/218eabd807070137d1b47bcd66936f39e26ed08e)
 
 - update svg assets [0e54e76](https://bitbucket.org/wiliot/socenv/commits/0e54e76fefb8029b3642269fa4e59f2386ef61c3)
 
@@ -337,6 +343,8 @@
 - *(uv.lock)* update lockfile [5093fe2](https://bitbucket.org/wiliot/socenv/commits/5093fe2fc6100efee3a3ae422fe01bbb5dd8f6e3)
 
 - *(uv.lock)* update lock file [e68727e](https://bitbucket.org/wiliot/socenv/commits/e68727ec50797168dfa52ebfb80a4e8660b78584)
+
+- *(version)* bump version to 0.4.4.dev1 [8f071f5](https://bitbucket.org/wiliot/socenv/commits/8f071f5f47778c6e245585d340851c17ac9e3cac)
 
 - *(visitor)* sort exports [bb376e2](https://bitbucket.org/wiliot/socenv/commits/bb376e216f8a183855dabb123e738b84c522c648)
 
