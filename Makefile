@@ -147,7 +147,7 @@ format: uv
 	$(HIDE)$(UV) run ruff format
 
 publish: build
-	$(HIDE)devpi upload --verbose --no-vcs --only-latest $(BUILD_DIR)
+	$(HIDE)devpi upload --verbose --no-vcs --only-latest --from-dir $(BUILD_DIR)
 
 changelog:
 	$(HIDE)$(CHANGELOG_BIN) $(CHANGELOG_FLAGS)
