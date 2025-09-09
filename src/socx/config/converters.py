@@ -52,29 +52,34 @@ class CompileConverter(Converter):
 
 class ImportConverter(Converter):
     @override
-    def __call__(self, value: str) -> ModuleType:
+    def __call__(self, value: str) -> ModuleType | None:
         """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
-        return import_module(value)
+        try:
+            return import_module(value)
+        except ImportError:
+            return None
 
 
 class SymbolConverter(Converter):
     @override
     def __call__(self, value: str) -> Any:
         """Convert `ORIG_T` argument `t` to `CONVERTED_T` and return it."""
-        parts = value.rpartition(":")
-        path, symbol = parts[0], parts[-1]
+        path, _, symbol = value.rpartition(":")
         if "/" in path:
             ns = {**globals(), **locals()}
             path = Path(path)
             compiler = CompileConverter()
             if path.is_file():
-                sys.path.append(str(path.parent))
+                sys.path.insert(0, str(path.parent))
                 code = compiler(path)
                 eval(code, ns, ns)
             return ns.get(symbol) if symbol else ns
         elif path and symbol:
             converter = ImportConverter()
-            return getattr(converter(path), symbol)
+            try:
+                return getattr(converter(path), symbol)
+            except AttributeError:
+                return None
         return None
 
 
