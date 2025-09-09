@@ -1,44 +1,39 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, ClassVar
 from collections.abc import Iterable
 
+from dynaconf import Dynaconf
 import rich_click as click
-from dynaconf.utils.inspect import (
-    get_debug_info,
-    inspect_settings,
-)
 from dynaconf.utils.boxing import DynaBox
 
 from socx.io import log_it
+from socx.config import settings, Settings
 from socx.cli.types import Decorator
 from socx.cli.types import AnyCallable
-from socx.config import settings
 
 
-_context_settings = dict(help_option_names=["--help", "-h"])
+_context_settings = DynaBox(help_option_names=["--help", "-h"])
 
 logger: logging.Logger = logging.getLogger(__name__)
 
 
 class _CmdLine(click.RichGroup):
-    _plugins: dict[str, click.Command]
+    _settings: ClassVar[Dynaconf] = settings
+    _plugins: ClassVar[dict[str, click.Command]] = {}
 
-    @log_it(logger=logger)
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", _context_settings)
         super().__init__(*args, **kwargs)
         self._plugins = {}
 
     @property
-    @log_it(logger=logger)
-    def settings(self):
+    def settings(self) -> Settings:
         """The settings property."""
         return settings
 
     @property
-    @log_it(logger=logger)
     def plugins(self):
         """The plugins property."""
         if not self._plugins:
@@ -46,56 +41,42 @@ class _CmdLine(click.RichGroup):
         return self._plugins
 
     @property
-    @log_it(logger=logger)
     def plugin_names(self) -> list[str]:
         return list(self.plugins)
 
-    @log_it(logger=logger)
+    def get_command(
+        self, ctx: click.Context, cmd_name: str
+    ) -> click.Command | None:
+        return self.plugins.get(cmd_name) or super().get_command(ctx, cmd_name)
+
     def list_commands(self, ctx: click.Context) -> list[str]:
-        rv = [*super().list_commands(ctx), *self.plugin_names]
-        rv.sort(
-            key=lambda x: sum(len(x) * i + ord(c) for i, c in enumerate(x))
-        )
+        def get_cmd_order(cmd_name: str) -> int:
+            cmd_len = len(cmd_name)
+            return sum(cmd_len * i + ord(c) for i, c in enumerate(cmd_name))
+
+        rv = [*super().list_commands(ctx), *list(self.plugins)]
+        rv.sort(key=get_cmd_order)
         return rv
 
-    @log_it(logger=logger)
-    def get_command(self, ctx: click.Context, name: str) -> Any:
-        return (
-            self.plugins[name]
-            if name in self.plugins
-            else super().get_command(ctx, name)
-        )
-
-    @log_it(logger=logger)
     def _load_plugins(self) -> None:
-        try:
-            plugins = self.settings.plugins.values()
-        except AttributeError:
-            msg = (
-                f"No plugins found under settings.\n"
-                f"{get_debug_info(self.settings)}\n"
-                f"{get_debug_info(self.settings, key='plugins')}\n"
-            )
-            logger.exception(msg)
-            inspect_settings(
-                self.settings,
-                to_file="socx_debug_dump.yaml",
-                print_report=True,
-            )
-        else:
-            for plugin in plugins:
-                self._load_plugin(plugin)
+        for plugin in self.settings.plugins:
+            self._load_plugin(plugin)
 
-    @log_it(logger=logger)
     def _load_plugin(self, plugin: DynaBox) -> None:
-        if plugin.name in self._plugins:
-            return
-        if not isinstance(plugin.command, click.Command):
-            return
-        if not plugin.get("enabled", True):
-            return
-        self._plugins[plugin.name] = plugin.command
-        self.add_command(plugin.command, plugin.name)
+        if self.is_plugin_valid(plugin) and plugin.name not in self._plugins:
+            self._plugins[plugin.name] = plugin.command
+            self.add_command(plugin.command, plugin.name)
+
+    @classmethod
+    def is_plugin_valid(cls, plugin: DynaBox) -> bool:
+        try:
+            enabled = plugin.get("enabled", True)
+            name = plugin.get("name")
+            cmd = plugin.get("command")
+        except Exception:
+            return False
+        else:
+            return bool(name and enabled and isinstance(cmd, click.Command))
 
     @classmethod
     @log_it(logger=logger)

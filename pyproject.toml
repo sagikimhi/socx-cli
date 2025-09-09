@@ -64,6 +64,7 @@ dependencies = [
     "importlib-metadata",
     "textual-autocomplete",
     "textual-universal-directorytree",
+    "paramiko>=4.0.0",
 ]
 
 [project.urls]
@@ -100,6 +101,7 @@ dev = [
 
 [tool.uv]
 package = true
+managed = true
 
 
 [tool.pytest.ini_options]

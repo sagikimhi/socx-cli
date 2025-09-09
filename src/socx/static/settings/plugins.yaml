@@ -1,31 +1,25 @@
 ---
 plugins:
-  git:
-    name: git
+  - name: git
     enabled: true
     command: "@command socx_plugins.git.cli:cli"
 
-  rgr:
-    name: rgr
+  - name: rgr
     enabled: true
     command: "@command socx_plugins.rgr.rgr:cli"
 
-  plug:
-    name: plugin
+  - name: plugin
     enabled: true
     command: "@command socx_plugins.plugin:cli"
 
-  config:
-    name: config
+  - name: config
     enabled: true
     command: "@command socx_plugins.config:cli"
 
-  convert:
-    name: convert
+  - name: convert
     enabled: true
     command: "@command socx_plugins.convert:cli"
 
-  version:
-    name: version
+  - name: version
     enabled: true
     command: "@command socx_plugins.version:version"

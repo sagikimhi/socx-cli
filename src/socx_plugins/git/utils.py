@@ -30,42 +30,48 @@ def get_repo_name(repo: git.Repo) -> str:
 
 
 def get_ref_name(repo: git.Repo) -> str:
-    if repo.head.is_detached:
-        rv = repo.git.describe("--tags")
-    else:
-        rv = f"{repo.active_branch.name}"
-    return rv
+    with repo:
+        if repo.head.is_detached:
+            rv = repo.git.describe("--tags")
+        else:
+            rv = f"{repo.active_branch.name}"
+        return rv
 
 
 def get_ref_type(repo: git.Repo) -> str:
-    return "Branch" if is_branch(repo.head) else "Tag"
+    with repo:
+        return "Branch" if is_branch(repo.head) else "Tag"
 
 
 def get_author_date(repo: git.Repo) -> str:
-    return repo.git.show("-s", "--date=short", "--pretty=%ad")
+    with repo:
+        return repo.git.show("-s", "--date=short", "--pretty=%ad")
 
 
 def get_commit_hash(repo: git.Repo) -> str:
-    return repo.git.rev_parse(repo.git.show("-s", "--pretty=%H"), short=8)
+    with repo:
+        return repo.git.rev_parse(repo.git.show("-s", "--pretty=%H"), short=8)
 
 
 def get_commit_message(repo: git.Repo) -> str:
-    return repo.git.show("-s", "--pretty=%s")
+    with repo:
+        return repo.git.show("-s", "--pretty=%s")
 
 
 def get_ahead_behind(repo: git.Repo) -> AheadBehind:
-    if not is_branch(repo.head):
-        return AheadBehind(0, 0)
-    local_branch = repo.active_branch
-    tracking_branch = local_branch.tracking_branch()
-    if tracking_branch is None:
-        return AheadBehind(0, 0)
-    ahead_behind = repo.git.rev_list(
-        "--left-right",
-        "--count",
-        f"{tracking_branch.name}...{local_branch.name}",
-    )
-    return AheadBehind(*ahead_behind.split()[:2])
+    with repo:
+        if not is_branch(repo.head):
+            return AheadBehind(0, 0)
+        local_branch = repo.active_branch
+        tracking_branch = local_branch.tracking_branch()
+        if tracking_branch is None:
+            return AheadBehind(0, 0)
+        ahead_behind = repo.git.rev_list(
+            "--left-right",
+            "--count",
+            f"{tracking_branch.name}...{local_branch.name}",
+        )
+        return AheadBehind(*ahead_behind.split()[:2])
 
 
 def is_branch(head: git.HEAD) -> bool:
