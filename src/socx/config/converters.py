@@ -81,6 +81,7 @@ class SymbolConverter(Converter):
 class CommandConverter(Converter):
     @override
     def __call__(self, value: Any) -> Any:
+        import inspect
         import rich_click as click
 
         context_settings = dict(
@@ -95,12 +96,9 @@ class CommandConverter(Converter):
         if isinstance(symbol, click.Command):
             return symbol
 
-        doc = symbol.__globals__.get("__doc__", "")
+        doc = inspect.getdoc(symbol)
 
-        @click.command(
-            context_settings=context_settings,
-            help=doc,
-        )
+        @click.command(help=doc, context_settings=context_settings)
         @click.argument("args", nargs=-1, type=click.UNPROCESSED)
         def cli(args: Any):
             if callable(symbol):
@@ -110,6 +108,7 @@ class CommandConverter(Converter):
                 sys.argv[1:] = tmp
                 return res
 
+        cli.__doc__ = doc
         return cli
 
 
