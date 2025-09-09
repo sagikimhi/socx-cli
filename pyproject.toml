@@ -40,6 +40,7 @@ description = "System on chip verification and tooling infrastructure."
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
+    "pip",
     "rich",
     "httpx",
     "click",
@@ -51,6 +52,7 @@ dependencies = [
     "hoptex",
     "textual",
     "dynaconf",
+    "paramiko",
     "importlib",
     "gitpython",
     "rich-click",
@@ -64,7 +66,6 @@ dependencies = [
     "importlib-metadata",
     "textual-autocomplete",
     "textual-universal-directorytree",
-    "paramiko>=4.0.0",
 ]
 
 [project.urls]
@@ -105,6 +106,4 @@ managed = true
 
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests"
-]
+testpaths = ["tests"]

@@ -14,7 +14,7 @@ def version() -> int:
     import subprocess
 
     proj = socx.settings.metadata.__project__
-    command = f"/usr/bin/env {sys.executable} -m pip show {proj}"
+    command = f"/usr/bin/env -S {sys.executable} -m pip show {proj}"
     process = subprocess.run(command.split(), capture_output=True)
 
     if process.stdout:
