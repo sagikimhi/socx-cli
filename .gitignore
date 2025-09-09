@@ -33,11 +33,12 @@
 
 !uv.toml
 !ruff.toml
+!cliff.toml
 !pyproject.toml
 !pyrightconfig.json
 
 !LICENSE
-!README.md
-!Dockerfile
 !Makefile
+!Dockerfile
+!README.md
 !CHANGELOG.md
