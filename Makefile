@@ -109,7 +109,6 @@ endef
 .PHONY: \
 	uv \
 	all \
-	cwd \
 	sync \
 	lint \
 	help \
@@ -123,36 +122,39 @@ endef
 	export_svg
 
 
-all default: build
+all default: help
 
-uv:
+uv: ## Install 'uv' on the user, if it isn't already installed
 	$(HIDE)$(UV) > /dev/null -h 2>&1 || curl -LsSf  $(UV_INSTALL_URL) | sh
 
-sync: uv
-	$(HIDE)$(UV) sync --dev --refresh --upgrade
+help: ## Prints help for targets with comments
+	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-lint: uv
+sync: uv ## Refresh, sync and upgrade project dependencies (including 'dev')
+	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups
+
+lint: uv ## Lint project python code and apply auto fixes if possible
 	$(HIDE)$(UV) run ruff check --fix
 
-test: uv
+test: uv ## Run project tests
 	$(HIDE)$(UV) run pytest
 
-build: clean sync lint format test changelog export_svg
+build: clean sync lint format test changelog export_svg ## Build wheel and sdist targets of the project for publish
 	$(HIDE)$(UV) build --refresh --upgrade --sdist --wheel
 
-clean:
+clean: ## Remove all auto generated artifacts (e.g. build artifacts)
 	$(HIDE)$(RMDIR) $(CLEAN_ARTIFACTS) 2> /dev/null || exit 0
 
-format: uv
+format: uv ## Run ruff formatter on project source code
 	$(HIDE)$(UV) run ruff format
 
-publish: build
+publish: build ## Publish project to private devpi index
 	$(HIDE)devpi upload --verbose --no-vcs --only-latest --from-dir $(BUILD_DIR)
 
-changelog:
+changelog: ## Update the project's CHANGELOG.md from the git commit log
 	$(HIDE)$(CHANGELOG_BIN) $(CHANGELOG_FLAGS)
 
-export_svg: uv sync $(SVG_DIR)
+export_svg: uv sync $(SVG_DIR) ## Export help menus of all 'socx [subcmd]' commands as svg images
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- git -h > images/socx-git.svg &
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- rgr -h > images/socx-rgr.svg &
