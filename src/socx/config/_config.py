@@ -35,6 +35,9 @@ SETTINGS_OPTIONS: dict[str, Any] = dict(
 )
 """Default options passed to Dynaconf constructor in `get_settings`."""
 
+DEFAULT_SETTINGS: dict[str, Any] = SETTINGS_OPTIONS
+"""Default settings for Dynaconf initialization."""
+
 
 logger = logging.getLogger(__name__)
 

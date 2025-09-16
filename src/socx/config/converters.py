@@ -13,6 +13,7 @@ from importlib import import_module
 from collections.abc import Iterable
 
 from dynaconf import add_converter
+from dynaconf import Dynaconf
 
 from socx.io.decorators import log_it
 
@@ -119,15 +120,27 @@ class CommandConverter(Converter):
 
 class IncludeConverter(Converter):
     @override
-    def __call__(self, value: str | Path) -> str:
+    def __call__(self, value: str | Path) -> Dynaconf:
         """Convert `ORIG_T` argument t to type `CONVERTED_T`."""
+        from socx.config._config import DEFAULT_SETTINGS
+        
         path = Path(value) if isinstance(value, str) else value
         try:
             path = path.resolve()
         except OSError:
-            return ""
+            # Return empty Dynaconf if path doesn't exist
+            return Dynaconf(**DEFAULT_SETTINGS)
         else:
-            return path.read_text() if path.is_file() else ""
+            if path.is_file():
+                # Return Dynaconf initialized with root_path=parent, settings file name, and defaults
+                return Dynaconf(
+                    root_path=path.parent,
+                    settings_files=[path.name],
+                    **DEFAULT_SETTINGS
+                )
+            else:
+                # Return empty Dynaconf if not a file
+                return Dynaconf(**DEFAULT_SETTINGS)
 
 
 class GenericConverter(Converter):
