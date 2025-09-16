@@ -1,6 +1,7 @@
 __all__ = (
     # Settings
     "SETTINGS_OPTIONS",
+    "DEFAULT_SETTINGS",
     "Settings",
     "settings",
     "get_includes",
@@ -48,6 +49,7 @@ __all__ = (
 from socx.config._config import settings as settings
 from socx.config._config import Settings as Settings
 from socx.config._config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+from socx.config._config import DEFAULT_SETTINGS as DEFAULT_SETTINGS
 from socx.config._config import get_includes as get_includes
 from socx.config._config import get_excludes as get_excludes
 from socx.config._config import get_settings as get_settings
