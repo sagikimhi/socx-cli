@@ -30,8 +30,10 @@ __all__ = (
     "Converter",
     "PathConverter",
     "ImportConverter",
-    "SymbolConverter",
     "CompileConverter",
+    "EvalConverter",
+    "SymbolConverter",
+    "CommandConverter",
     "IncludeConverter",
     "add_converters",
     "get_converters",
@@ -45,9 +47,10 @@ __all__ = (
 )
 
 
+from socx.config._settings import Settings as Settings
+from socx.config._settings import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+
 from socx.config._config import settings as settings
-from socx.config._config import Settings as Settings
-from socx.config._config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
 from socx.config._config import get_includes as get_includes
 from socx.config._config import get_excludes as get_excludes
 from socx.config._config import get_settings as get_settings
@@ -77,8 +80,10 @@ from socx.config.metadata import __directory__ as __directory__
 from socx.config.converters import Converter as Converter
 from socx.config.converters import PathConverter as PathConverter
 from socx.config.converters import ImportConverter as ImportConverter
-from socx.config.converters import SymbolConverter as SymbolConverter
 from socx.config.converters import CompileConverter as CompileConverter
+from socx.config.converters import EvalConverter as EvalConverter
+from socx.config.converters import SymbolConverter as SymbolConverter
+from socx.config.converters import CommandConverter as CommandConverter
 from socx.config.converters import IncludeConverter as IncludeConverter
 from socx.config.converters import add_converters as add_converters
 from socx.config.converters import get_converters as get_converters

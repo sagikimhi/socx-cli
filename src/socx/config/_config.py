@@ -2,55 +2,22 @@ from __future__ import annotations
 
 from itertools import chain
 import logging
-from typing import Any
 
 from upath import UPath as Path
 import dynaconf
 from dynaconf import Dynaconf
 from dynaconf.utils import ensure_a_list
-from dynaconf.utils.boxing import DynaBox
 
-from socx.io import log_it
 from socx.config import converters
 from socx.config.paths import (
     LOCAL_CONFIG_FILE,
     LOCAL_CONFIG_FILENAME,
     USER_CONFIG_FILE,
 )
-from socx.config.metadata import __appname__
-
-
-SETTINGS_OPTIONS: dict[str, Any] = dict(
-    encoding="utf-8",
-    load_dotenv=True,
-    yaml_loader="full_load",
-    core_loaders=["yaml"],
-    environments=False,
-    envvar_prefix=__appname__.upper(),
-    merge_enabled=True,
-    lowercase_read=True,
-    sysenv_fallback=True,
-    dotenv_override=False,
-    # apply_default_on_none=True,
-)
-"""Default options passed to Dynaconf constructor in `get_settings`."""
+from socx.config._settings import Settings
 
 
 logger = logging.getLogger(__name__)
-
-
-class Settings(Dynaconf):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        for k, v in SETTINGS_OPTIONS.items():
-            kwargs.setdefault(k, v)
-        super().__init__(*args, **kwargs)
-
-    def to_yaml(self, key: str | None = None) -> str:
-        if key is None:
-            data = DynaBox(**self._store)
-        else:
-            data = DynaBox(**{key: self.get(key, {})})
-        return data.to_yaml()
 
 
 def find_root_dir() -> Path | None:
@@ -105,12 +72,10 @@ def get_local_settings_files() -> list[Path]:
     return [*user_includes, *local_includes]
 
 
-@log_it(logger=logger)
 def get_excludes(settings: Settings) -> list[str]:
     return [str(f) for f in ensure_a_list(settings.SKIP_FILES_FOR_DYNACONF)]
 
 
-@log_it(logger=logger)
 def get_includes(settings: Settings) -> list[str]:
     excludes = set(get_excludes(settings))
     includes_it = chain(
@@ -121,7 +86,6 @@ def get_includes(settings: Settings) -> list[str]:
     return [str(f) for f in includes_it if str(f) not in excludes]
 
 
-@log_it(logger=logger)
 def get_settings(path: str | Path | None = None, *args, **kwargs) -> Dynaconf:
     from socx.config import paths
     from socx.config import metadata

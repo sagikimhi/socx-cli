@@ -1,7 +1,7 @@
 ---
 dynaconf_include:
-  - cli.yaml
   - plugins.yaml
+  - cli.yaml
   - git.yaml
   - lang.yaml
   - convert.yaml

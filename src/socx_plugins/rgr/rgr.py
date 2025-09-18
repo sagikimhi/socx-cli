@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from socx import global_options
 import rich_click as click
 
 from socx_plugins.rgr._rgr import options
 
 
 @click.group("rgr")
-@global_options()
 def cli() -> None:
     """Perform various regression related actions."""
 
 
 @cli.command()
-@global_options()
 def tui() -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
     from socx_tui import SoCX as SoCX
@@ -23,7 +20,6 @@ def tui() -> None:
 
 @cli.command()
 @options()
-@global_options()
 def run(input, output):  # noqa: A002
     """Run regression from a file of test commands.
 

@@ -131,7 +131,7 @@ help: ## Prints help for targets with comments
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 sync: uv ## Refresh, sync and upgrade project dependencies (including 'dev')
-	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups
+	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups --managed-python
 
 lint: uv ## Lint project python code and apply auto fixes if possible
 	$(HIDE)$(UV) run ruff check --fix
@@ -159,7 +159,7 @@ export_svg: uv sync $(SVG_DIR) ## Export help menus of all 'socx [subcmd]' comma
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- git -h > images/socx-git.svg &
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- rgr -h > images/socx-rgr.svg &
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- config -h > images/socx-config.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- plugin -h > images/socx-rgr.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- plugin -h > images/socx-plugin.svg &
 	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- convert -h > images/socx-convert.svg &
 
 $(SVG_DIR):

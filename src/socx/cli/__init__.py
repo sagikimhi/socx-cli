@@ -11,6 +11,7 @@ __all__ = (
     "verbosity_cb",
     "Decorator",
     "AnyCallable",
+    "PluginModel",
 )
 
 
@@ -20,6 +21,8 @@ from socx.cli.cli import cli as cli
 
 from socx.cli.types import Decorator as Decorator
 from socx.cli.types import AnyCallable as AnyCallable
+
+from socx.cli.plugin import PluginModel as PluginModel
 
 from socx.cli.options import debug as debug
 from socx.cli.options import configure as configure
