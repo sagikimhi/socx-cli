@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Iterable
+from collections.abc import Generator
 from typing import NamedTuple
 
 import git
@@ -82,11 +82,13 @@ def is_git_dir(path: str | Path) -> bool:
     return bool(get_repo(path))
 
 
-def find_repositories(directory: str | Path) -> Iterable[git.Repo | None]:
+def find_repositories(directory: str | Path) -> Generator[git.Repo]:
     if isinstance(directory, str):
         directory = Path(directory)
 
     if directory.exists() and directory.is_dir():
         subdirs = filter(is_git_dir, directory.iterdir())
         subdirs = sorted(subdirs, key=lambda x: Path(x).name)
-        yield from (get_repo(subdir) for subdir in subdirs)
+        for subdir in subdirs:
+            if repo := get_repo(subdir):
+                yield repo
