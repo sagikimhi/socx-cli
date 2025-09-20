@@ -15,6 +15,7 @@ from collections.abc import Iterable
 
 from upath import UPath as Path
 from dynaconf import add_converter
+from dynaconf.utils.parse_conf import Lazy
 
 from socx.config._settings import Settings
 
@@ -38,7 +39,11 @@ class Converter(abc.ABC):
 
 class PathConverter(Converter):
     @override
-    def __call__(self, value: str) -> Path | str:
+    def __call__(self, value: str | Lazy) -> Path | Lazy | str:
+        if isinstance(value, Lazy):
+            value.set_casting(self)
+            return value
+
         try:
             rv = Path(value).resolve()
         except OSError:
@@ -49,7 +54,11 @@ class PathConverter(Converter):
 
 class CompileConverter(Converter):
     @override
-    def __call__(self, value: str) -> CodeType | None:
+    def __call__(self, value: str | Lazy) -> CodeType | Lazy | None:
+        if isinstance(value, Lazy):
+            value.set_casting(self)
+            return value
+
         if not value.endswith("\n"):
             value += "\n"
 
@@ -73,14 +82,25 @@ class ImportConverter(Converter):
 
 
 class EvalConverter(Converter):
+    def __init__(self) -> None:
+        self.compiler = CompileConverter()
+
     @override
-    def __call__(self, value: CodeType) -> Any:
-        ns = {**globals(), **locals()}
-        try:
-            rv = eval(value, ns, ns)
-        except Exception:
-            rv = None
-            self.exception(str(value))
+    def __call__(self, value: str | CodeType | Lazy) -> Any:
+        if isinstance(value, Lazy):
+            value.set_casting(self)
+            return value
+
+        code = self.compiler(value) if isinstance(value, str) else value
+        rv = None
+
+        if code is not None:
+            ns = {**globals(), **locals()}
+            try:
+                rv = eval(value, ns, ns)
+            except Exception:
+                self.exception(str(value))
+
         return rv
 
 
@@ -91,7 +111,10 @@ class SymbolConverter(Converter):
         self.evaluator = EvalConverter()
 
     @override
-    def __call__(self, value: str) -> Any:
+    def __call__(self, value: str | Lazy) -> Any:
+        if isinstance(value, Lazy):
+            return value.set_casting(self)
+
         path, _, symbol = value.rpartition(":")
 
         if not path or not symbol:
@@ -120,8 +143,12 @@ class CommandConverter(Converter):
         self.symbolizer = SymbolConverter()
 
     @override
-    def __call__(self, value: str) -> Any:
+    def __call__(self, value: str | Lazy) -> Any:
         from rich_click import command, argument, UNPROCESSED, Command, Group
+
+        if isinstance(value, Lazy):
+            value.set_casting(self)
+            return value
 
         if isinstance(value, str | Path):
             symbol = self.symbolizer(value)
@@ -153,7 +180,11 @@ class CommandConverter(Converter):
 
 class IncludeConverter(Converter):
     @override
-    def __call__(self, value: str | Path) -> Settings | None:
+    def __call__(self, value: str | Path | Lazy) -> Settings | Lazy | None:
+        if isinstance(value, Lazy):
+            value.set_casting(self)
+            return value
+
         path = Path(value) if isinstance(value, str) else value
         try:
             path = path.resolve()

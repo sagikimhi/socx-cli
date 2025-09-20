@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 from collections.abc import Iterable
 
+from dynaconf.base import Lazy
 from git import Repo
 from socx import settings
 from upath import UPath as Path
@@ -14,6 +15,7 @@ from rich.table import Table
 from rich.console import Console, ConsoleOptions, RenderResult
 from pydantic.config import JsonDict
 from dynaconf.utils.boxing import DynaBox
+from dynaconf.utils.parse_conf import apply_converter
 
 from socx_plugins.git.utils import get_repo_name
 from socx_plugins.git.utils import get_commit_hash
@@ -55,12 +57,17 @@ class Manifest:
 
     @classmethod
     def get_content(cls, column: DynaBox, repo: Repo) -> str:
-        def empty(_: Repo) -> str:
-            return ""
+        if not isinstance(column.func, str):
+            func = column.func
+        else:
+            func = apply_converter("@symbol", column.func, settings)
 
-        content = str(column.get("func", default=empty)(repo))  # pyright: ignore[reportCallIssue, reportOptionalCall]
-        if column.get("style") is not None:
-            content = f"[{column.style}]{content}[/]"
+        if isinstance(func, Lazy):
+            func = func(func.value)
+
+        style = column.style
+        content = func(repo)
+        content = f"[{style}]{content}[/]"
         return content
 
     @classmethod
@@ -83,7 +90,11 @@ class Manifest:
 
     def as_json(self) -> JsonDict:
         def value(repo: Repo) -> JsonDict:
-            return {column.name: column.func(repo) for column in self.columns}
+            rv = {}
+            for column in self.columns:
+                func = apply_converter("@symbol", column.func, None)
+                rv[column.name] = func(repo)
+            return rv
 
         return {"columns": [value(repo) for repo in self.repos]}
 
