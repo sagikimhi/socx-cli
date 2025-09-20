@@ -59,9 +59,13 @@
 
 - *(.env)* correct dotenv development env variables [bfe012e](https://bitbucket.org/wiliot/socenv/commits/bfe012e20a896e3efbf6a9d1f0a633b85ae5f373)
 
+- *(Makefile)* fix incorrect flags in `make publish` rule [b35f0bf](https://bitbucket.org/wiliot/socenv/commits/b35f0bfa9bca327858dd2074e89c5ce8d2182552)
+
 - *(Makefile)* fix `make clean` rules [ab17ac2](https://bitbucket.org/wiliot/socenv/commits/ab17ac21cf22269760af8a2a4b0d990968a1bc16)
 
 - *(_CmdLine)* fix _CmdLine inheritence [0126aef](https://bitbucket.org/wiliot/socenv/commits/0126aef8692abe3a638866254e42482bf0de48da)
+
+- *(cli)* fix CLI after breaking changes of rich-click 1.9.0 [d2e9816](https://bitbucket.org/wiliot/socenv/commits/d2e98160402d4af35a53f417ab393c288d7646d8)
 
 - *(cli)* fix tui decorator type annotation [a1b194f](https://bitbucket.org/wiliot/socenv/commits/a1b194f16b01f37538d53d3ffe3348ce46257a1c)
 
@@ -72,6 +76,8 @@
 - *(cli)* add return code on exit from main [8f3eb61](https://bitbucket.org/wiliot/socenv/commits/8f3eb6147e3f70589168609460cb543d7a92d7c9)
 
 - *(cli/callbacks)* fix option callbacks [2dfa959](https://bitbucket.org/wiliot/socenv/commits/2dfa959a4cd0c962dab1de1f7d07cd91405c020e)
+
+- *(config.converters)* fix @command help texts [8ece5cb](https://bitbucket.org/wiliot/socenv/commits/8ece5cb4f3850b917059a7ab230665b3835ffbf1)
 
 - *(config/metadata)* use __spec__.name instead of __package__ [9d27ca6](https://bitbucket.org/wiliot/socenv/commits/9d27ca628c98720a02b44e3873edd499eef63ee7)
 
@@ -143,9 +149,13 @@
 
 - *(socx_plugins.config.edit)* fix edit command [7133779](https://bitbucket.org/wiliot/socenv/commits/71337798f37918f47c720840c4e3231bda1708eb)
 
+- *(socx_plugins.git)* fix some typing issues in manifest, utils [b72a44a](https://bitbucket.org/wiliot/socenv/commits/b72a44a0a08e15c486e131689cc418ca1e3329f6)
+
 - *(socx_plugins.git)* minor typing fixes in git manifest plugin [64acf03](https://bitbucket.org/wiliot/socenv/commits/64acf03864dd9be029f3956967e2c710ad4de786)
 
 - *(socx_plugins.rgr.pixie_test)* correct path to test's log file [f525fa5](https://bitbucket.org/wiliot/socenv/commits/f525fa568cb4cb37195bb0c080dc9395c9680817)
+
+- *(socx_plugins.version)* fix version command [b8fba3a](https://bitbucket.org/wiliot/socenv/commits/b8fba3ac4a04547934bfe2cf5e5c5bafc3d9d88a)
 
 - *(socx_tui)* fix AttributeError when loading regression from file [4dcda47](https://bitbucket.org/wiliot/socenv/commits/4dcda47e23fa775885fd1468357dbaaa36a28305)
 
@@ -168,6 +178,8 @@
 
 ### 🚜 Refactor
 
+- *(Makefile)* add changelog generation variables [6a9887a](https://bitbucket.org/wiliot/socenv/commits/6a9887a14786914bacc69a99e0994b0cb6b5004c)
+
 - *(Makefile)* use `$(UV)` instead of `uv` in export_svg [893daa8](https://bitbucket.org/wiliot/socenv/commits/893daa82215e0a567ed253ce6e95e5ca73dfb821)
 
 - *(cli.cfg)* adjust default configurations [ddc414b](https://bitbucket.org/wiliot/socenv/commits/ddc414b855d38778344bf3d096844dafc69d743e)
@@ -175,6 +187,8 @@
 - *(cli.cfg)* remove unused `cfg` function [062f6ee](https://bitbucket.org/wiliot/socenv/commits/062f6eebabf0cbccdad07715bf321cea5a6e2f64)
 
 - *(config._config)* pass logger to `log_it` decorator [dc86e0c](https://bitbucket.org/wiliot/socenv/commits/dc86e0ca6b2f2d49a2834964a5aba07797ee298e)
+
+- *(config.converters)* improve error handling [09fbe8f](https://bitbucket.org/wiliot/socenv/commits/09fbe8fbc25f03f4994557bd01cb88f01a24112f)
 
 - *(io.decorators)* add optional logger parameter [eecef55](https://bitbucket.org/wiliot/socenv/commits/eecef55c588f85ec21e83f6a8f847c83b9eccfba)
 
@@ -204,9 +218,13 @@
 
 - *(socx.io.decorators)* add optional logger parameter [fa69f79](https://bitbucket.org/wiliot/socenv/commits/fa69f7938023e64b66ed548d459302885bfae7e0)
 
+- *(socx_plugins.git.manifest)* move str to symbol conversion to code [e563195](https://bitbucket.org/wiliot/socenv/commits/e563195293fc1f070849d3d594681cef84eaeae2)
+
 - *(socx_plugins.rgr)* wrap `regression.start` with asyncio task [707bc15](https://bitbucket.org/wiliot/socenv/commits/707bc15142c57af9307d22e019671b246e829bc0)
 
 - *(test)* raise exception if start is called on a running test [520fbd0](https://bitbucket.org/wiliot/socenv/commits/520fbd094b2e13736bc411b6dbbc64858a4a0c18)
+
+- simplify and improve plugin support and loading [bfa6d65](https://bitbucket.org/wiliot/socenv/commits/bfa6d65c128b1cfe2cbade121e392a9e51f5990d)
 
 - [**breaking**] clean up and re organize code and structure [ab35344](https://bitbucket.org/wiliot/socenv/commits/ab353445e51bb5b95fc6fc069b4f593fcf1bd996)
 
@@ -347,6 +365,16 @@
 - *(version)* bump version to 0.4.4.dev1 [8f071f5](https://bitbucket.org/wiliot/socenv/commits/8f071f5f47778c6e245585d340851c17ac9e3cac)
 
 - *(visitor)* sort exports [bb376e2](https://bitbucket.org/wiliot/socenv/commits/bb376e216f8a183855dabb123e738b84c522c648)
+
+- update changelog [90b86aa](https://bitbucket.org/wiliot/socenv/commits/90b86aa18df9a8076057785912e24ca25cf43d65)
+
+- add binary build target, remove 'socx_patches' [2aa1a26](https://bitbucket.org/wiliot/socenv/commits/2aa1a26d17a0eb68acf3baf4742b67c42f455814)
+
+- remove old svg assets [116c6d7](https://bitbucket.org/wiliot/socenv/commits/116c6d78ccce223a16c1ed072643be9129aea1ba)
+
+- add help rule to Makefile [fad8847](https://bitbucket.org/wiliot/socenv/commits/fad8847b802afbb6ca6679facd1c37c53752a1ed)
+
+- add cliff.toml config for git-cliff [8aeda97](https://bitbucket.org/wiliot/socenv/commits/8aeda97380ade462bd35c355885b68b49f5c7233)
 
 - remove double settings reference [ac67dec](https://bitbucket.org/wiliot/socenv/commits/ac67dec5c2b68af506118a03f8abd0518d206f04)
 
