@@ -141,6 +141,10 @@ test: uv ## Run project tests
 
 build: clean sync lint format test changelog export_svg ## Build wheel and sdist targets of the project for publish
 	$(HIDE)$(UV) build --refresh --upgrade --sdist --wheel
+	$(HIDE)/usr/bin/env -S \
+		PYAPP_UV_ENABLED=1 \
+		PYAPP_PROJECT_PATH=$$(realpath ./dist/*.whl) \
+		$(UV) run hatch build -t binary
 
 clean: ## Remove all auto generated artifacts (e.g. build artifacts)
 	$(HIDE)$(RMDIR) $(CLEAN_ARTIFACTS) 2> /dev/null || exit 0
@@ -155,12 +159,12 @@ changelog: ## Update the project's CHANGELOG.md from the git commit log
 	$(HIDE)$(CHANGELOG_BIN) $(CHANGELOG_FLAGS)
 
 export_svg: uv sync $(SVG_DIR) ## Export help menus of all 'socx [subcmd]' commands as svg images
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- -h > images/socx-cli.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- git -h > images/socx-git.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- rgr -h > images/socx-rgr.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- config -h > images/socx-config.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- plugin -h > images/socx-plugin.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx.cli.cli:cli -- convert -h > images/socx-convert.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- socx -h > images/socx-cli.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- socx git -h > images/socx-git.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- socx rgr -h > images/socx-rgr.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- socx config -h > images/socx-config.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- socx plugin -h > images/socx-plugin.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- socx convert -h > images/socx-convert.svg &
 
 $(SVG_DIR):
 	$(HIDE)$(MKDIR) $(SVG_DIR)
