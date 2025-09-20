@@ -1,36 +1,25 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from dataclasses import dataclass
 from collections.abc import Iterable
 
-import git
-import socx
-import rich
-import rich.box
-import rich.text
-import rich.table
-import rich_click
+from dynaconf.base import Lazy
+from git import Repo
+from socx import settings
+from upath import UPath as Path
+from rich import get_console
+from rich.box import Box, ROUNDED
+from rich.text import Text
+from rich.table import Table
+from rich.console import Console, ConsoleOptions, RenderResult
+from pydantic.config import JsonDict
 from dynaconf.utils.boxing import DynaBox
+from dynaconf.utils.parse_conf import apply_converter
 
 from socx_plugins.git.utils import get_repo_name
 from socx_plugins.git.utils import get_commit_hash
 from socx_plugins.git.utils import find_repositories
-
-Box = rich.box.Box
-Repo = git.Repo
-Text = str | rich.text.Text
-Table = rich.table.Table
-Style = DynaBox
-Header = Text
-Column = DynaBox
-Record = Iterable[Text]
-Option = rich_click.Option
-Command = rich_click.Command
-Console = rich.console.Console
-ConsoleOptions = rich.console.ConsoleOptions
-RenderResult = rich.console.RenderResult
 
 
 logger = logging.getLogger(__name__)
@@ -38,25 +27,27 @@ logger = logging.getLogger(__name__)
 
 @dataclass(init=False)
 class Manifest:
-    style: Style
-    repos: Iterable[Repo]
-    columns: Iterable[Column]
-    headers: Iterable[Header]
-    records: Iterable[Record]
+    root: Path
+    repos: list[Repo]
+    style: DynaBox
+    console: Console
+    columns: list[DynaBox]
+    headers: list[str]
+    records: list[list[str]]
 
-    def __init__(self, root_path: str | Path) -> None:
-        if isinstance(root_path, str):
-            root_path = Path(root_path)
-        self.root = root_path
-        self.repos = list(find_repositories(root_path))
-        self.style = socx.settings.git.manifest.style
-        self.columns = socx.settings.git.manifest.columns
+    def __init__(self, root: str | Path) -> None:
+        if isinstance(root, str):
+            root = Path(root)
+        self.root = root
+        self.repos = list(find_repositories(root))
+        self.style = settings.git.manifest.style
+        self.console = get_console()
+        self.columns = settings.git.manifest.columns
         self.headers = Manifest.get_headers(self.columns, self.style)
         self.records = Manifest.get_records(self.columns, self.repos)
 
     @classmethod
-    @socx.log_it()
-    def get_header(cls, column: Column, style: Style) -> Header:
+    def get_header(cls, column: DynaBox, style: DynaBox) -> str:
         header = str(column.name or "")
         if style.get("headers") is not None:
             header = f"[{style.headers or ''}]{header}"
@@ -65,51 +56,49 @@ class Manifest:
         return header
 
     @classmethod
-    @socx.log_it()
-    def get_content(cls, column: Column, repo: Repo) -> Text:
-        def empty(_: Repo) -> str:
-            return ""
+    def get_content(cls, column: DynaBox, repo: Repo) -> str:
+        if not isinstance(column.func, str):
+            func = column.func
+        else:
+            func = apply_converter("@symbol", column.func, settings)
 
-        content = str(column.get("func", default=empty)(repo))  # pyright: ignore[reportCallIssue, reportOptionalCall]
-        if column.get("style") is not None:
-            content = f"[{column.style}]{content}[/]"
+        if isinstance(func, Lazy):
+            func = func(func.value)
+
+        style = column.style
+        content = func(repo)
+        content = f"[{style}]{content}[/]"
         return content
 
     @classmethod
-    @socx.log_it()
-    def get_record(cls, columns: Iterable[Column], repo: Repo) -> Record:
+    def get_record(cls, columns: Iterable[DynaBox], repo: Repo) -> list[str]:
         return [cls.get_content(c, repo) for c in columns]
 
     @classmethod
-    @socx.log_it()
-    def get_headers(
-        cls, columns: Iterable[Column], style: Style
-    ) -> Iterable[Header]:
+    def get_headers(cls, columns: list[DynaBox], style: DynaBox) -> list[str]:
         return [cls.get_header(c, style) for c in columns]
 
     @classmethod
-    @socx.log_it()
     def get_records(
-        cls, columns: Iterable[Column], repos: Iterable[Repo]
-    ) -> Iterable[Record]:
+        cls, columns: Iterable[DynaBox], repos: Iterable[Repo]
+    ) -> list[list[str]]:
         return [cls.get_record(columns, repo) for repo in repos]
 
     def print(self, console: Console | None = None) -> None:
-        console = console or socx.console
+        console = console or self.console
         console.print(self)
 
-    @socx.log_it()
-    def as_json(self) -> dict[str, str]:
-        def key(repo: Repo) -> Text:
-            return get_repo_name(repo)
+    def as_json(self) -> JsonDict:
+        def value(repo: Repo) -> JsonDict:
+            rv = {}
+            for column in self.columns:
+                func = apply_converter("@symbol", column.func, None)
+                rv[column.name] = func(repo)
+            return rv
 
-        def value(repo: Repo) -> Record:
-            return {column.name: column.func(repo) for column in self.columns}
+        return {"columns": [value(repo) for repo in self.repos]}
 
-        return {"manifest": [value(repo) for repo in self.repos]}
-
-    @socx.log_it()
-    def as_references(self) -> Iterable[Text]:
+    def as_references(self) -> list[str]:
         def reference(repo):
             ref = get_commit_hash(repo)
             name = get_repo_name(repo)
@@ -120,13 +109,12 @@ class Manifest:
             )
             return f"{repo.git.show(args)} <[green]{name}[/]>"
 
-        return tuple(reference(repo) for repo in self.repos)
+        return [reference(repo) for repo in self.repos]
 
-    @socx.log_it()
     def as_rich_table(
         self,
-        box: Box = rich.box.ROUNDED,
-        title: Text | None = None,
+        box: Box = ROUNDED,
+        title: str | Text | None = None,
         expand: bool = True,
         show_lines: bool = True,
         show_header: bool = True,
@@ -146,18 +134,16 @@ class Manifest:
             rv.add_row(*record)
         return rv
 
-    @socx.log_it()
     def export_json(self, path: str | Path) -> None:
         if isinstance(path, str):
             path = Path(path)
-        with socx.console.capture() as cap:
-            socx.console.print_json(
+        with self.console.capture() as cap:
+            self.console.print_json(
                 data=self.as_json(), indent=4, sort_keys=True
             )
         path.write_text(cap.get(), encoding="utf-8")
         logger.info(f"Manifest written to: '{path}'.")
 
-    @socx.log_it()
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:

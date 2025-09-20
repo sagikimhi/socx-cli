@@ -1,31 +1,43 @@
 ---
 plugins:
-  git:
-    name: git
+  - name: git
+    panel: Commands
+    help: Various common git command utilities to manage your environment.
+    command: "socx_plugins.git:cli"
     enabled: true
-    command: "@command socx_plugins.git.cli:cli"
+    aliases: []
 
-  rgr:
-    name: rgr
+  - name: rgr
+    panel: Commands
+    help: Perform various regression related actions.
+    command: "socx_plugins.rgr:cli"
     enabled: true
-    command: "@command socx_plugins.rgr.rgr:cli"
+    aliases: []
 
-  plug:
-    name: plugin
+  - name: plugin
+    help: Add, create, inspect, and manage extension plugins.
+    panel: Commands
+    command: "socx_plugins.plugin:cli"
     enabled: true
-    command: "@command socx_plugins.plugin:cli"
+    aliases: []
 
-  config:
-    name: config
+  - name: config
+    help: Get, set, list, or modify settings configuration values.
+    panel: Commands
+    command: "socx_plugins.config:cli"
     enabled: true
-    command: "@command socx_plugins.config:cli"
+    aliases: []
 
-  convert:
-    name: convert
+  - name: convert
+    help: Perform a conversion based on current configurations.
+    panel: Commands
+    command: "socx_plugins.convert:cli"
     enabled: true
-    command: "@command socx_plugins.convert:cli"
+    aliases: []
 
-  version:
-    name: version
+  - name: version
+    help: Print version information and exit.
+    panel: Commands
+    command: "socx_plugins.version:version"
     enabled: true
-    command: "@command socx_plugins.version:version"
+    aliases: []

@@ -1,5 +1,5 @@
 import sys
-from socx.cli import cli as cli
+from socx import cli as cli
 
 
 def main() -> int:

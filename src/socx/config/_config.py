@@ -2,40 +2,32 @@ from __future__ import annotations
 
 from itertools import chain
 import logging
-from typing import Any
 
 from upath import UPath as Path
+import dynaconf
 from dynaconf import Dynaconf
-from dynaconf.base import Settings
 from dynaconf.utils import ensure_a_list
 
-from socx.io import log_it
 from socx.config import converters
 from socx.config.paths import (
     LOCAL_CONFIG_FILE,
     LOCAL_CONFIG_FILENAME,
     USER_CONFIG_FILE,
 )
-from socx.config.metadata import __appname__
+from socx.config._settings import Settings
 
 
 logger = logging.getLogger(__name__)
 
 
-SETTINGS_OPTIONS: dict[str, Any] = dict(
-    encoding="utf-8",
-    load_dotenv=True,
-    yaml_loader="safe_load",
-    core_loaders=["yaml"],
-    environments=False,
-    envvar_prefix=__appname__.upper(),
-    merge_enabled=True,
-    lowercase_read=True,
-    sysenv_fallback=True,
-    dotenv_override=False,
-    # apply_default_on_none=True,
-)
-"""Default options passed to Dynaconf constructor in `get_settings`."""
+def find_root_dir() -> Path | None:
+    """Find the outermost parent directory containing a .socx.yaml file."""
+    root = None
+    for parent in LOCAL_CONFIG_FILE.parents:
+        cfg = parent / LOCAL_CONFIG_FILENAME
+        if cfg.exists() and cfg.is_file():
+            root = cfg
+    return root
 
 
 def get_local_settings_files() -> list[Path]:
@@ -80,12 +72,10 @@ def get_local_settings_files() -> list[Path]:
     return [*user_includes, *local_includes]
 
 
-@log_it(logger=logger)
 def get_excludes(settings: Settings) -> list[str]:
     return [str(f) for f in ensure_a_list(settings.SKIP_FILES_FOR_DYNACONF)]
 
 
-@log_it(logger=logger)
 def get_includes(settings: Settings) -> list[str]:
     excludes = set(get_excludes(settings))
     includes_it = chain(
@@ -96,8 +86,7 @@ def get_includes(settings: Settings) -> list[str]:
     return [str(f) for f in includes_it if str(f) not in excludes]
 
 
-@log_it(logger=logger)
-def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
+def get_settings(path: str | Path | None = None, *args, **kwargs) -> Dynaconf:
     from socx.config import paths
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer
@@ -107,21 +96,24 @@ def get_settings(path: str | Path | None = None) -> Settings | Dynaconf:
     if isinstance(path, str):
         path = Path(path).resolve()
 
+    includes = get_local_settings_files()
     settings_files = [str(path)]
 
     if USER_CONFIG_FILE.exists():
         settings_files.append(str(USER_CONFIG_FILE))
 
     converters._init()
-    settings = Dynaconf(
-        **SETTINGS_OPTIONS,
+    settings = Settings(
+        *args,
+        **kwargs,
         env="default",
-        includes=get_local_settings_files(),
+        includes=includes,
         settings_files=settings_files,
         **ModuleSerializer.serialize(paths),
         **ModuleSerializer.serialize(metadata),
     )
+    dynaconf.settings = settings
     return settings
 
 
-settings: Settings | Dynaconf = get_settings()
+settings: Settings = get_settings()
