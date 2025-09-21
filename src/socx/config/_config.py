@@ -4,8 +4,6 @@ from itertools import chain
 import logging
 
 from upath import UPath as Path
-import dynaconf
-from dynaconf import Dynaconf
 from dynaconf.utils import ensure_a_list
 
 from socx.config import converters
@@ -86,7 +84,7 @@ def get_includes(settings: Settings) -> list[str]:
     return [str(f) for f in includes_it if str(f) not in excludes]
 
 
-def get_settings(path: str | Path | None = None, *args, **kwargs) -> Dynaconf:
+def get_settings(path: str | Path | None = None, *args, **kwargs) -> Settings:
     from socx.config import paths
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer
@@ -112,7 +110,6 @@ def get_settings(path: str | Path | None = None, *args, **kwargs) -> Dynaconf:
         **ModuleSerializer.serialize(paths),
         **ModuleSerializer.serialize(metadata),
     )
-    dynaconf.settings = settings
     return settings
 
 
