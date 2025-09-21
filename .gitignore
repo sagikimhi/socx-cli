@@ -42,6 +42,7 @@
 !LICENSE
 !Makefile
 !Dockerfile
+!duties.py
 !README.md
 !CHANGELOG.md
 !CONTRIBUTING.md

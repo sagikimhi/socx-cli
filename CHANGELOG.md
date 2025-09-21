@@ -247,6 +247,8 @@
 
 - *(socx.cli.cfg)* correct docs of `GROUP_ARGUMENT_OPTIONS` [9864f7b](https://bitbucket.org/wiliot/socenv/commits/9864f7bb3d841722a518774dc565d2f1bfef565b)
 
+- configure and build documentation with mkdocs [325efb2](https://bitbucket.org/wiliot/socenv/commits/325efb2f5b0affc415d7d4a04af5deb70e9d0149)
+
 - add CHANGELOG.md [218eabd](https://bitbucket.org/wiliot/socenv/commits/218eabd807070137d1b47bcd66936f39e26ed08e)
 
 - update svg assets [0e54e76](https://bitbucket.org/wiliot/socenv/commits/0e54e76fefb8029b3642269fa4e59f2386ef61c3)
@@ -366,7 +368,9 @@
 
 - *(visitor)* sort exports [bb376e2](https://bitbucket.org/wiliot/socenv/commits/bb376e216f8a183855dabb123e738b84c522c648)
 
-- update changelog [90b86aa](https://bitbucket.org/wiliot/socenv/commits/90b86aa18df9a8076057785912e24ca25cf43d65)
+- prepare release 0.5.0 [26d2175](https://bitbucket.org/wiliot/socenv/commits/26d2175fb30854176ec9b49a220c6381728b04ff)
+
+- update changelog [1bfbfa5](https://bitbucket.org/wiliot/socenv/commits/1bfbfa53b114dc708fffc1e3c45e5c3a2ff20c9e)
 
 - add binary build target, remove 'socx_patches' [2aa1a26](https://bitbucket.org/wiliot/socenv/commits/2aa1a26d17a0eb68acf3baf4742b67c42f455814)
 

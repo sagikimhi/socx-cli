@@ -168,7 +168,7 @@ check: uv ## Run all checks
 setup: ## Set up the project
 	$(HIDE)$(UV) run scripts/make.py "$@"
 
-build: clean sync check_code format changelog deploy_docs ## Build wheel and sdist targets of the project for publish
+build: clean sync check_code format changelog ## Build wheel and sdist targets of the project for publish
 	$(HIDE)$(UV) build --refresh --upgrade --sdist --wheel
 	$(HIDE)/usr/bin/env -S \
 		PYAPP_UV_ENABLED=1 \
