@@ -32,7 +32,10 @@ class TestCommand(UIDMixin):
     name: str
         Name of the command represented by this object, i.e. sys.argv[0].
 
-    args: list[str]
+    escaped: str
+        Escaped version of the original commandline string after shlex.quote
+        has been applied.
+    arguments: list[str]
         Arguments of the command represented by this object split by
         whitespace.
     """

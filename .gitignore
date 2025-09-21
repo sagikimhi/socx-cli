@@ -13,12 +13,15 @@
 !src/socx/**/*.py
 !src/socx/static/**/*
 !src/socx/template/**/*
-
 !src/socx_tui/**/*.py
 !src/socx_plugins/**/*.py
 !src/socx_patches/**/*.py
 
+!docs/**/*
+
 !tests/**/*.py
+
+!scripts/*.py
 
 !assets/svg/**/*
 !assets/lst/inputs/**/*.in
@@ -28,17 +31,19 @@
 
 !.env
 !.gitignore
+!.gitattributes
 !.python-version
-!.pre-commit-config.yaml
 
-!uv.toml
-!ruff.toml
-!cliff.toml
-!pyproject.toml
-!pyrightconfig.json
+!**/*.ini
+!**/*.toml
+!**/*.yaml
+!**/*.json
 
 !LICENSE
 !Makefile
 !Dockerfile
+!duties.py
 !README.md
 !CHANGELOG.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
