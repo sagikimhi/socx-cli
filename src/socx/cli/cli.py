@@ -7,7 +7,7 @@ import rich_click as click
 
 from socx.cli._cli import socx
 from socx.cli.plugin import PluginModel
-from socx.cli.options import tui, global_options
+from socx.cli.options import global_options
 from socx.config._config import settings
 
 
@@ -23,7 +23,6 @@ plugin_names = [plugin.name for plugin in plugins]
 global_option_names = ["--help", "--debug", "--config", "--verbosity"]
 
 
-@tui()
 @socx()
 @global_options()
 @click.command_panel("Commands", commands=plugin_names)

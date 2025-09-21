@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from functools import partial
 from collections.abc import Callable
 
-import trogon
 from rich_click import option, Choice
 
 from socx.cli.types import Decorator
@@ -13,14 +11,6 @@ from socx.cli.types import AnyCallable
 from socx.cli.callbacks import debug_cb
 from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb
-
-
-tui: partial[AnyCallable] = partial(
-    trogon.tui,
-    name=__spec__.name.partition(".")[0],
-    command="cli-ui",
-    help="Open an interactive command-line TUI (Terminal-User-Interface).",
-)
 
 
 debug: Decorator[AnyCallable] = option(
