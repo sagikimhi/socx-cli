@@ -36,13 +36,15 @@ class Converter(abc.ABC):
             f"Converter({self.name}): failed to convert value '{value}'"
         )
 
+    def error(self, error: str) -> None:
+        logger.error(f"Converter({self.name}): {error}")
+
 
 class PathConverter(Converter):
     @override
     def __call__(self, value: str | Lazy) -> Path | Lazy | str:
         if isinstance(value, Lazy):
-            value.set_casting(self)
-            return value
+            return value.set_casting(self)
 
         try:
             rv = Path(value).resolve()
@@ -54,25 +56,33 @@ class PathConverter(Converter):
 
 class CompileConverter(Converter):
     @override
-    def __call__(self, value: str | Lazy) -> CodeType | Lazy | None:
+    def __call__(self, value: str | Path | Lazy) -> CodeType | Lazy | None:
         if isinstance(value, Lazy):
-            value.set_casting(self)
-            return value
+            return value.set_casting(self)
 
-        if not value.endswith("\n"):
-            value += "\n"
+        if isinstance(value, str):
+            value = Path(value)
 
         try:
-            rv = compile(value, f"<{value}>", "eval")
+            value = value.resolve()
+        except OSError:
+            self.exception(str(value))
+            return None
+
+        try:
+            rv = compile(value.read_text(), value, "exec")
         except (SyntaxError, ValueError):
             rv = None
-            self.exception(value)
+            self.exception(str(value))
         return rv
 
 
 class ImportConverter(Converter):
     @override
-    def __call__(self, value: str) -> ModuleType | None:
+    def __call__(self, value: str | Lazy) -> ModuleType | Lazy | None:
+        if isinstance(value, Lazy):
+            return value.set_casting(self)
+
         try:
             rv = import_module(value)
         except ImportError:
@@ -86,22 +96,25 @@ class EvalConverter(Converter):
         self.compiler = CompileConverter()
 
     @override
-    def __call__(self, value: str | CodeType | Lazy) -> Any:
+    def __call__(self, value: str | Path | CodeType | Lazy) -> Any:
         if isinstance(value, Lazy):
-            value.set_casting(self)
-            return value
+            return value.set_casting(self)
 
-        code = self.compiler(value) if isinstance(value, str) else value
+        code = self.compiler(value) if isinstance(value, str | Path) else value
+
+        if isinstance(code, Lazy):
+            code = code(code.value)
+
         rv = None
 
         if code is not None:
             ns = {**globals(), **locals()}
             try:
-                rv = eval(value, ns, ns)
+                eval(code, ns, ns)
             except Exception:
                 self.exception(str(value))
-
-        return rv
+            return ns
+        return None
 
 
 class SymbolConverter(Converter):
@@ -112,25 +125,31 @@ class SymbolConverter(Converter):
 
     @override
     def __call__(self, value: str | Lazy) -> Any:
+        logger.debug(f"Symbol converter called with value: {value}")
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
         path, _, symbol = value.rpartition(":")
 
-        if not path or not symbol:
+        if not path:
+            self.error(f"Command path/pathspec is missing: {value}")
             return None
 
-        if "/" not in path:
+        if not symbol:
+            self.error(f"Command symbol is missing: {value}")
+            return None
+
+        if not Path(path).exists():
             module = self.importer(path)
-            return getattr(module, symbol, None)
+            return getattr(module, symbol)
 
         path = Path(path)
 
         if path.is_file():
             if str(path.parent) not in sys.path:
                 sys.path.insert(0, str(path.parent))
-            code = self.compiler(path.read_text())
-            return code and self.evaluator(code)
+            code = self.compiler(path)
+            return code and self.evaluator(code).get(symbol)
 
         return None
 
@@ -147,18 +166,12 @@ class CommandConverter(Converter):
         from rich_click import command, argument, UNPROCESSED, Command, Group
 
         if isinstance(value, Lazy):
-            value.set_casting(self)
-            return value
+            return value.set_casting(self)
 
         if isinstance(value, str | Path):
             symbol = self.symbolizer(value)
 
-        if isinstance(symbol, Group):
-            return symbol
-
-        if isinstance(symbol, Command):
-            new_group = Group()
-            new_group.add_command(symbol)
+        if symbol is None or isinstance(symbol, Command):
             return symbol
 
         doc = inspect.getdoc(symbol)

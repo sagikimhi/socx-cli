@@ -1,0 +1,168 @@
+site_dir: "site"
+site_name: "socx-cli"
+site_url: "https://sagikimhi.github.io/socx-cli"
+site_description: "System on chip verification and tooling infrastructure."
+
+repo_name: "sagikimhi/socx-cli"
+repo_url: "https://github.com/sagikimhi/socx-cli"
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; 2025 Sagi Kimhi
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+  - Home:
+      - Overview: index.md
+      - Changelog: changelog.md
+      - Credits: credits.md
+      - License: license.md
+  - API reference: reference/api.md
+  - Development:
+      - Contributing: contributing.md
+      - Code of Conduct: code_of_conduct.md
+      - Coverage report: coverage.md
+
+watch:
+  - mkdocs.yml
+  - README.md
+  - CONTRIBUTING.md
+  - CHANGELOG.md
+  - src/socx
+  - src/socx_tui
+  - src/socx_plugins
+
+theme:
+  name: material
+  custom_dir: docs/.overrides
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - navigation.footer
+    - navigation.instant.preview
+    - navigation.path
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: lime
+      toggle:
+        icon: material/weather-night
+        name: Switch to system preference
+
+extra_css:
+  - css/material.css
+  - css/mkdocstrings.css
+
+extra_javascript:
+  - js/feedback.js
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - callouts
+  - footnotes
+  - pymdownx.magiclink
+  - pymdownx.emoji
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - coverage
+  - autorefs
+  - glightbox
+  - section-index
+  - markdown-exec
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      type: date
+      strict: false
+      fallback_to_build_date: true
+  - mike:
+      alias_type: copy
+  - llmstxt:
+      full_output: llms-full.txt
+      sections:
+        Usage:
+          - index.md
+        API:
+          - reference/api.md
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            summary: true
+            backlinks: tree
+            filters: ["!^_"]
+            heading_level: 1
+            show_bases: false
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            signature_crossrefs: true
+            show_symbol_type_toc: true
+            show_if_no_docstring: true
+            show_symbol_type_heading: true
+            show_signature_annotations: true
+            inherited_members: true
+            separate_signature: true
+            merge_init_into_class: true
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: list
+          inventories:
+            - https://docs.python.org/3/objects.inv
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sagikimhi
+    - icon: fontawesome/brands/gitter
+      link: https://gitter.im/socx-cli/community
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/socx-cli/
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Let us know how we can improve this page.

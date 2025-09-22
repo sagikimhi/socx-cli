@@ -38,7 +38,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.5.0"
+version = "0.5.1"
 license = "Apache-2.0 OR MIT"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -115,6 +115,7 @@ docs = [
     "mkdocs-coverage",
     "mkdocs-llmstxt",
     "mkdocs-material",
+    "mkdocs-material-extensions",
     "mkdocs-section-index",
     "mkdocs-minify-plugin",
     "mkdocs-glightbox",

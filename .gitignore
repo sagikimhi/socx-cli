@@ -35,8 +35,9 @@
 !.python-version
 
 !**/*.ini
-!**/*.toml
+!**/*.yml
 !**/*.yaml
+!**/*.toml
 !**/*.json
 
 !LICENSE
