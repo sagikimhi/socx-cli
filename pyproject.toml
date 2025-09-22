@@ -115,6 +115,7 @@ docs = [
     "mkdocs-coverage",
     "mkdocs-llmstxt",
     "mkdocs-material",
+    "mkdocs-material-extensions",
     "mkdocs-section-index",
     "mkdocs-minify-plugin",
     "mkdocs-glightbox",
