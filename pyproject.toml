@@ -81,6 +81,7 @@ dependencies = [
     "platformdirs",
     "textual-speedups",
     "universal-pathlib",
+    "typer>=0.19.1",
 ]
 
 [project.urls]
