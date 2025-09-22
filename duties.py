@@ -131,7 +131,7 @@ def coverage(ctx: Context) -> None:
     ctx.run(tools.coverage.html(rcfile="config/coverage.ini"))
 
 
-@duty(post=["build", "publish", "docs_deploy"])
+@duty(post=["docs_deploy"])
 def release(ctx: Context, version: str = "") -> None:
     """Release a new Python package.
 
@@ -152,8 +152,8 @@ def release(ctx: Context, version: str = "") -> None:
         pty=PTY,
     )
     ctx.run(f"git tag {version}", title="Tagging commit", pty=PTY)
-    ctx.run("git push gh HEAD", title="Pushing commits", pty=False)
-    ctx.run("git push gh HEAD --tags", title="Pushing tags", pty=False)
+    ctx.run("git push", title="Pushing commits", pty=False)
+    ctx.run("git push --tags", title="Pushing tags", pty=False)
 
 
 @duty
