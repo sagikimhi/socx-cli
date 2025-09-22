@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import logging
 from collections.abc import Callable
 
@@ -33,8 +34,10 @@ class _CmdLine(click.RichGroup):
         self, ctx: click.Context, cmd_name: str
     ) -> click.Command | None:
         if cmd_name not in self.commands and cmd_name in self.plugins:
-            cmd = self._converter(self.plugins[cmd_name].command)
+            plugin = self.plugins[cmd_name]
+            cmd: click.Command = self._converter(plugin.command)
             self.commands[cmd_name] = cmd
+            cmd.help = plugin.help or inspect.getdoc(cmd)
         if cmd_name in self.commands:
             return self.commands[cmd_name]
         return None
