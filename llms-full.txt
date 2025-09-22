@@ -1,0 +1,2628 @@
+# socx-cli
+
+> System on chip verification and tooling infrastructure.
+
+# Usage
+
+# socx-cli
+
+System-on-chip verification CLI that unifies regression automation, reusable SoC tooling, and configuration management for hardware teams.
+
+## Highlights
+
+- One entry point: `socx` auto-loads plugins declared in yaml settings.
+- Configuration made easy: inspect, edit, or dump tree views with `socx config`.
+- Regression workflows: launch the Terminal UI dashboard (`socx tui`) or run batches of commands asynchronously (`socx rgr run`).
+- Productivity utilities: emit Git workspace manifests (`socx git mfest`), translate LST symbol tables into SystemVerilog covergroups (`socx convert lst`), and explore plugin authoring (`socx plugin example`).
+- Python APIs included: regression/test abstractions, visitor patterns, and logging helpers for custom automation.
+
+## Installation
+
+Requires Python 3.12 or newer.
+
+```
+pip install socx-cli
+# or, with uv:
+uv tool install socx-cli
+```
+
+For local development:
+
+```
+make sync
+# or
+uv sync --dev --refresh --upgrade --all-extras --all-groups
+```
+
+## First Commands
+
+```
+socx --help
+socx config list
+socx config tree
+socx rgr run --help
+socx rgr tui
+socx version
+```
+
+| Command               | Description                                                 |
+| --------------------- | ----------------------------------------------------------- |
+| `socx config list`    | Print the currently active configuration values.            |
+| `socx config edit`    | Open your editor (nano/vim/gvim) on the user config file.   |
+| `socx git mfest`      | Generate a manifest of Git repositories under a path.       |
+| `socx convert lst`    | Convert LST symbol tables into SystemVerilog covergroups.   |
+| `socx rgr run`        | Execute regression command files with asynchronous runners. |
+| `socx rgr tui`        | Launch the Textual-powered regression dashboard.            |
+| `socx plugin example` | Show how to build and distribute cli plugins.               |
+| `socx version`        | Display the installed package metadata via `pip show`.      |
+
+## Configuration
+
+Settings are provided by Dynaconf:
+
+- Defaults ship with the package under `src/socx/static/settings/`.
+- User overrides live at `~/.config/socx/socx.yaml` (created on first edit).
+- Local overrides are discovered by walking up to the nearest `.socx.yaml`.
+- Environment variables prefixed with `SOCX_` override individual keys (e.g. `SOCX_LOG_LEVEL=DEBUG`).
+
+Use `socx config tree` to inspect the merged view and `socx config debug` for loader diagnostics.
+
+## Development Workflow
+
+```
+uv run ruff format
+uv run ruff check --fix
+uv run pytest
+```
+
+## License
+
+Dual-licensed under Apache-2.0 or MIT. See `LICENSE` for details.
+# API
+
+# socx
+
+Modules:
+
+- **`cli`** –
+- **`cli_cfg`** –
+- **`config`** –
+- **`console`** –
+- **`io`** –
+- **`log`** –
+- **`patterns`** –
+- **`regression`** –
+
+Classes:
+
+- **`BottomUpTraversal`** –
+- **`ByLevelTraversal`** –
+- **`CompileConverter`** –
+- **`Converter`** –
+- **`Formatter`** –
+- **`ImportConverter`** –
+- **`Level`** –
+- **`Node`** –
+- **`PathConverter`** –
+- **`PtrMixin`** – Pointer mixin class.
+- **`Regression`** –
+- **`Singleton`** – Mixin class for creating singleton classes.
+- **`Structure`** –
+- **`SymbolConverter`** –
+- **`Test`** – Holds information about a test.
+- **`TestBase`** –
+- **`TestCommand`** – Representation of a 'run test' command-line as an object.
+- **`TestResult`** – Represents the result of a test that had finished and exited normally.
+- **`TestStatus`** – TestStatus representation of a test process as an IntEnum.
+- **`TopDownTraversal`** –
+- **`Traversal`** – An adapter for a Node accepting visits of NODE from a Visitor.
+- **`TreeFormatter`** –
+- **`UIDMixin`** – Unique instance ID mixin class.
+- **`Visitor`** –
+
+Functions:
+
+- **`add_converters`** –
+- **`add_filter`** – See documentation of builtin logging.addFilter function.
+- **`add_handler`** – See documentation of builtin logging.addHandler function.
+- **`add_options`** –
+- **`get_converters`** –
+- **`get_handler`** – See documentation of builtin logging.getHandler function.
+- **`get_handler_names`** – See documentation of builtin logging.getHandlerNames function.
+- **`get_level`** – See documentation of builtin logging.getLevel function.
+- **`get_logger`** – Get a pretty printing log handler.
+- **`global_options`** –
+- **`has_handlers`** – See documentation of builtin logging.hasHandler function.
+- **`is_enabled_for`** – See documentation of builtin logging.isEnabledFor function.
+- **`log_it`** – Add automatic entered/returned logging to decorated callables.
+- **`remove_filter`** – See documentation of builtin logging.removeFilter function.
+- **`remove_handler`** – See documentation of builtin logging.removeHandler function.
+- **`set_level`** – See documentation of builtin logging.setLevel function.
+- **`validate_all`** –
+
+Attributes:
+
+- **`APP_CONFIG_DIR`** (`UPath`) – Path to application's settings files directory.
+- **`APP_CONFIG_FILE`** (`UPath`) – File path to application's main settings file.
+- **`APP_STATIC_DIR`** (`UPath`) – Path to application's static files directory.
+- **`APP_TEMPLATES_DIR`** (`UPath`) – Path to application's template files directory.
+- **`AnyCallable`** –
+- **`DEFAULT_FORMAT`** (`Final[str]`) – Default logger message format.
+- **`DEFAULT_HANDLERS`** (`Final[list[Handler]]`) – Default logging handlers of this module's default logger.
+- **`DEFAULT_LEVEL`** (`Final[Level]`) – Default logger level, a.k.a verbosity.
+- **`DEFAULT_TIME_FORMAT`** (`Final[str]`) – Default logger date format logs.
+- **`Decorator`** –
+- **`USER_CACHE_DIR`** (`Final[UPath]`) – Absolute path to platform's native application cache directory.
+- **`USER_CONFIG_DIR`** (`Final[UPath]`) – Absolute path to platform's native application config directory.
+- **`USER_CONFIG_FILE`** (`UPath`) – Absolute path to application's user config file.
+- **`USER_DATA_DIR`** (`Final[UPath]`) – Absolute path to platform's native application data directory.
+- **`USER_LOG_DIR`** (`Final[UPath]`) – Absolute path to platform's native application logs directory.
+- **`USER_LOG_FILE`** (`UPath`) – Absolute path to application's main log for the current local user.
+- **`USER_RUNTIME_DIR`** (`Final[UPath]`) – Absolute path to platform's native application runtime directory.
+- **`USER_STATE_DIR`** (`Final[UPath]`) – Absolute path to platform's native application state directory.
+- **`logger`** – Default logging handler.
+- **`settings`** (`Settings`) –
+
+## APP_CONFIG_DIR
+
+```
+APP_CONFIG_DIR: UPath = APP_STATIC_DIR / 'settings'
+```
+
+Path to application's settings files directory.
+
+## APP_CONFIG_FILE
+
+```
+APP_CONFIG_FILE: UPath = APP_CONFIG_DIR / 'settings.yaml'
+```
+
+File path to application's main settings file.
+
+## APP_STATIC_DIR
+
+```
+APP_STATIC_DIR: UPath = __directory__ / 'static'
+```
+
+Path to application's static files directory.
+
+## APP_TEMPLATES_DIR
+
+```
+APP_TEMPLATES_DIR: UPath = __directory__ / 'templates'
+```
+
+Path to application's template files directory.
+
+## AnyCallable
+
+```
+AnyCallable = Callable[..., Any]
+```
+
+## DEFAULT_FORMAT
+
+```
+DEFAULT_FORMAT: Final[str] = get(
+    "SOCX_LOG_FORMAT", "%(message)s"
+)
+```
+
+Default logger message format.
+
+## DEFAULT_HANDLERS
+
+```
+DEFAULT_HANDLERS: Final[list[Handler]] = [
+    _get_console_handler(DEFAULT_LEVEL),
+    _get_file_handler(
+        DEFAULT_LOG_DIRECTORY / DEFAULT_LOG_FILE
+    ),
+]
+```
+
+Default logging handlers of this module's default `logger`.
+
+## DEFAULT_LEVEL
+
+```
+DEFAULT_LEVEL: Final[Level] = Level[
+    get("SOCX_VERBOSITY", "INFO")
+]
+```
+
+Default logger level, a.k.a verbosity.
+
+## DEFAULT_TIME_FORMAT
+
+```
+DEFAULT_TIME_FORMAT: Final[str] = get(
+    "SOCX_TIME_FORMAT", "[%x %X]"
+)
+```
+
+Default logger date format logs.
+
+## Decorator
+
+```
+Decorator = Callable[[FuncType], FuncType]
+```
+
+## USER_CACHE_DIR
+
+```
+USER_CACHE_DIR: Final[UPath] = resolve()
+```
+
+Absolute path to platform's native application cache directory.
+
+## USER_CONFIG_DIR
+
+```
+USER_CONFIG_DIR: Final[UPath] = resolve()
+```
+
+Absolute path to platform's native application config directory.
+
+## USER_CONFIG_FILE
+
+```
+USER_CONFIG_FILE: UPath = (
+    USER_CONFIG_DIR / USER_CONFIG_FILENAME
+)
+```
+
+Absolute path to application's user config file.
+
+## USER_DATA_DIR
+
+```
+USER_DATA_DIR: Final[UPath] = resolve()
+```
+
+Absolute path to platform's native application data directory.
+
+## USER_LOG_DIR
+
+```
+USER_LOG_DIR: Final[UPath] = resolve()
+```
+
+Absolute path to platform's native application logs directory.
+
+## USER_LOG_FILE
+
+```
+USER_LOG_FILE: UPath = USER_LOG_DIR / USER_LOG_FILENAME
+```
+
+Absolute path to application's main log for the current local user.
+
+## USER_RUNTIME_DIR
+
+```
+USER_RUNTIME_DIR: Final[UPath] = resolve()
+```
+
+Absolute path to platform's native application runtime directory.
+
+## USER_STATE_DIR
+
+```
+USER_STATE_DIR: Final[UPath] = resolve()
+```
+
+Absolute path to platform's native application state directory.
+
+## logger
+
+```
+logger = _get_logger()
+```
+
+Default logging handler.
+
+Can be used for default logging when no custom behavior is required.
+
+Generally, it is recommended to use the `get_logger` method instead of the default logger whenever your application requires something a bit more complex or extensive than a basic write to console functionality.
+
+## settings
+
+```
+settings: Settings = get_settings()
+```
+
+## BottomUpTraversal
+
+Methods:
+
+- **`accept`** – Accept visits of a NODE n from a Visitor v.
+
+### accept
+
+```
+accept(
+    n: NODE, v: Visitor[NODE], p: Structure[NODE]
+) -> None
+```
+
+Accept visits of a `NODE` n from a `Visitor` v.
+
+Source code in `src/socx/patterns/visitor/traversal.py`
+
+```
+@classmethod
+def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
+    """Accept visits of a `NODE` n from a `Visitor` v."""
+    for c in p.children(n):
+        cls.accept(c, v, p)
+
+    v.visit(n)
+```
+
+## ByLevelTraversal
+
+Methods:
+
+- **`accept`** – Accept visits of a NODE n from a Visitor v.
+
+### accept
+
+```
+accept(
+    n: NODE, v: Visitor[NODE], p: Structure[NODE]
+) -> None
+```
+
+Accept visits of a `NODE` n from a `Visitor` v.
+
+Source code in `src/socx/patterns/visitor/traversal.py`
+
+```
+@classmethod
+def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
+    """Accept visits of a `NODE` n from a `Visitor` v."""
+    q: list[NODE] = [n]
+
+    while q:
+        t: list[NODE] = []
+
+        for n_ in q:
+            v.visit(n_)
+            t.extend(p.children(n_))
+
+        q = t
+```
+
+## CompileConverter
+
+Methods:
+
+- **`error`** –
+- **`exception`** –
+
+Attributes:
+
+- **`name`** (`str`) –
+
+### name
+
+```
+name: str
+```
+
+### error
+
+```
+error(error: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def error(self, error: str) -> None:
+    logger.error(f"Converter({self.name}): {error}")
+```
+
+### exception
+
+```
+exception(value: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def exception(self, value: str) -> None:
+    logger.exception(
+        f"Converter({self.name}): failed to convert value '{value}'"
+    )
+```
+
+## Converter
+
+Methods:
+
+- **`error`** –
+- **`exception`** –
+
+Attributes:
+
+- **`name`** (`str`) –
+
+### name
+
+```
+name: str
+```
+
+### error
+
+```
+error(error: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def error(self, error: str) -> None:
+    logger.error(f"Converter({self.name}): {error}")
+```
+
+### exception
+
+```
+exception(value: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def exception(self, value: str) -> None:
+    logger.exception(
+        f"Converter({self.name}): failed to convert value '{value}'"
+    )
+```
+
+## Formatter
+
+## ImportConverter
+
+Methods:
+
+- **`error`** –
+- **`exception`** –
+
+Attributes:
+
+- **`name`** (`str`) –
+
+### name
+
+```
+name: str
+```
+
+### error
+
+```
+error(error: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def error(self, error: str) -> None:
+    logger.error(f"Converter({self.name}): {error}")
+```
+
+### exception
+
+```
+exception(value: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def exception(self, value: str) -> None:
+    logger.exception(
+        f"Converter({self.name}): failed to convert value '{value}'"
+    )
+```
+
+## Level
+
+Attributes:
+
+- **`CRITICAL`** –
+- **`DEBUG`** –
+- **`ERROR`** –
+- **`FATAL`** –
+- **`INFO`** –
+- **`NOTSET`** –
+- **`WARN`** –
+- **`WARNING`** –
+
+### CRITICAL
+
+```
+CRITICAL = 50
+```
+
+### DEBUG
+
+```
+DEBUG = 10
+```
+
+### ERROR
+
+```
+ERROR = 40
+```
+
+### FATAL
+
+```
+FATAL = 50
+```
+
+### INFO
+
+```
+INFO = 20
+```
+
+### NOTSET
+
+```
+NOTSET = 0
+```
+
+### WARN
+
+```
+WARN = 30
+```
+
+### WARNING
+
+```
+WARNING = 30
+```
+
+## Node
+
+Methods:
+
+- **`accept`** – Accept a visit from a Visitor.
+
+### accept
+
+```
+accept(v: Visitor[NODE]) -> None
+```
+
+Accept a visit from a `Visitor`.
+
+Source code in `src/socx/patterns/visitor/protocol.py`
+
+```
+def accept(self, v: Visitor[NODE]) -> None:
+    """Accept a visit from a `Visitor`."""
+    ...
+```
+
+## PathConverter
+
+Methods:
+
+- **`error`** –
+- **`exception`** –
+
+Attributes:
+
+- **`name`** (`str`) –
+
+### name
+
+```
+name: str
+```
+
+### error
+
+```
+error(error: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def error(self, error: str) -> None:
+    logger.error(f"Converter({self.name}): {error}")
+```
+
+### exception
+
+```
+exception(value: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def exception(self, value: str) -> None:
+    logger.exception(
+        f"Converter({self.name}): failed to convert value '{value}'"
+    )
+```
+
+## PtrMixin
+
+Pointer mixin class.
+
+Extending this class adds the `ref` property to subclass instances and the `dref` class method to the subclass.
+
+Methods:
+
+- **`dref`** –
+
+Attributes:
+
+- **`ref`** (`int`) –
+
+### ref
+
+```
+ref: int
+```
+
+### dref
+
+```
+dref(ref: int) -> UIDBase | None
+```
+
+Source code in `src/socx/patterns/mixins/uid.py`
+
+```
+@classmethod
+def dref(cls, ref: int) -> UIDBase | None:
+    return UIDBase._get_inst(ref)
+```
+
+## Regression
+
+```
+Regression(
+    name: str,
+    tests: Iterable[TestType],
+    *args: Any,
+    **kwargs: Any,
+)
+```
+
+Methods:
+
+- **`accept`** – Accept a visit from a Visitor.
+- **`from_lines`** –
+- **`interrupt`** – Interrupt the execution of a running test with a SIGINT signal.
+- **`kill`** – Interrupt the execution of a running test with a SIGKILL signal.
+- **`resume`** – Resume the execution of a paused test.
+- **`start`** – Start the regression.
+- **`suspend`** – Suspend the execution of a running test.
+- **`terminate`** – Interrupt the execution of a running test with a SIGTERM signal.
+- **`wait`** – Wait for a test to terminate if it is running.
+
+Attributes:
+
+- **`cfg`** (`DynaBox`) – Regression settings accessed via property.
+- **`command`** (`TestCommand`) – Test execution command representation as an object.
+- **`finished_time`** (`str`) – Time measured at the end of a test.
+- **`messages`** (`Queue`) –
+- **`name`** (`str`) – Name of a test.
+- **`options`** (`DynaBox`) – Regression settings accessed via property.
+- **`pending`** (`Queue`) –
+- **`pid`** (`int`) – Name of a test.
+- **`progress`** – The regression's progress.
+- **`result`** – Result of a finished test.
+- **`run_limit`** (`int`) – The max_runs_in_parallel configuration accessed via property.
+- **`started_time`** (`str`) – Time measured at the begining of a test.
+- **`status`** (`TestStatus`) – Status of a test.
+- **`tests`** (`deque[Test]`) – An iterable of all tests defined in the regression.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+def __init__(
+    self, name: str, tests: Iterable[TestType], *args: Any, **kwargs: Any
+) -> None:
+    TestBase.__init__(self, name, *args, **kwargs)
+    tests = set(tests)
+    self._lock = RLock()
+    self._tests = deque(set(tests))
+    self._runner_tid = None
+    self._scheduler_tid = None
+    self._regression_tid = None
+    self._num_tests = len(self._tests)
+    self._progress: Progress = Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        TaskProgressColumn(),
+        BarColumn(),
+        "[green]Completed:",
+        MofNCompleteColumn(),
+        "[yellow]Elapsed:",
+        TimeElapsedColumn(),
+        "[cyan]Remaining:",
+        TimeRemainingColumn(),
+        transient=False,
+        expand=False,
+    )
+    self.pending: aio.Queue = aio.Queue(self.run_limit)
+    self.messages: aio.Queue = aio.Queue()
+```
+
+### cfg
+
+```
+cfg: DynaBox
+```
+
+Regression settings accessed via property.
+
+### command
+
+```
+command: TestCommand
+```
+
+Test execution command representation as an object.
+
+### finished_time
+
+```
+finished_time: str
+```
+
+Time measured at the end of a test.
+
+### messages
+
+```
+messages: Queue = Queue()
+```
+
+### name
+
+```
+name: str
+```
+
+Name of a test.
+
+### options
+
+```
+options: DynaBox
+```
+
+Regression settings accessed via property.
+
+### pending
+
+```
+pending: Queue = Queue(run_limit)
+```
+
+### pid
+
+```
+pid: int
+```
+
+Name of a test.
+
+### progress
+
+```
+progress
+```
+
+The regression's progress.
+
+### result
+
+```
+result
+```
+
+Result of a finished test.
+
+### run_limit
+
+```
+run_limit: int
+```
+
+The max_runs_in_parallel configuration accessed via property.
+
+### started_time
+
+```
+started_time: str
+```
+
+Time measured at the begining of a test.
+
+### status
+
+```
+status: TestStatus
+```
+
+Status of a test.
+
+### tests
+
+```
+tests: deque[Test]
+```
+
+An iterable of all tests defined in the regression.
+
+### accept
+
+```
+accept(v: Visitor[TestABC]) -> None
+```
+
+Accept a visit from a `Visitor`.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def accept(self, v: Visitor[TestABC]) -> None:
+    """Accept a visit from a `Visitor`."""
+    v.visit(self)
+```
+
+### from_lines
+
+```
+from_lines(
+    name: str, lines: Iterable[str], test_cls: type = Test
+) -> Regression
+```
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@classmethod
+def from_lines(
+    cls, name: str, lines: Iterable[str], test_cls: type = Test
+) -> Regression:
+    tests = [test_cls(line) for line in lines]
+    return Regression(name, tests)
+```
+
+### interrupt
+
+```
+interrupt() -> None
+```
+
+Interrupt the execution of a running test with a SIGINT signal.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@override
+def interrupt(self) -> None:
+    """Interrupt the execution of a running test with a SIGINT signal."""
+    for test in self.tests:
+        test.interrupt()
+```
+
+### kill
+
+```
+kill() -> None
+```
+
+Interrupt the execution of a running test with a SIGKILL signal.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@override
+def kill(self) -> None:
+    """Interrupt the execution of a running test with a SIGKILL signal."""
+    for test in self.tests:
+        test.kill()
+```
+
+### resume
+
+```
+resume() -> None
+```
+
+Resume the execution of a paused test.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@override
+def resume(self) -> None:
+    """Resume the execution of a paused test."""
+    for test in self.tests:
+        test.resume()
+```
+
+### start
+
+```
+start() -> None
+```
+
+Start the regression.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@override
+async def start(self) -> None:
+    """Start the regression."""
+    self._status = TestStatus.Pending
+    logger.info("regression starting.")
+    logger.debug(f"{self=}")
+    self._started_time = time.perf_counter()
+
+    try:
+        async with aio.TaskGroup() as tg:
+            self._status = TestStatus.Running
+            tg.create_task(self._animate_progress())
+            tg.create_task(self._schedule_tests())
+            tg.create_task(self._run_tests())
+    except Exception:
+        self._status = TestStatus.Terminated
+        self._result = TestResult.Failed
+        raise
+    else:
+        self._status = TestStatus.Finished
+        self._result = (
+            TestResult.Passed
+            if all(test.passed for test in self)
+            else TestResult.Failed
+        )
+    finally:
+        self._finished_time = time.perf_counter()
+        logger.info("regression ending.")
+        logger.debug(f"{self=}")
+```
+
+### suspend
+
+```
+suspend() -> None
+```
+
+Suspend the execution of a running test.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@override
+def suspend(self) -> None:
+    """Suspend the execution of a running test."""
+    for test in self.tests:
+        test.suspend()
+```
+
+### terminate
+
+```
+terminate() -> None
+```
+
+Interrupt the execution of a running test with a SIGTERM signal.
+
+Source code in `src/socx/regression/regression.py`
+
+```
+@override
+def terminate(self) -> None:
+    """Interrupt the execution of a running test with a SIGTERM signal."""
+    for test in self.tests:
+        test.terminate()
+```
+
+### wait
+
+```
+wait(timeout: float | None = None) -> None
+```
+
+Wait for a test to terminate if it is running.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def wait(self, timeout: float | None = None) -> None:
+    """Wait for a test to terminate if it is running."""
+    ...
+```
+
+## Singleton
+
+Mixin class for creating singleton classes.
+
+Extending this class enforces the singleton pattern on the subclass.
+
+## Structure
+
+Methods:
+
+- **`children`** – Retrieve the immediate children of a node in a node.
+
+### children
+
+```
+children(s: NODE) -> Iterable[NODE]
+```
+
+Retrieve the immediate children of a node in a node.
+
+Source code in `src/socx/patterns/visitor/protocol.py`
+
+```
+@classmethod
+def children(cls, s: NODE) -> Iterable[NODE]:
+    """Retrieve the immediate children of a node in a node."""
+    ...
+```
+
+## SymbolConverter
+
+```
+SymbolConverter()
+```
+
+Methods:
+
+- **`error`** –
+- **`exception`** –
+
+Attributes:
+
+- **`compiler`** –
+- **`evaluator`** –
+- **`importer`** –
+- **`name`** (`str`) –
+
+Source code in `src/socx/config/converters.py`
+
+```
+def __init__(self) -> None:
+    self.importer = ImportConverter()
+    self.compiler = CompileConverter()
+    self.evaluator = EvalConverter()
+```
+
+### compiler
+
+```
+compiler = CompileConverter()
+```
+
+### evaluator
+
+```
+evaluator = EvalConverter()
+```
+
+### importer
+
+```
+importer = ImportConverter()
+```
+
+### name
+
+```
+name: str
+```
+
+### error
+
+```
+error(error: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def error(self, error: str) -> None:
+    logger.error(f"Converter({self.name}): {error}")
+```
+
+### exception
+
+```
+exception(value: str) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def exception(self, value: str) -> None:
+    logger.exception(
+        f"Converter({self.name}): failed to convert value '{value}'"
+    )
+```
+
+## Test
+
+```
+Test(command: str | TestCommand, *args, **kwargs)
+```
+
+Holds information about a test.
+
+Methods:
+
+- **`accept`** – Accept a visit from a Visitor.
+- **`dref`** –
+- **`interrupt`** – Interrupt the execution of a running test with a SIGINT signal.
+- **`kill`** – Kill the process with signal SIGKILL.
+- **`resume`** – Resume the process if it is paused (sends a SIGCONT signal).
+- **`start`** – Start a test in a subprocess.
+- **`suspend`** – Send a SIGSTOP signal to suspend the test's running process.
+- **`terminate`** – Terminate the process with SIGTERM.
+- **`wait`** – Wait for a test to terminate if it is running.
+
+Attributes:
+
+- **`build`** (`str`) – Randomization build of a test's RNG.
+- **`cfg`** (`DynaBox`) –
+- **`command`** (`TestCommand`) – Test execution command representation as an object.
+- **`dirname`** – The simulation's runtime directory name.
+- **`failed`** (`bool`) – True if test finished running and at least one error occured.
+- **`finished`** (`bool`) – True if test finished running without normally interruption.
+- **`finished_time`** (`str`) – Time measured at the end of a test.
+- **`flow`** (`str`) – The selected execution flow of the test.
+- **`idle`** (`bool`) – True if test has no active process and has not yet started.
+- **`name`** (`str`) – Name of a test.
+- **`passed`** (`bool`) – True if test has finished running and no errors occured.
+- **`pending`** – The test is scheduled to be started soon but has not yet started.
+- **`pid`** (`int`) – Name of a test.
+- **`process`** (`Process`) – The active process of the running test or None if not running.
+- **`ref`** (`int`) –
+- **`result`** – Result of a finished test.
+- **`returncode`** (`int | None`) – The return code from the test process or None if running or idle.
+- **`running`** (`bool`) – True if test is currently running in a dedicated process.
+- **`runtime_cfg`** (`DynaBox`) – Get the simulation's runtime settings object.
+- **`runtime_logs`** – Get the simulation's configured runtime path for ouput logs.
+- **`runtime_path`** (`Path`) – Get the simulation's runtime path.
+- **`seed`** (`int`) – Randomization seed of a test's RNG.
+- **`started`** (`bool`) – True if test was started via a prior call to method start.
+- **`started_time`** (`str`) – Time measured at the begining of a test.
+- **`status`** (`TestStatus`) – Status of a test.
+- **`stderr`** (`str | None`) – The standard error of the test's process or None if not running.
+- **`stdin`** (`str | None`) – The standard input of the test's process or None if not running.
+- **`stdout`** (`str | None`) – The standard output of the test's process or None if not running.
+- **`suspended`** (`bool`) – True if test was started via a prior call to method start.
+- **`terminated`** (`bool`) – True if test started but was intentionaly terminated.
+- **`uid`** (`property`) –
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
+    TestBase.__init__(self, command, *args, **kwargs)
+    UIDMixin.__init__(self)
+
+    try:
+        name = self.command.test
+    except AttributeError:
+        self._missing_test_name_err(command)
+        raise
+
+    if "/" in name:
+        name = name.partition("/")[-1]
+
+    self._name = name
+    self._seed = 0
+    self._flow = None
+    self._build = None
+```
+
+### build
+
+```
+build: str
+```
+
+Randomization build of a test's RNG.
+
+### cfg
+
+```
+cfg: DynaBox
+```
+
+### command
+
+```
+command: TestCommand
+```
+
+Test execution command representation as an object.
+
+### dirname
+
+```
+dirname
+```
+
+The simulation's runtime directory name.
+
+### failed
+
+```
+failed: bool
+```
+
+True if test finished running and at least one error occured.
+
+### finished
+
+```
+finished: bool
+```
+
+True if test finished running without normally interruption.
+
+### finished_time
+
+```
+finished_time: str
+```
+
+Time measured at the end of a test.
+
+### flow
+
+```
+flow: str
+```
+
+The selected execution flow of the test.
+
+### idle
+
+```
+idle: bool
+```
+
+True if test has no active process and has not yet started.
+
+### name
+
+```
+name: str
+```
+
+Name of a test.
+
+### passed
+
+```
+passed: bool
+```
+
+True if test has finished running and no errors occured.
+
+### pending
+
+```
+pending
+```
+
+The test is scheduled to be started soon but has not yet started.
+
+### pid
+
+```
+pid: int
+```
+
+Name of a test.
+
+### process
+
+```
+process: Process
+```
+
+The active process of the running test or None if not running.
+
+### ref
+
+```
+ref: int
+```
+
+### result
+
+```
+result
+```
+
+Result of a finished test.
+
+### returncode
+
+```
+returncode: int | None
+```
+
+The return code from the test process or None if running or idle.
+
+### running
+
+```
+running: bool
+```
+
+True if test is currently running in a dedicated process.
+
+### runtime_cfg
+
+```
+runtime_cfg: DynaBox
+```
+
+Get the simulation's runtime settings object.
+
+### runtime_logs
+
+```
+runtime_logs
+```
+
+Get the simulation's configured runtime path for ouput logs.
+
+### runtime_path
+
+```
+runtime_path: Path
+```
+
+Get the simulation's runtime path.
+
+The runtime referes to the path where compilation database and run logs are dumped by default by the simulator.
+
+### seed
+
+```
+seed: int
+```
+
+Randomization seed of a test's RNG.
+
+### started
+
+```
+started: bool
+```
+
+True if test was started via a prior call to method `start`.
+
+### started_time
+
+```
+started_time: str
+```
+
+Time measured at the begining of a test.
+
+### status
+
+```
+status: TestStatus
+```
+
+Status of a test.
+
+### stderr
+
+```
+stderr: str | None
+```
+
+The standard error of the test's process or None if not running.
+
+### stdin
+
+```
+stdin: str | None
+```
+
+The standard input of the test's process or None if not running.
+
+### stdout
+
+```
+stdout: str | None
+```
+
+The standard output of the test's process or None if not running.
+
+### suspended
+
+```
+suspended: bool
+```
+
+True if test was started via a prior call to method `start`.
+
+### terminated
+
+```
+terminated: bool
+```
+
+True if test started but was intentionaly terminated.
+
+### uid
+
+```
+uid: property = field(
+    init=False,
+    repr=True,
+    default=property(lambda self: _get_uid(self)),
+)
+```
+
+### accept
+
+```
+accept(v: Visitor[TestABC]) -> None
+```
+
+Accept a visit from a `Visitor`.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def accept(self, v: Visitor[TestABC]) -> None:
+    """Accept a visit from a `Visitor`."""
+    v.visit(self)
+```
+
+### dref
+
+```
+dref(ref: int) -> UIDBase | None
+```
+
+Source code in `src/socx/patterns/mixins/uid.py`
+
+```
+@classmethod
+def dref(cls, ref: int) -> UIDBase | None:
+    return UIDBase._get_inst(ref)
+```
+
+### interrupt
+
+```
+interrupt() -> None
+```
+
+Interrupt the execution of a running test with a SIGINT signal.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def interrupt(self) -> None:
+    """Interrupt the execution of a running test with a SIGINT signal."""
+    ...
+```
+
+### kill
+
+```
+kill() -> None
+```
+
+Kill the process with signal SIGKILL.
+
+Try using terminate prior to calling this method as kill does not allow the process to clean up properly on exit and terminate nicely.
+
+Kill should only ever be used when you NEED the process gone ASAP.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def kill(self) -> None:
+    """Kill the process with signal SIGKILL.
+
+    Try using terminate prior to calling this method as kill does not allow
+    the process to clean up properly on exit and terminate nicely.
+
+    Kill should only ever be used when you NEED the process gone ASAP.
+    """
+    if self.running:
+        self.process.kill()
+```
+
+### resume
+
+```
+resume() -> None
+```
+
+Resume the process if it is paused (sends a SIGCONT signal).
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def resume(self) -> None:
+    """Resume the process if it is paused (sends a SIGCONT signal)."""
+    if self.suspended:
+        self.process.resume()
+```
+
+### start
+
+```
+start() -> None
+```
+
+Start a test in a subprocess.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+async def start(self) -> None:
+    """Start a test in a subprocess."""
+    if self.status not in (TestStatus.Idle, TestStatus.Pending):
+        msg = "Cannot start a test when it is already running."
+        exc = OSError(msg)
+        logger.exception(msg, exc_info=exc, stack_info=True)
+        raise exc
+
+    self._status = TestStatus.Pending
+    self._process = await asyncio.create_subprocess_shell(
+        cmd=self.command.line, stdin=None, stdout=PIPE, stderr=PIPE
+    )
+    try:
+        stdout, stderr = await self._process.communicate()
+        self._status = TestStatus.Running
+        self._started_time = time.time()
+
+        while self.returncode is None:
+            await asyncio.sleep(0)
+
+        self._finished_time = time.time()
+        self._stdout = stdout.decode()
+        self._stderr = stderr.decode()
+        self._status = TestStatus.Finished
+    except Exception:
+        self.terminate()
+        self._status = TestStatus.Terminated
+        self._result = TestResult.Failed
+        raise
+
+    if self.returncode == 0:
+        self._result = self._parse_result()
+    else:
+        self._result = TestResult.Failed
+```
+
+### suspend
+
+```
+suspend() -> None
+```
+
+Send a SIGSTOP signal to suspend the test's running process.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def suspend(self) -> None:
+    """Send a SIGSTOP signal to suspend the test's running process."""
+    if self.running:
+        self.process.suspend()
+```
+
+### terminate
+
+```
+terminate() -> None
+```
+
+Terminate the process with SIGTERM.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def terminate(self) -> None:
+    """Terminate the process with SIGTERM."""
+    if self.running:
+        self.process.terminate()
+```
+
+### wait
+
+```
+wait(timeout: float | None = None) -> None
+```
+
+Wait for a test to terminate if it is running.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def wait(self, timeout: float | None = None) -> None:
+    """Wait for a test to terminate if it is running."""
+    if self.running:
+        self.process.wait()
+```
+
+## TestBase
+
+```
+TestBase(command: str | TestCommand, *args, **kwargs)
+```
+
+Methods:
+
+- **`accept`** – Accept a visit from a Visitor.
+- **`interrupt`** – Interrupt the execution of a running test with a SIGINT signal.
+- **`kill`** – Interrupt the execution of a running test with a SIGKILL signal.
+- **`resume`** – Resume the execution of a paused test.
+- **`start`** – Start the execution of an idle test.
+- **`suspend`** – Suspend the execution of a running test.
+- **`terminate`** – Interrupt the execution of a running test with a SIGTERM signal.
+- **`wait`** – Wait for a test to terminate if it is running.
+
+Attributes:
+
+- **`command`** (`TestCommand`) – Test execution command representation as an object.
+- **`finished_time`** (`str`) – Time measured at the end of a test.
+- **`name`** (`str`) – Name of a test.
+- **`pid`** (`int`) – Name of a test.
+- **`result`** – Result of a finished test.
+- **`started_time`** (`str`) – Time measured at the begining of a test.
+- **`status`** (`TestStatus`) – Status of a test.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
+    if isinstance(command, str):
+        command = TestCommand(command)
+
+    self._pid = os.getpid()
+    self._name = "BASE"
+    self._status = TestStatus.Idle
+    self._result = TestResult.NA
+    self._command = cast(TestCommand, command)
+    self._process = None
+    self._started_time = None
+    self._finished_time = None
+```
+
+### command
+
+```
+command: TestCommand
+```
+
+Test execution command representation as an object.
+
+### finished_time
+
+```
+finished_time: str
+```
+
+Time measured at the end of a test.
+
+### name
+
+```
+name: str
+```
+
+Name of a test.
+
+### pid
+
+```
+pid: int
+```
+
+Name of a test.
+
+### result
+
+```
+result
+```
+
+Result of a finished test.
+
+### started_time
+
+```
+started_time: str
+```
+
+Time measured at the begining of a test.
+
+### status
+
+```
+status: TestStatus
+```
+
+Status of a test.
+
+### accept
+
+```
+accept(v: Visitor[TestABC]) -> None
+```
+
+Accept a visit from a `Visitor`.
+
+Source code in `src/socx/regression/test.py`
+
+```
+@override
+def accept(self, v: Visitor[TestABC]) -> None:
+    """Accept a visit from a `Visitor`."""
+    v.visit(self)
+```
+
+### interrupt
+
+```
+interrupt() -> None
+```
+
+Interrupt the execution of a running test with a SIGINT signal.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def interrupt(self) -> None:
+    """Interrupt the execution of a running test with a SIGINT signal."""
+    ...
+```
+
+### kill
+
+```
+kill() -> None
+```
+
+Interrupt the execution of a running test with a SIGKILL signal.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def kill(self) -> None:
+    """Interrupt the execution of a running test with a SIGKILL signal."""
+    ...
+```
+
+### resume
+
+```
+resume() -> None
+```
+
+Resume the execution of a paused test.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def resume(self) -> None:
+    """Resume the execution of a paused test."""
+    ...
+```
+
+### start
+
+```
+start() -> None
+```
+
+Start the execution of an idle test.
+
+Source code in `src/socx/regression/test.py`
+
+```
+async def start(self) -> None:
+    """Start the execution of an idle test."""
+    ...
+```
+
+### suspend
+
+```
+suspend() -> None
+```
+
+Suspend the execution of a running test.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def suspend(self) -> None:
+    """Suspend the execution of a running test."""
+    ...
+```
+
+### terminate
+
+```
+terminate() -> None
+```
+
+Interrupt the execution of a running test with a SIGTERM signal.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def terminate(self) -> None:
+    """Interrupt the execution of a running test with a SIGTERM signal."""
+    ...
+```
+
+### wait
+
+```
+wait(timeout: float | None = None) -> None
+```
+
+Wait for a test to terminate if it is running.
+
+Source code in `src/socx/regression/test.py`
+
+```
+def wait(self, timeout: float | None = None) -> None:
+    """Wait for a test to terminate if it is running."""
+    ...
+```
+
+## TestCommand
+
+```
+TestCommand(line: str | TestCommand)
+```
+
+Representation of a 'run test' command-line as an object.
+
+#### Members
+
+line: str Full commandline string of the command represented by this object.
+
+str
+
+Name of the command represented by this object, i.e. sys.argv[0].
+
+str
+
+Escaped version of the original commandline string after shlex.quote has been applied.
+
+arguments: list[str] Arguments of the command represented by this object split by whitespace.
+
+Methods:
+
+- **`dref`** –
+- **`extract_argv`** –
+
+Attributes:
+
+- **`arguments`** (`tuple[str, ...]`) –
+- **`escaped`** (`str`) –
+- **`line`** (`str`) –
+- **`name`** (`str`) –
+- **`ref`** (`int`) –
+- **`uid`** (`property`) –
+
+Source code in `src/socx/regression/test.py`
+
+```
+def __init__(self, line: str | TestCommand) -> None:
+    if isinstance(line, TestCommand):
+        self = line
+        return
+
+    self.line = line
+    self.arguments = tuple(arg.strip() for arg in self.line.split())
+    self.name = self.arguments[0] if self.arguments else ""
+    self.escaped = shlex.quote(self.line)
+```
+
+### arguments
+
+```
+arguments: tuple[str, ...] = tuple(
+    (strip()) for arg in (split())
+)
+```
+
+### escaped
+
+```
+escaped: str = quote(line)
+```
+
+### line
+
+```
+line: str = line
+```
+
+### name
+
+```
+name: str = arguments[0] if arguments else ''
+```
+
+### ref
+
+```
+ref: int
+```
+
+### uid
+
+```
+uid: property = field(
+    init=False,
+    repr=True,
+    default=property(lambda self: _get_uid(self)),
+)
+```
+
+### dref
+
+```
+dref(ref: int) -> UIDBase | None
+```
+
+Source code in `src/socx/patterns/mixins/uid.py`
+
+```
+@classmethod
+def dref(cls, ref: int) -> UIDBase | None:
+    return UIDBase._get_inst(ref)
+```
+
+### extract_argv
+
+```
+extract_argv(arg: str) -> str | None
+```
+
+Source code in `src/socx/regression/test.py`
+
+```
+def extract_argv(self, arg: str) -> str | None:
+    for i, attr in enumerate(self.arguments):
+        if attr.startswith("--") or attr.startswith("-"):
+            if attr == arg and i + 1 < len(self.arguments):
+                return self.arguments[i + 1]
+            if attr.removeprefix("-") == arg and i + 1 < len(
+                self.arguments
+            ):
+                return self.arguments[i + 1]
+            if attr.removeprefix("--") == arg and i + 1 < len(
+                self.arguments
+            ):
+                return self.arguments[i + 1]
+    return None
+```
+
+## TestResult
+
+Represents the result of a test that had finished and exited normally.
+
+#### Members
+
+Na
+
+TestResult Test has not yet finished running and therefore result is non-applicable.
+
+TestResult
+
+Test had finished and terminated normally with no errors and a 0 exit code.
+
+TestResult
+
+Test had finished either normally or abnormally with a non-zero exit code.
+
+Attributes:
+
+- **`Failed`** –
+- **`NA`** –
+- **`Passed`** –
+
+### Failed
+
+```
+Failed = auto()
+```
+
+### NA
+
+```
+NA = auto()
+```
+
+### Passed
+
+```
+Passed = auto()
+```
+
+## TestStatus
+
+TestStatus representation of a test process as an `IntEnum`.
+
+#### Members
+
+Idle: IntEnum Idle, waiting to be scheduled for execution.
+
+IntEnum
+
+Test is scheduled for execution in an active session.
+
+IntEnum
+
+Test is currently running.
+
+IntEnum
+
+Test has been stopped intentionaly.
+
+IntEnum
+
+Test had finished running normally with an exit code 0.
+
+IntEnum
+
+Test was intentionally terminated by a signal.
+
+Attributes:
+
+- **`Finished`** –
+- **`Idle`** –
+- **`Pending`** –
+- **`Running`** –
+- **`Stopped`** –
+- **`Terminated`** –
+
+### Finished
+
+```
+Finished = auto()
+```
+
+### Idle
+
+```
+Idle = 0
+```
+
+### Pending
+
+```
+Pending = auto()
+```
+
+### Running
+
+```
+Running = auto()
+```
+
+### Stopped
+
+```
+Stopped = auto()
+```
+
+### Terminated
+
+```
+Terminated = auto()
+```
+
+## TopDownTraversal
+
+Methods:
+
+- **`accept`** – Accept visits of a NODE n from a Visitor v.
+
+### accept
+
+```
+accept(
+    n: NODE, v: Visitor[NODE], p: Structure[NODE]
+) -> None
+```
+
+Accept visits of a `NODE` n from a `Visitor` v.
+
+Source code in `src/socx/patterns/visitor/traversal.py`
+
+```
+@classmethod
+def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
+    """Accept visits of a `NODE` n from a `Visitor` v."""
+    v.visit(n)
+
+    for c in p.children(n):
+        cls.accept(c, v, p)
+```
+
+## Traversal
+
+An adapter for a `Node` accepting visits of `NODE` from a `Visitor`.
+
+Methods:
+
+- **`accept`** – Accept visits of a NODE n from a Visitor v.
+
+### accept
+
+```
+accept(
+    n: NODE, v: Visitor[NODE], p: Structure[NODE]
+) -> None
+```
+
+Accept visits of a `NODE` n from a `Visitor` v.
+
+Source code in `src/socx/patterns/visitor/protocol.py`
+
+```
+@classmethod
+def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
+    """Accept visits of a `NODE` n from a `Visitor` v."""
+    ...
+```
+
+## TreeFormatter
+
+## UIDMixin
+
+```
+UIDMixin()
+```
+
+Unique instance ID mixin class.
+
+Extending this class assigns a unique instance id to all instances of the extending subclass.
+
+Methods:
+
+- **`dref`** –
+
+Attributes:
+
+- **`ref`** (`int`) –
+- **`uid`** (`property`) –
+
+### ref
+
+```
+ref: int
+```
+
+### uid
+
+```
+uid: property = field(
+    init=False,
+    repr=True,
+    default=property(lambda self: _get_uid(self)),
+)
+```
+
+### dref
+
+```
+dref(ref: int) -> UIDBase | None
+```
+
+Source code in `src/socx/patterns/mixins/uid.py`
+
+```
+@classmethod
+def dref(cls, ref: int) -> UIDBase | None:
+    return UIDBase._get_inst(ref)
+```
+
+## Visitor
+
+Methods:
+
+- **`visit`** – Visit a node of a structure.
+
+### visit
+
+```
+visit(n: NODE) -> None
+```
+
+Visit a node of a structure.
+
+Source code in `src/socx/patterns/visitor/protocol.py`
+
+```
+def visit(self, n: NODE) -> None:
+    """Visit a node of a structure."""
+    ...
+```
+
+## add_converters
+
+```
+add_converters(converters: Iterable[Converter]) -> None
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def add_converters(converters: Iterable[Converter]) -> None:
+    for converter in converters:
+        add_converter(converter.name, converter)
+```
+
+## add_filter
+
+```
+add_filter(filter: Filter) -> None
+```
+
+See documentation of builtin `logging.addFilter` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def add_filter(filter: logging.Filter) -> None:  # noqa: A002
+    """See documentation of builtin `logging.addFilter` function."""
+    logger.addFilter(filter)
+```
+
+## add_handler
+
+```
+add_handler(handler: Handler) -> None
+```
+
+See documentation of builtin `logging.addHandler` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def add_handler(handler: logging.Handler) -> None:
+    """See documentation of builtin `logging.addHandler` function."""
+    logger.addHandler(handler)
+```
+
+## add_options
+
+```
+add_options(*options: Any) -> Decorator[AnyCallable]
+```
+
+Source code in `src/socx/cli/options.py`
+
+```
+def add_options(*options: Any) -> Decorator[AnyCallable]:
+    def _add_options(func):
+        for opt in reversed(options):
+            func = opt(func)
+        return func
+
+    return _add_options
+```
+
+## get_converters
+
+```
+get_converters() -> Iterable[tuple[str, Converter]]
+```
+
+Source code in `src/socx/config/converters.py`
+
+```
+def get_converters() -> Iterable[tuple[str, Converter]]:
+    from dynaconf.utils.parse_conf import converters
+
+    rv = []
+    for name, cvt in converters.items():
+        if not isinstance(cvt, Converter):
+            cvt = GenericConverter(name, cvt)
+        rv.append((name, cvt))
+    return rv
+```
+
+## get_handler
+
+```
+get_handler(name: str) -> Handler | None
+```
+
+See documentation of builtin `logging.getHandler` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def get_handler(name: str) -> logging.Handler | None:
+    """See documentation of builtin `logging.getHandler` function."""
+    return logging.getHandlerByName(name)
+```
+
+## get_handler_names
+
+```
+get_handler_names() -> Iterable[str]
+```
+
+See documentation of builtin `logging.getHandlerNames` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def get_handler_names() -> Iterable[str]:
+    """See documentation of builtin `logging.getHandlerNames` function."""
+    return logging.getHandlerNames()
+```
+
+## get_level
+
+```
+get_level(logger_: Logger) -> Level
+```
+
+See documentation of builtin `logging.getLevel` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def get_level(logger_: logging.Logger) -> Level:
+    """See documentation of builtin `logging.getLevel` function."""
+    return Level(logger_.getEffectiveLevel())
+```
+
+## get_logger
+
+```
+get_logger(
+    name: str, filename: str | None = None
+) -> Logger
+```
+
+Get a pretty printing log handler.
+
+#### Parameters
+
+name: str Name of the logger.
+
+str
+
+Specifies that a FileHandler be created, using the specified filename
+
+#### Returns
+
+A pretty printing logging.Logger instance.
+
+Source code in `src/socx/io/log.py`
+
+```
+def get_logger(name: str, filename: str | None = None) -> logging.Logger:
+    """
+    Get a pretty printing log handler.
+
+    Parameters
+    ----------
+    name: str
+        Name of the logger.
+
+    filename: str
+        Specifies that a FileHandler be created, using the specified filename
+
+    Returns
+    -------
+    A pretty printing logging.Logger instance.
+
+    """
+    rv = logger.getChild(name)
+    if filename is not None:
+        handler = _get_file_handler(filename)
+        handler.setFormatter(DEFAULT_CHILD_FORMATTER)
+        rv.addHandler(handler)
+    return rv
+```
+
+## global_options
+
+```
+global_options() -> Callable[..., Decorator[AnyCallable]]
+```
+
+Source code in `src/socx/cli/options.py`
+
+```
+def global_options() -> Callable[..., Decorator[AnyCallable]]:
+    return add_options(debug, configure, verbosity)
+```
+
+## has_handlers
+
+```
+has_handlers() -> None
+```
+
+See documentation of builtin `logging.hasHandler` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def has_handlers() -> None:
+    """See documentation of builtin `logging.hasHandler` function."""
+    logger.hasHandlers()
+```
+
+## is_enabled_for
+
+```
+is_enabled_for(level: Level) -> bool
+```
+
+See documentation of builtin `logging.isEnabledFor` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def is_enabled_for(level: Level) -> bool:
+    """See documentation of builtin `logging.isEnabledFor` function."""
+    if isinstance(level, str):
+        level = logging.getLevelName(level)
+    return logger.isEnabledFor(level)
+```
+
+## log_it
+
+```
+log_it(
+    level: str | int = DEBUG, logger: Logger | None = None
+) -> Callable[[AnyCallable], AnyCallable]
+```
+
+Add automatic entered/returned logging to decorated callables.
+
+Source code in `src/socx/io/decorators.py`
+
+```
+def log_it(
+    level: str | int = logging.DEBUG,
+    logger: logging.Logger | None = None,
+) -> Callable[[AnyCallable], AnyCallable]:
+    """Add automatic entered/returned logging to decorated callables."""
+    if isinstance(level, str):
+        level_map: dict[str, int] = logging.getLevelNamesMapping()
+        level = level_map[level]
+
+    if logger is None:
+        logger = logging.getLogger("socx-cli")
+
+    def _log_it(f: AnyCallable) -> AnyCallable:
+        sig = f"{f.__name__}{signature(f)}"
+
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            logger.log(level, f"[{sig}] entered.")
+            rv = f(*args, **kwargs)
+            logger.log(level, f"[{sig}] returned {rv}.")
+            return rv
+
+        return wrapper
+
+    return _log_it
+```
+
+## remove_filter
+
+```
+remove_filter(filter: Filter) -> None
+```
+
+See documentation of builtin `logging.removeFilter` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def remove_filter(filter: logging.Filter) -> None:  # noqa: A002
+    """See documentation of builtin `logging.removeFilter` function."""
+    logger.removeFilter(filter)
+```
+
+## remove_handler
+
+```
+remove_handler(handler: Handler) -> None
+```
+
+See documentation of builtin `logging.removeHandler` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def remove_handler(handler: logging.Handler) -> None:
+    """See documentation of builtin `logging.removeHandler` function."""
+    logger.removeHandler(handler)
+```
+
+## set_level
+
+```
+set_level(
+    level: Level, logger_: Logger | None = None
+) -> None
+```
+
+See documentation of builtin `logging.setLevel` function.
+
+Source code in `src/socx/io/log.py`
+
+```
+def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
+    """See documentation of builtin `logging.setLevel` function."""
+    logging.getLogger().setLevel(level)
+```
+
+## validate_all
+
+```
+validate_all(
+    settings: LazySettings, register: bool = False
+) -> None
+```
+
+Source code in `src/socx/config/validators.py`
+
+```
+def validate_all(settings: LazySettings, register: bool = False) -> None:
+    if register:
+        settings.validators.register(get_validators(settings))
+
+    settings.validators.validate_all()
+```

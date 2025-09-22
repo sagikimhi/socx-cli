@@ -1,0 +1,12 @@
+# socx-cli
+
+> System on chip verification and tooling infrastructure.
+
+## Usage
+
+- [Overview](https://sagikimhi.github.io/socx-cli/index.md)
+
+## API
+
+- [API reference](https://sagikimhi.github.io/socx-cli/reference/api/index.md)
+
