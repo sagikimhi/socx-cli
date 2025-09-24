@@ -33,7 +33,14 @@ def pyprefix(title: str) -> str:
     return title
 
 
-@duty(pre=["check_code", "check_docs", "check_api"])
+@duty(
+    pre=[
+        "check_api",
+        "check_types",
+        "check_code",
+        "check_docs",
+    ]
+)
 def check(ctx: Context) -> None:
     """Check it all."""
 

@@ -23,7 +23,7 @@ class _CmdLine(click.RichGroup):
         kwargs.setdefault("context_settings", context_settings)
         super().__init__(*args, **kwargs)
         self._converter = CommandConverter()
-        self._plugins = {p.name: PluginModel(**p) for p in settings.plugins}
+        self._plugins = {p.name: PluginModel(**p) for p in settings.plugins}  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
 
     @property
     def plugins(self) -> dict[str, PluginModel]:
@@ -35,9 +35,12 @@ class _CmdLine(click.RichGroup):
     ) -> click.Command | None:
         if cmd_name not in self.commands and cmd_name in self.plugins:
             plugin = self.plugins[cmd_name]
-            cmd: click.Command = self._converter(plugin.command)
+            cmd = self._converter(plugin.command)
+            if cmd is None:
+                return None
             self.commands[cmd_name] = cmd
-            cmd.help = plugin.help or inspect.getdoc(cmd)
+            if isinstance(cmd, click.Command):
+                cmd.help = plugin.help or cmd.help or inspect.getdoc(cmd)
         if cmd_name in self.commands:
             return self.commands[cmd_name]
         return None

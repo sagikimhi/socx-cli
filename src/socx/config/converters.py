@@ -1,21 +1,33 @@
 from __future__ import annotations
 
+import contextlib
 import sys
 import abc
-import logging
+import runpy
 import inspect
+import logging
 from types import CodeType
 from types import ModuleType
 from types import MethodType
 from types import FunctionType
-from typing import Any
+from typing import Any, overload
 from typing import override
 from importlib import import_module
 from collections.abc import Iterable
 
+from rich_click.patch import patch
+from rich_click.rich_click_theme import RichClickTheme
 from upath import UPath as Path
 from dynaconf import add_converter
 from dynaconf.utils.parse_conf import Lazy
+from rich_click import (
+    RichHelpConfiguration,
+    rich_click,
+    command,
+    argument,
+    UNPROCESSED,
+    Command,
+)
 
 from socx.config._settings import Settings
 
@@ -41,17 +53,25 @@ class Converter(abc.ABC):
 
 
 class PathConverter(Converter):
+    @overload
+    def __call__(self, value: str | Path) -> Path: ...
+
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
+
     @override
-    def __call__(self, value: str | Lazy) -> Path | Lazy | str:
+    def __call__(self, value: str | Path | Lazy) -> Lazy | Path:
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
+        path = Path(value) if isinstance(value, str) else value
+
         try:
-            rv = Path(value).resolve()
+            path = path.resolve()
         except OSError:
-            rv = value
-            self.exception(value)
-        return rv
+            self.exception(str(value))
+
+        return path
 
 
 class CompileConverter(Converter):
@@ -105,8 +125,6 @@ class EvalConverter(Converter):
         if isinstance(code, Lazy):
             code = code(code.value)
 
-        rv = None
-
         if code is not None:
             ns = {**globals(), **locals()}
             try:
@@ -114,7 +132,7 @@ class EvalConverter(Converter):
             except Exception:
                 self.exception(str(value))
             return ns
-        return None
+        return {}
 
 
 class SymbolConverter(Converter):
@@ -122,6 +140,12 @@ class SymbolConverter(Converter):
         self.importer = ImportConverter()
         self.compiler = CompileConverter()
         self.evaluator = EvalConverter()
+
+    @overload
+    def __call__(self, value: str) -> Any: ...
+
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
     def __call__(self, value: str | Lazy) -> Any:
@@ -157,38 +181,101 @@ class SymbolConverter(Converter):
 class CommandConverter(Converter):
     def __init__(self) -> None:
         self.context_settings = dict(
-            ignore_unknown_options=True, help_option_names=[]
+            help_option_names=[],
+            ignore_unknown_options=True,
+            allow_interspersed_args=True,
         )
-        self.symbolizer = SymbolConverter()
+
+    @overload
+    def __call__(self, value: str | None) -> Command | None: ...
+
+    @overload
+    def __call__(self, value: Command) -> Command: ...
+
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
-    def __call__(self, value: str | Lazy) -> Any:
-        from rich_click import command, argument, UNPROCESSED, Command, Group
+    def __call__(
+        self, value: str | Command | Lazy | None
+    ) -> Command | Lazy | None:
+        if value is None:
+            return None
 
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
-        if isinstance(value, str | Path):
-            symbol = self.symbolizer(value)
+        if isinstance(value, Command):
+            return value
 
-        if symbol is None or isinstance(symbol, Command):
+        path, _, symbol = value.partition(":")
+
+        if self.is_script_path(path):
+            run = runpy.run_path
+        else:
+            if symbol:
+                with contextlib.suppress(ImportError):
+                    module = import_module(path)
+                    symbol = getattr(module, symbol)
+            run = runpy.run_module
+
+        if isinstance(symbol, Command):
             return symbol
 
-        doc = inspect.getdoc(symbol)
+        if symbol is None or isinstance(symbol, str):
+            doc = ""
+        else:
+            doc = inspect.getdoc(symbol) or ""
 
         @command(help=doc, context_settings=self.context_settings)
         @argument("args", nargs=-1, type=UNPROCESSED)
-        def cli(args: Any):
-            if callable(symbol):
-                tmp = sys.argv[1:]
+        def cli(args):
+            rv = 0
+            _argv = sys.argv[1:].copy()
+            _syspath = sys.path.copy()
+            theme = (
+                rich_click.THEME.name
+                if isinstance(rich_click.THEME, RichClickTheme)
+                else rich_click.THEME
+            )
+            cfg = RichHelpConfiguration.load_from_globals(theme=theme)
+            patch(cfg, patch_rich_click=True, patch_typer=True)
+            try:
                 sys.argv[1:] = args
-                rv = symbol()
-                sys.argv[1:] = tmp
-                return rv
-            return symbol
+                if self.is_script_path(path):
+                    try:
+                        sys.path.insert(0, str(Path(path).parent))
+                        if callable(symbol):
+                            return symbol()
+                    finally:
+                        sys.path = _syspath
+                rv = (
+                    run(path).get(symbol, lambda: None)()
+                    if symbol
+                    else run(path, run_name="__main__")
+                )
+            finally:
+                sys.argv[1:] = _argv
+            return rv
 
         cli.__doc__ = doc
         return cli
+
+    def is_script_path(self, path: str) -> bool:
+        filepath = Path(path)
+        return (
+            filepath.exists()
+            and filepath.is_file()
+            and filepath.suffix == ".py"
+        )
+
+    def is_package_path(self, path: str) -> bool:
+        filepath = Path(path)
+        return (
+            filepath.exists()
+            and filepath.is_dir()
+            and (filepath / "__init__.py").exists()
+        )
 
 
 class IncludeConverter(Converter):

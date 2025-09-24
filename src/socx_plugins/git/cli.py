@@ -1,8 +1,9 @@
-from pathlib import Path
+from __future__ import annotations
 
 import rich_click as click
 from socx import console
 from socx import global_options
+from upath import UPath as Path
 
 from socx_plugins.git.manifest import Manifest
 from socx_plugins.git.arguments import format_

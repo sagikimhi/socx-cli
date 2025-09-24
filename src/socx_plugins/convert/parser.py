@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections.abc import Iterable
 
 __all__ = (
     "Parser",
@@ -8,10 +9,10 @@ __all__ = (
 
 import abc as abc
 import json as json
-import typing as t
-import pathlib as pathlib
+from typing import override
 import dataclasses as dc
 
+from upath import UPath as Path
 from dynaconf.utils.boxing import DynaBox  # type: ignore
 
 from socx import settings
@@ -28,12 +29,12 @@ class Parser(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def lang(self) -> DynaBox:
+    def lang(self) -> str:
         """Return the 'lang' configuration of the parser's source language."""
         ...
 
 
-@dc.dataclass
+@dc.dataclass(init=False)
 class LstParser(Parser):
     """
     Parses .lst files to functions definitions represented as a
@@ -42,19 +43,19 @@ class LstParser(Parser):
     See DynamicSymbol, MemorySegment, SymbolTable.
     """
 
-    options: dict[str, str] | None = None
-    includes: set[pathlib.Path] | None = None
-    excludes: set[pathlib.Path] | None = None
-    source_dir: pathlib.Path | None = None
-    target_dir: pathlib.Path | None = None
+    options: dict[str, str]
+    includes: set[Path]
+    excludes: set[Path]
+    source_dir: Path
+    target_dir: Path
 
     def __init__(
-        self: t.Self,
+        self,
         options: dict[str, str] | None = None,
-        includes: set[pathlib.Path] | None = None,
-        excludes: set[pathlib.Path] | None = None,
-        source_dir: pathlib.Path | None = None,
-        target_dir: pathlib.Path | None = None,
+        includes: Iterable[str] | None = None,
+        excludes: Iterable[str] | None = None,
+        source_dir: Path | None = None,
+        target_dir: Path | None = None,
     ) -> None:
         """
         Initialize the parser.
@@ -71,42 +72,33 @@ class LstParser(Parser):
             Options for handling the conversion operation. See `convert.toml`
             for additional info.
         """
-        if options is None:
-            options = self.cfg.options
-        if includes is None:
-            includes = self.cfg.includes
-        if excludes is None:
-            excludes = self.cfg.excludes
-        if source_dir is None:
-            source_dir = self.cfg.source
-        if target_dir is None:
-            target_dir = self.cfg.target
-        self.options = options
-        self.includes = includes
-        self.excludes = excludes
-        self.source_dir = source_dir
-        self.target_dir = target_dir
+        self.options = options or self.cfg.options
+        self.includes = includes or self.cfg.includes
+        self.excludes = excludes or self.cfg.excludes
+        self.source_dir = source_dir or self.cfg.source_dir
+        self.target_dir = target_dir or self.cfg.target_dir
         self.includes = PathValidator._extract_includes(
-            self.source_dir, includes, excludes
+            self.source_dir, self.includes, self.excludes
         )
-        self.sym_table = SymbolTable()
+        self.sym_table = SymbolTable(**{})
 
     @property
     def cfg(self) -> DynaBox:
-        return settings.convert[self.lang]
+        return settings.convert.get(self.lang)
 
     @property
-    def lang(self) -> DynaBox:
+    @override
+    def lang(self) -> str:
         return "lst"
 
     def parse(self) -> None:
         """Parse the sources according to initialization configuration."""
         self._parse_sym_table()
 
-    def _parse_sym_table(self: t.Self) -> SymbolTable:
+    def _parse_sym_table(self) -> SymbolTable:
         memory_map = {}
-        base_addr_file = self.cfg.base_addr_map
-        base_addr_path = pathlib.Path(self.source_dir) / base_addr_file
+        base_addr_file = str(self.cfg.base_addr_map)
+        base_addr_path = Path(self.source_dir) / base_addr_file
         field_names = tuple([field.name for field in dc.fields(MemorySegment)])
         base_addr_map = json.loads(base_addr_path.read_text())
         for name in field_names:
@@ -116,13 +108,13 @@ class LstParser(Parser):
                 device = str(device_field).removesuffix(f"_{name}")
                 if device not in memory_map:
                     memory_map[device] = {}
-                memory_map[device][name] = int(value, self.cfg.base_addr_base)
-        self.sym_table.clear()
+                memory_map[device][name] = int(
+                    value, int(self.cfg.base_addr_base)
+                )
         for device in memory_map:
             if all(name in memory_map[device] for name in field_names):
-                space = MemorySegment(**dict(memory_map[device].items()))
-                self.sym_table[device] = (space, None)
-        self.sym_table = self.sym_table
+                space = MemorySegment(**dict(memory_map[device]))
+                self.sym_table[device] = dict(segment=space, symbols=[])
         return self.sym_table
 
     def __hash__(self) -> int:

@@ -6,8 +6,6 @@ from jinja2 import Environment
 
 from dynaconf.utils.boxing import DynaBox
 
-from .parser import SymbolTable
-
 
 @dataclass
 class Formatter(abc.ABC):
@@ -25,7 +23,6 @@ class SystemVerilogFormatter(Formatter):
         self,
         tokens: dict[str, DynaBox],
         matches: list[re.Match],
-        sym_table: SymbolTable,
     ) -> str:
         state = True
         env = Environment()
@@ -36,7 +33,7 @@ class SystemVerilogFormatter(Formatter):
         output = ""
 
         for match in matches:
-            name = match.lastgroup
+            name = match.lastgroup or ""
             tok = tokens[name]
 
             if tok.starts_scope:

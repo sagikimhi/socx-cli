@@ -80,7 +80,8 @@ def get(field: str):
         console.print(formatter(value, field))
     else:
         ctx = click.get_current_context()
-        ctx.fail(f"No such field: {field}")
+        if ctx is not None:
+            ctx.fail(f"No such field: {field}")
 
 
 cli.add_command(get, "get")

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Final
+from pathlib import Path
 from inspect import getfile
 
-from upath import UPath as Path
 from platformdirs import user_log_path
 from platformdirs import user_data_path
 from platformdirs import user_state_path
@@ -38,37 +37,37 @@ __all__ = (
 APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[3].resolve()
 """Absolute path to directory where application is installed."""
 
-USER_DATA_DIR: Final[Path] = user_data_path(
+USER_DATA_DIR: Path = user_data_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
 ).resolve()
 """Absolute path to platform's native application data directory."""
 
 
-USER_CACHE_DIR: Final[Path] = user_cache_path(
+USER_CACHE_DIR: Path = user_cache_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
 ).resolve()
 """Absolute path to platform's native application cache directory."""
 
 
-USER_STATE_DIR: Final[Path] = user_state_path(
+USER_STATE_DIR: Path = user_state_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
 ).resolve()
 """Absolute path to platform's native application state directory."""
 
 
-USER_CONFIG_DIR: Final[Path] = user_config_path(
+USER_CONFIG_DIR: Path = user_config_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
 ).resolve()
 """Absolute path to platform's native application config directory."""
 
 
-USER_RUNTIME_DIR: Final[Path] = user_runtime_path(
+USER_RUNTIME_DIR: Path = user_runtime_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
 ).resolve()
 """Absolute path to platform's native application runtime directory."""
 
 
-USER_LOG_DIR: Final[Path] = user_log_path(
+USER_LOG_DIR: Path = user_log_path(
     appname=__appname__,
     appauthor=__author__,
     ensure_exists=True,
