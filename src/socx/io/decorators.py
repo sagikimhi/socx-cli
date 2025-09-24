@@ -1,3 +1,5 @@
+"""Decorator utilities for logging function entry and exit."""
+
 import logging
 from typing import Any
 from inspect import signature

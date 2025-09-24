@@ -1,3 +1,5 @@
+"""Parser implementations that prepare conversion data structures."""
+
 from __future__ import annotations
 from collections.abc import Iterable
 
@@ -22,6 +24,8 @@ from .validators import PathValidator
 
 
 class Parser(abc.ABC):
+    """Base protocol for conversion parsers."""
+
     @abc.abstractmethod
     def parse(self) -> None:
         """Start the parser."""
@@ -36,12 +40,7 @@ class Parser(abc.ABC):
 
 @dc.dataclass(init=False)
 class LstParser(Parser):
-    """
-    Parses .lst files to functions definitions represented as a
-    python object.
-
-    See DynamicSymbol, MemorySegment, SymbolTable.
-    """
+    """Convert *.lst files into structured symbol table representations."""
 
     options: dict[str, str]
     includes: set[Path]
@@ -84,6 +83,7 @@ class LstParser(Parser):
 
     @property
     def cfg(self) -> DynaBox:
+        """Return the configuration section for the current parser language."""
         return settings.convert.get(self.lang)
 
     @property
@@ -96,6 +96,7 @@ class LstParser(Parser):
         self._parse_sym_table()
 
     def _parse_sym_table(self) -> SymbolTable:
+        """Load the base address map and populate the symbol table template."""
         memory_map = {}
         base_addr_file = str(self.cfg.base_addr_map)
         base_addr_path = Path(self.source_dir) / base_addr_file
@@ -118,4 +119,5 @@ class LstParser(Parser):
         return self.sym_table
 
     def __hash__(self) -> int:
+        """Hash the parser using its include set so it can be cached."""
         return hash(tuple(self.includes))

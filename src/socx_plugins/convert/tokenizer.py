@@ -1,3 +1,5 @@
+"""Tokeniser implementations used by the conversion pipeline."""
+
 from __future__ import annotations
 
 import re
@@ -23,12 +25,15 @@ class Tokenizer(abc.ABC):
 
 @dataclass(unsafe_hash=True)
 class LstTokenizer(Tokenizer):
+    """Regex-based tokenizer tailored for *.lst symbol tables."""
+
     def __init__(self) -> None:
         self._matchs = {}
         self._token_map = {token.name: token for token in self.tokens}
 
     @property
     def cfg(self) -> DynaBox:
+        """Return the configuration describing LST token definitions."""
         return settings.lang.get(self.lang)
 
     @property
@@ -38,14 +43,17 @@ class LstTokenizer(Tokenizer):
 
     @property
     def tokens(self) -> DynaBox:
+        """Return the ordered token definitions from configuration."""
         return self.cfg.tokens
 
     @property
     def token_map(self) -> dict[str, DynaBox]:
+        """Expose token definitions keyed by their capture group names."""
         return self._token_map
 
     @override
     def tokenize(self, text: str) -> list[re.Match]:
+        """Tokenize input text and return all regular expression matches."""
         matches = []
         flags = re.MULTILINE | re.DOTALL | re.VERBOSE
         template = "|".join(

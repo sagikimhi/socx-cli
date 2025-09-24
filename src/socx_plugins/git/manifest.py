@@ -1,3 +1,5 @@
+"""Render manifests describing multiple git repositories."""
+
 from __future__ import annotations
 
 import logging
@@ -27,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass(init=False)
 class Manifest:
+    """Compute and present a multi-repository manifest view."""
+
     root: Path
     repos: list[Repo]
     style: DynaBox
@@ -36,6 +40,7 @@ class Manifest:
     records: list[list[str]]
 
     def __init__(self, root: str | Path) -> None:
+        """Discover repositories beneath ``root`` and prime render data."""
         if isinstance(root, str):
             root = Path(root)
         self.root = root
@@ -48,6 +53,7 @@ class Manifest:
 
     @classmethod
     def get_header(cls, column: DynaBox, style: DynaBox) -> str:
+        """Build a styled header string for a manifest column."""
         header = str(column.name or "")
         if style.get("headers") is not None:
             header = f"[{style.headers or ''}]{header}"
@@ -57,6 +63,7 @@ class Manifest:
 
     @classmethod
     def get_content(cls, column: DynaBox, repo: Repo) -> str:
+        """Render the column content for a single repository."""
         if not isinstance(column.func, str):
             func = column.func
         else:
@@ -72,23 +79,29 @@ class Manifest:
 
     @classmethod
     def get_record(cls, columns: Iterable[DynaBox], repo: Repo) -> list[str]:
+        """Return all column values for ``repo``."""
         return [cls.get_content(c, repo) for c in columns]
 
     @classmethod
     def get_headers(cls, columns: list[DynaBox], style: DynaBox) -> list[str]:
+        """Return the manifest headers with style applied."""
         return [cls.get_header(c, style) for c in columns]
 
     @classmethod
     def get_records(
         cls, columns: Iterable[DynaBox], repos: Iterable[Repo]
     ) -> list[list[str]]:
+        """Convert repository metadata into row-wise records."""
         return [cls.get_record(columns, repo) for repo in repos]
 
     def print(self, console: Console | None = None) -> None:
+        """Print the manifest to the provided or default console."""
         console = console or self.console
         console.print(self)
 
     def as_json(self) -> JsonDict:
+        """Serialize the manifest into a JSON-compatible mapping."""
+
         def value(repo: Repo) -> JsonDict:
             rv = {}
             for column in self.columns:
@@ -99,6 +112,8 @@ class Manifest:
         return {"columns": [value(repo) for repo in self.repos]}
 
     def as_references(self) -> list[str]:
+        """Return references including commit metadata suitable for logging."""
+
         def reference(repo):
             ref = get_commit_hash(repo)
             name = get_repo_name(repo)
@@ -120,6 +135,7 @@ class Manifest:
         show_header: bool = True,
         show_footer: bool = False,
     ) -> Table:
+        """Create a Rich ``Table`` representing the manifest."""
         rv = Table(
             box=box,
             title=title or "Manifest",
@@ -135,6 +151,7 @@ class Manifest:
         return rv
 
     def export_json(self, path: str | Path) -> None:
+        """Write the manifest JSON representation to ``path``."""
         if isinstance(path, str):
             path = Path(path)
         with self.console.capture() as cap:
@@ -147,4 +164,5 @@ class Manifest:
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
+        """Allow ``Manifest`` to act as a Rich renderable."""
         yield from self.as_rich_table().__rich_console__(console, options)

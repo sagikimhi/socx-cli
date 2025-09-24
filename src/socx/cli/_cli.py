@@ -1,3 +1,5 @@
+"""Custom Click group that dynamically loads SoCX plugin commands."""
+
 from __future__ import annotations
 
 import inspect
@@ -19,6 +21,8 @@ context_settings = DynaBox(help_option_names=["--help", "-h"])
 
 
 class _CmdLine(click.RichGroup):
+    """Custom Click group that loads plugin commands on demand."""
+
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", context_settings)
         super().__init__(*args, **kwargs)
@@ -27,12 +31,13 @@ class _CmdLine(click.RichGroup):
 
     @property
     def plugins(self) -> dict[str, PluginModel]:
-        """The plugins property."""
+        """Return the plugin metadata keyed by plugin name."""
         return self._plugins
 
     def get_command(
         self, ctx: click.Context, cmd_name: str
     ) -> click.Command | None:
+        """Resolve commands from core registrations or configured plugins."""
         if cmd_name not in self.commands and cmd_name in self.plugins:
             plugin = self.plugins[cmd_name]
             cmd = self._converter(plugin.command)
@@ -46,6 +51,8 @@ class _CmdLine(click.RichGroup):
         return None
 
     def list_commands(self, ctx: click.Context) -> list[str]:
+        """List command names including dynamically loaded plugins."""
+
         def get_cmd_order(cmd_name: str) -> int:
             cmd_len = len(cmd_name)
             return sum(cmd_len * i + ord(c) for i, c in enumerate(cmd_name))
@@ -56,6 +63,8 @@ class _CmdLine(click.RichGroup):
 
 
 def socx() -> Callable[[AnyCallable], _CmdLine]:
+    """Decorate a callable as the root SoCX CLI group."""
+
     def decorator(app: AnyCallable):
         return click.group(
             "socx",

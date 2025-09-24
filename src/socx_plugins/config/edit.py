@@ -1,3 +1,5 @@
+"""Interactive configuration editing helpers for the CLI plugin."""
+
 import os
 from pathlib import Path
 from logging import Logger
@@ -18,6 +20,7 @@ logger: Logger = get_logger(__name__)
 
 
 def edit():
+    """Launch the user's editor with the selected configuration snapshot."""
     settings = get_settings(auto_cast=False)
     file_choices = {
         Path(path).stem: Path(path)

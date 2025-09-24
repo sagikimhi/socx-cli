@@ -1,3 +1,5 @@
+"""Rich-Click callbacks for normalising regression CLI arguments."""
+
 # type: ignore
 from __future__ import annotations
 
@@ -12,6 +14,7 @@ logger = log.get_logger(__name__)
 
 @log_it(logger=logger)
 def input_cb(ctx: Context, param: Parameter, value: str) -> str:
+    """Normalise the regression input path and update configuration."""
     if value:
         path = Path(value)
 
@@ -27,6 +30,7 @@ def input_cb(ctx: Context, param: Parameter, value: str) -> str:
 
 @log_it(logger=logger)
 def output_cb(ctx: Context, param: Parameter, value: str) -> str:
+    """Normalise the regression output directory and update configuration."""
     if value:
         path = Path(value)
 

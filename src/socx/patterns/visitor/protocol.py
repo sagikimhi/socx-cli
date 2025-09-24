@@ -1,3 +1,5 @@
+"""Protocol definitions for visitor-compatible structures."""
+
 from __future__ import annotations
 
 from typing import Protocol
@@ -5,6 +7,8 @@ from collections.abc import Iterable
 
 
 class Visitor[NODE](Protocol):
+    """Protocol describing objects that can visit nodes."""
+
     __slots__ = ()
 
     def visit(self, n: NODE) -> None:
@@ -13,6 +17,8 @@ class Visitor[NODE](Protocol):
 
 
 class Node[NODE](Protocol):
+    """Protocol for nodes that accept visitors."""
+
     __slots__ = ()
 
     def accept(self, v: Visitor[NODE]) -> None:
@@ -21,16 +27,18 @@ class Node[NODE](Protocol):
 
 
 class Structure[NODE](Protocol):
+    """Protocol for structures exposing child relationships."""
+
     __slots__ = ()
 
     @classmethod
     def children(cls, s: NODE) -> Iterable[NODE]:
-        """Retrieve the immediate children of a node in a node."""
+        """Return the immediate children of ``s``."""
         ...
 
 
 class Traversal[NODE](Protocol):
-    """An adapter for a `Node` accepting visits of `NODE` from a `Visitor`."""
+    """Adapter interface that controls how nodes accept visitors."""
 
     __slots__ = ()
 

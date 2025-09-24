@@ -1,3 +1,5 @@
+"""Aggregate public SoCX APIs to provide a concise import surface."""
+
 __all__ = (
     # I/O
     "log",

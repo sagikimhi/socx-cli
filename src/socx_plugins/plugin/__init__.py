@@ -1,3 +1,5 @@
+"""CLI group for plugin management helpers and examples."""
+
 from __future__ import annotations
 
 import rich_click as click

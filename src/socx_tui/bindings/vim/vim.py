@@ -1,3 +1,5 @@
+"""Archived Vim binding prototype kept for future development."""
+
 # from __future__ import annotations
 #
 # from typing import Any

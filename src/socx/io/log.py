@@ -1,3 +1,5 @@
+"""Logging helpers that standardise Rich-powered output across SoCX."""
+
 from __future__ import annotations
 
 import os
@@ -44,6 +46,8 @@ __all__ = (
 
 
 class Level(enum.IntEnum):
+    """Log level enumeration mirroring the standard library constants."""
+
     NOTSET = 0
     DEBUG = 10
     INFO = 20
@@ -55,6 +59,7 @@ class Level(enum.IntEnum):
 
 
 def _get_console_handler(level: Level = Level.INFO) -> logging.Handler:
+    """Create a Rich console handler configured for interactive output."""
     import rich_click
     import click
 
@@ -69,36 +74,37 @@ def _get_console_handler(level: Level = Level.INFO) -> logging.Handler:
 def _get_file_handler(
     path: str | Path, level: Level = Level.NOTSET
 ) -> logging.Handler:
+    """Create a Rich handler that writes log output to ``path``."""
     file = open_file(str(path), mode="w", encoding="utf-8", lazy=True)
     console = Console(file=file, markup=False, tab_size=4)
     return RichHandler(console=console, level=level)
 
 
 APP_LIB_NAME = __name__.partition(".")[0]
-"""Application library name"""
+"""Application library namespace used for loggers."""
 
 DEFAULT_ENCODING: Final[str] = "utf-8"
-"""Default text encoding format."""
+"""Default text encoding for emitted log files."""
 
 DEFAULT_LEVEL: Final[Level] = Level[os.environ.get("SOCX_VERBOSITY", "INFO")]
 """Default logger level, a.k.a verbosity."""
 
 DEFAULT_FORMAT: Final[str] = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")
-""" Default logger message format. """
+"""Default log message format used by the root handler."""
 
 DEFAULT_TIME_FORMAT: Final[str] = os.environ.get("SOCX_TIME_FORMAT", "[%x %X]")
-""" Default logger date format logs. """
+"""Default timestamp format injected into log records."""
 
 DEFAULT_CHILD_FORMAT: Final[str] = os.environ.get(
     "SOCX_LOG_FORMAT",
     "%(asctime)s %(levelname)5s - %(filename)5s:%(lineno)-4d - %(message)s",
 )
-""" Default logger message format. """
+"""Message format for child loggers that also emit timestamps."""
 
 DEFAULT_CHILD_FORMATTER: Final[logging.Formatter] = logging.Formatter(
-    DEFAULT_FORMAT, DEFAULT_TIME_FORMAT
+    DEFAULT_CHILD_FORMAT, DEFAULT_TIME_FORMAT
 )
-""" Default logger message format. """
+"""Formatter applied to file handlers registered on child loggers."""
 
 DEFAULT_LOG_DIRECTORY: Final[Path] = Path(
     os.environ.get(
@@ -117,10 +123,11 @@ DEFAULT_HANDLERS: Final[list[logging.Handler]] = [
     _get_console_handler(DEFAULT_LEVEL),
     _get_file_handler(DEFAULT_LOG_DIRECTORY / DEFAULT_LOG_FILE),
 ]
-""" Default logging handlers of this module's default `logger`. """
+"""Handlers attached to the module-level logger by default."""
 
 
 def _get_logger(**kwargs) -> logging.Logger:
+    """Initialise and return the module-level root logger."""
     kwargs.setdefault("level", DEFAULT_LEVEL)
     kwargs.setdefault("format", DEFAULT_FORMAT)
     kwargs.setdefault("handlers", DEFAULT_HANDLERS)
@@ -143,22 +150,7 @@ or extensive than a basic write to console functionality.
 
 
 def get_logger(name: str, filename: str | None = None) -> logging.Logger:
-    """
-    Get a pretty printing log handler.
-
-    Parameters
-    ----------
-    name: str
-        Name of the logger.
-
-    filename: str
-        Specifies that a FileHandler be created, using the specified filename
-
-    Returns
-    -------
-    A pretty printing logging.Logger instance.
-
-    """
+    """Return a child logger configured with optional file output."""
     rv = logger.getChild(name)
     if filename is not None:
         handler = _get_file_handler(filename)
@@ -168,92 +160,93 @@ def get_logger(name: str, filename: str | None = None) -> logging.Logger:
 
 
 def log(level: Level, msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.log` function."""
+    """Proxy to ``logging.log`` using the SoCX root logger."""
     logger.log(level, msg, *args, **kwargs)
 
 
 def info(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.info` function."""
+    """Log an informational message via the default logger."""
     logger.info(msg, *args, **kwargs)
 
 
 def debug(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.debug` function."""
+    """Log a debug message via the default logger."""
     logger.debug(msg, *args, **kwargs)
 
 
 def warning(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.warning` function."""
+    """Log a warning message via the default logger."""
     logger.warning(msg, *args, **kwargs)
 
 
 def error(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.error` function."""
+    """Log an error message via the default logger."""
     logger.error(msg, *args, **kwargs)
 
 
 def fatal(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.fatal` function."""
+    """Log a fatal message via the default logger."""
     logger.fatal(msg, *args, **kwargs)
 
 
 def exception(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.exception` function."""
+    """Log an exception message via the default logger."""
     logger.exception(msg, *args, **kwargs)
 
 
 def critical(msg: str, *args, **kwargs) -> None:
-    """See documentation of builtin `logging.critical` function."""
+    """Log a critical message via the default logger."""
     logger.critical(msg, *args, **kwargs)
 
 
 def get_level(logger_: logging.Logger) -> Level:
-    """See documentation of builtin `logging.getLevel` function."""
+    """Return the effective log level for ``logger_`` as a ``Level`` enum."""
     return Level(logger_.getEffectiveLevel())
 
 
 def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
-    """See documentation of builtin `logging.setLevel` function."""
-    logging.getLogger().setLevel(level)
+    """Set the log level on the provided logger (defaults to module logger)."""
+    target = logger_ or logger
+    target.setLevel(level)
 
 
 def add_filter(filter: logging.Filter) -> None:  # noqa: A002
-    """See documentation of builtin `logging.addFilter` function."""
+    """Attach a filter to the module-level logger."""
     logger.addFilter(filter)
 
 
 def remove_filter(filter: logging.Filter) -> None:  # noqa: A002
-    """See documentation of builtin `logging.removeFilter` function."""
+    """Detach a filter from the module-level logger."""
     logger.removeFilter(filter)
 
 
 def get_handler(name: str) -> logging.Handler | None:
-    """See documentation of builtin `logging.getHandler` function."""
+    """Return a handler registered under ``name`` if one exists."""
     return logging.getHandlerByName(name)
 
 
 def add_handler(handler: logging.Handler) -> None:
-    """See documentation of builtin `logging.addHandler` function."""
+    """Attach ``handler`` to the module-level logger."""
     logger.addHandler(handler)
 
 
-def has_handlers() -> None:
-    """See documentation of builtin `logging.hasHandler` function."""
-    logger.hasHandlers()
+def has_handlers() -> bool:
+    """Return ``True`` if the module-level logger has active handlers."""
+    return logger.hasHandlers()
 
 
 def remove_handler(handler: logging.Handler) -> None:
-    """See documentation of builtin `logging.removeHandler` function."""
+    """Remove ``handler`` from the module-level logger."""
     logger.removeHandler(handler)
 
 
 def get_handler_names() -> Iterable[str]:
-    """See documentation of builtin `logging.getHandlerNames` function."""
+    """Return the names of all registered logging handlers."""
     return logging.getHandlerNames()
 
 
 def is_enabled_for(level: Level) -> bool:
-    """See documentation of builtin `logging.isEnabledFor` function."""
+    """Return ``True`` if the module-level logger handles ``level``."""
     if isinstance(level, str):
         level = logging.getLevelName(level)
     return logger.isEnabledFor(level)

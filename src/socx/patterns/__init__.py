@@ -1,3 +1,5 @@
+"""Expose reusable design-pattern utilities leveraged throughout SoCX."""
+
 __all__ = (
     "Node",
     "Visitor",

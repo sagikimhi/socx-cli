@@ -1,12 +1,14 @@
+"""Argument factory helpers for the git manifest CLI commands."""
+
 from pathlib import Path
 
 import rich_click as click
 
 
 def format_():
+    """Specify an output format for the printed manifest."""
     import socx
 
-    """Specify an output format for the printed manifest."""
     format_choices = click.Choice(
         ["ref", "json", "table"], case_sensitive=False
     )

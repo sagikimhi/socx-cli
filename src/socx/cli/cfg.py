@@ -1,3 +1,5 @@
+"""Configuration and theme defaults for the SoCX CLI."""
+
 from __future__ import annotations
 
 from typing import Literal

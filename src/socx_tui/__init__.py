@@ -1,3 +1,5 @@
+"""Public re-exports for the SoCX Textual user interface package."""
+
 __all__ = (
     "SoCX",
     # "Vim",

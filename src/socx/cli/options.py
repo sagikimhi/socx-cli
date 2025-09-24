@@ -1,3 +1,5 @@
+"""Shared flag definitions and helpers for the SoCX CLI."""
+
 from __future__ import annotations
 
 import logging
@@ -64,6 +66,8 @@ configure: Decorator[AnyCallable] = option(
 
 
 def add_options(*options: Any) -> Decorator[AnyCallable]:
+    """Compose multiple option decorators into a single decorator."""
+
     def _add_options(func):
         for opt in reversed(options):
             func = opt(func)
@@ -73,4 +77,5 @@ def add_options(*options: Any) -> Decorator[AnyCallable]:
 
 
 def global_options() -> Callable[..., Decorator[AnyCallable]]:
+    """Apply the standard set of global SoCX CLI options."""
     return add_options(debug, configure, verbosity)

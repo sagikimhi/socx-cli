@@ -1,3 +1,5 @@
+"""Validation helpers for conversion configuration and file selection."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -7,11 +9,14 @@ from dynaconf.base import ensure_a_list
 
 
 class PathValidator:
+    """Collection of utility methods for validating conversion paths."""
+
     src: Path
     target: Path
 
     @classmethod
     def source_validator(cls, src: str | Path) -> bool:
+        """Return ``True`` if ``src`` resolves to an existing directory."""
         if isinstance(src, str):
             src = Path(src)
         try:
@@ -22,6 +27,7 @@ class PathValidator:
 
     @classmethod
     def target_validator(cls, target: str | Path) -> bool:
+        """Ensure the destination either does not exist or is a directory."""
         if not isinstance(target, Path):
             target = Path(target)
         return target.is_dir() or not target.exists()
@@ -33,6 +39,7 @@ class PathValidator:
         includes: list | set | tuple,
         excludes: list | set | tuple,
     ) -> bool:
+        """Validate include patterns and confirm they resolve to files."""
         if not includes:
             return False
         if isinstance(src, str):
@@ -49,6 +56,7 @@ class PathValidator:
         includes: Iterable[str],
         excludes: Iterable[str],
     ) -> set[Path]:
+        """Resolve include/exclude patterns into a concrete set of paths."""
         paths = set()
         globpaths = set()
         if isinstance(src, str):

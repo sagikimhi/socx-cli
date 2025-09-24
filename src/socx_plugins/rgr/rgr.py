@@ -1,3 +1,5 @@
+"""Regression rerun (rgr) Click command group."""
+
 from __future__ import annotations
 
 import rich_click as click

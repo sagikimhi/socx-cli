@@ -1,3 +1,5 @@
+"""Custom ``Test`` implementation that parses Pixie simulation logs."""
+
 from __future__ import annotations
 
 import logging
@@ -12,8 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class PixieTest(Test):
+    """Interpret Pixie run logs to determine regression outcomes."""
+
     @override
     def _parse_result(self) -> TestResult:
+        """Extract the final test result from Pixie's ``run.log`` file."""
         rv = super()._parse_result
 
         if rv is TestResult.Failed:

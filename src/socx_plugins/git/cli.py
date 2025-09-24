@@ -1,3 +1,5 @@
+"""Git-related Click command group for repository manifest utilities."""
+
 from __future__ import annotations
 
 import rich_click as click

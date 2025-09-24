@@ -1,3 +1,5 @@
+"""Data structures describing memory layouts used during conversion."""
+
 from __future__ import annotations
 
 from typing import TypedDict
@@ -6,6 +8,8 @@ from pydantic import BaseModel
 
 
 class MemorySegment(BaseModel):
+    """Describe a contiguous region in a device's address space."""
+
     origin: int
     """
     Origin/Base address of the address space.
@@ -23,6 +27,8 @@ class MemorySegment(BaseModel):
 
 
 class DynamicSymbol(BaseModel):
+    """Represent a single symbol stored inside a memory segment."""
+
     name: str
     """
     Name identifier aliased with the symbol.
@@ -45,6 +51,8 @@ class DynamicSymbol(BaseModel):
 
 
 class SymbolTable(TypedDict):
+    """Mapping from a device name to its memory segment and symbols."""
+
     device: str
     """
     Name identifier of the device associated with the address space.
@@ -52,11 +60,11 @@ class SymbolTable(TypedDict):
 
     segment: MemorySegment
     """
-    Address space memory adress specification.
+    Address space memory address specification.
     """
 
     symbols: list[DynamicSymbol]
     """
-    Tuple listing of all dynamic symbols associated with the device and their
-    mapping within the address space.
+    List of dynamic symbols associated with the device and their mapping within
+    the address space.
     """

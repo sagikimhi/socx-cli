@@ -1,3 +1,5 @@
+"""Expose logging, console, and decorator utilities for I/O facilities."""
+
 __all__ = (
     # Modules
     "log",

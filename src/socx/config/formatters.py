@@ -1,3 +1,5 @@
+"""Formatting helpers for rendering Dynaconf settings with Rich."""
+
 import abc
 from typing import Any
 from typing import override
@@ -14,6 +16,8 @@ from dynaconf.utils.boxing import DynaBox
 
 
 class Formatter(abc.ABC):
+    """Base callable used to format configuration objects for display."""
+
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> RenderableType:
         """Format matches as text."""
@@ -21,6 +25,7 @@ class Formatter(abc.ABC):
 
 
 def _to_panel(key: str, val: Any) -> Panel:
+    """Render a simple scalar settings value inside a Rich panel."""
     return Panel(
         f"{val}",
         box=box.ROUNDED,
@@ -33,6 +38,7 @@ def _to_panel(key: str, val: Any) -> Panel:
 
 
 def _to_table(key: str, val: Any) -> Table:
+    """Render list or dict settings values inside a Rich table."""
     tbl = Table(
         box=box.ROUNDED,
         title=key,
@@ -59,6 +65,7 @@ def _to_table(key: str, val: Any) -> Table:
 
 
 def _to_tree(key: str, val: Any) -> Tree:
+    """Convert nested settings structures into a Rich tree."""
     node: Tree | Table
 
     label = f"[i yellow]{key}[/]"
@@ -104,6 +111,8 @@ def settings_tree(
 
 
 class TreeFormatter(Formatter):
+    """Format Dynaconf settings into an inspectable tree view."""
+
     @override
     def __call__(
         self, settings: Dynaconf | Settings | DynaBox, label: str | None = None

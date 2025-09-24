@@ -1,3 +1,5 @@
+"""Entry point for the SoCX command-line interface."""
+
 from __future__ import annotations
 
 import logging

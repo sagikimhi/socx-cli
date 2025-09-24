@@ -1,3 +1,5 @@
+"""Click command group that exposes configuration management workflows."""
+
 from __future__ import annotations
 
 import rich

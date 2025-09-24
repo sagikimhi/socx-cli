@@ -1,3 +1,5 @@
+"""Abstractions and implementations for reading conversion inputs."""
+
 from __future__ import annotations
 
 import abc
@@ -21,7 +23,7 @@ class Reader(abc.ABC):
     includes: set[Path]
         Names or patterns to include in the reading list.
 
-    exludes: set[Path]
+    excludes: set[Path]
         Names or patterns to exclude from the reading list.
     """
 
@@ -37,12 +39,16 @@ class Reader(abc.ABC):
 
 @dataclass
 class FileReader(Reader):
+    """Read input text from the filesystem based on include/exclude rules."""
+
     @override
     def read(self) -> dict[Path, str]:
+        """Return a mapping of input paths to their loaded contents."""
         return {path: path.read_text() for path in self.paths}
 
     @property
     def paths(self) -> set[Path]:
+        """Resolve candidate files subject to include and exclude filters."""
         return PathValidator._extract_includes(
             src=self.source, includes=self.includes, excludes=self.excludes
         )

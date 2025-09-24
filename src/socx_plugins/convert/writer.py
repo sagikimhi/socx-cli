@@ -1,3 +1,5 @@
+"""Writer abstractions for persisting converted outputs."""
+
 import abc
 from pathlib import Path
 from dataclasses import field
@@ -10,6 +12,8 @@ logger = get_logger(__name__)
 
 
 class Writer(abc.ABC):
+    """Shared interface for writing conversion results to a destination."""
+
     __slots__ = ()
 
     @abc.abstractmethod
@@ -18,22 +22,13 @@ class Writer(abc.ABC):
 
 @dataclass
 class FileWriter:
-    """
-    Writes data to a file.
-
-    Members
-    -------
-    target: Path
-        Target to write to.
-
-    options: dict
-        Options for handling write requests.
-    """
+    """Write conversion output to files on disk, keeping backups if needed."""
 
     target: Path
     options: dict[str, str] = field(default_factory=dict)
 
     def write(self, data: str, filename: str) -> None:
+        """Persist the provided payload using ``filename`` under ``target``."""
         target = Path(self.target) / filename
         logger.info(f"Preparing to write data to '{target}'...")
 
@@ -50,6 +45,7 @@ class FileWriter:
         logger.info("Done.")
 
     def __post_init__(self) -> None:
+        """Normalise ``target`` and ensure the destination directory exists."""
         if not isinstance(self.target, Path):
             self.target = Path(self.target)
 
@@ -59,6 +55,7 @@ class FileWriter:
         self.target.mkdir(parents=True, exist_ok=True)
 
     def _invalid_target_err(self) -> None:
+        """Raise an error when the target path is not a directory."""
         err = (
             f"Invalid target: '{self.target}'"
             "Target path must point to a directory, not a file."

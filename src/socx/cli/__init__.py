@@ -1,3 +1,5 @@
+"""Expose primary CLI entry points and shared helpers."""
+
 __all__ = (
     "cfg",
     "cli",

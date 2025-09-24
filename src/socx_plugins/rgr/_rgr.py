@@ -1,3 +1,5 @@
+"""Shared helpers for the regression rerun (rgr) CLI plugin."""
+
 import time
 import logging
 import asyncio
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def _input() -> Decorator[AnyCallable]:
+    """Click option configuring the regression input file path."""
     return click.option(
         "--input",
         "-i",
@@ -44,6 +47,7 @@ def _input() -> Decorator[AnyCallable]:
 
 
 def _output() -> Decorator[AnyCallable]:
+    """Click option configuring where regression results are stored."""
     return click.option(
         "--output",
         "-o",
@@ -58,10 +62,12 @@ def _output() -> Decorator[AnyCallable]:
 
 
 def options() -> Decorator[AnyCallable]:
+    """Compose the reusable input/output options."""
     return add_options(_input(), _output())
 
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:
+    """Resolve the regression input path from CLI value or settings."""
     if input_path is None:
         input_cfg = settings.regression.run.input
         dir_in = input_cfg.directory
@@ -77,6 +83,7 @@ def _correct_path_in(input_path: str | Path | None = None) -> Path:
 def _correct_paths_out(
     output_path: str | Path | None = None,
 ) -> tuple[Path, Path]:
+    """Return timestamped output paths for passed and failed results."""
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
     if output_path is None:
@@ -97,6 +104,7 @@ def _write_results(
     fail_out: str | Path,
     regression: Regression,
 ) -> None:
+    """Write the regression command results to their respective files."""
     if isinstance(fail_out, str):
         fail_out = Path(fail_out)
 
@@ -119,6 +127,7 @@ def _write_results(
 
 
 def _populate_regression(filepath: Path) -> Regression:
+    """Construct a ``Regression`` model from the recorded commands file."""
     logger.info(f"reading input from file path: {filepath}")
     with click.open_file(filepath, mode="r", encoding="utf-8") as file:
         return Regression.from_lines(
@@ -130,6 +139,7 @@ async def _run_from_file(
     input: str | Path | None = None,  # noqa: A002
     output: str | Path | None = None,
 ) -> None:
+    """Run a regression using file inputs and persist the results."""
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
     pass_out, fail_out = _correct_paths_out(output)

@@ -1,3 +1,5 @@
+"""Utilities for rendering regression results within the Textual TUI."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,7 +18,7 @@ from socx_tui.bindings.vim.mode import VimMode
 
 
 class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
-    """TestBase table."""
+    """Interactive table widget that displays regression test results."""
 
     __slots__ = ("_data_model",)
 
@@ -27,22 +29,26 @@ class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
 
     @property
     def model(self) -> TestBase:
+        """Return the regression model currently bound to the table."""
         return self._data_model
 
     @model.setter
     def model(self, model: TestBase) -> None:
+        """Update the underlying regression model reference."""
         self._data_model = model
 
     @property
     def settings(self):
-        """The settings property."""
+        """Expose the regression-related application settings."""
         return settings.regression
 
     def accept(self, visitor: Visitor[Table | Regression | TestBase]) -> None:
+        """Allow a visitor to traverse the bound regression model."""
         if self.model is not None:
             visitor.visit(self.model)
 
     def load_from_file(self, file: str | Path) -> None:
+        """Populate the table from a serialized regression results file."""
         if isinstance(file, str):
             file = Path(file).resolve()
         model = Regression.from_lines(
@@ -52,6 +58,8 @@ class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
 
 
 class TableVisitor(Visitor[Table | TestBase]):
+    """Visitor that renders regression data into a ``Table`` widget."""
+
     _table: Table
 
     def __init__(self, table: Table) -> None:
@@ -59,12 +67,14 @@ class TableVisitor(Visitor[Table | TestBase]):
 
     @override
     def visit(self, n: Table | TestBase) -> None:
+        """Dispatch the visit based on the regression node type."""
         if isinstance(n, Regression):
             self.visit_regression(n)
         elif isinstance(n, Test):
             self.visit_test(n)
 
     def visit_regression(self, n: Regression) -> None:
+        """Add regression-level information such as column headers."""
         if n.tests:
             columns = tuple(field.name for field in fields(n.tests[0]))
             self._table.add_columns(*columns)
@@ -72,6 +82,7 @@ class TableVisitor(Visitor[Table | TestBase]):
             self.visit(test)
 
     def visit_test(self, n: Test) -> None:
+        """Append a single test case row to the table."""
         columns = fields(n)
         mapping = asdict(n)
         values = [mapping[column.name] for column in columns]
