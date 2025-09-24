@@ -106,6 +106,7 @@ dev = [
     "pytest-cov",
     "textual-dev",
     "duty>=1.6.3",
+    "mypy>=1.18.2",
 ]
 docs = [
     "markdown-exec",
