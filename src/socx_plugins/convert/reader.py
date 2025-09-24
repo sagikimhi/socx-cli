@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import abc
 from typing import override
-from pathlib import Path
 from dataclasses import dataclass
 
+from upath import UPath as Path
 from socx_plugins.convert.validators import PathValidator
 
 
@@ -24,8 +26,8 @@ class Reader(abc.ABC):
     """
 
     source: Path
-    includes: set[Path]
-    excludes: set[Path]
+    includes: set[str]
+    excludes: set[str]
 
     @abc.abstractmethod
     def read(self) -> dict[Path, str]:

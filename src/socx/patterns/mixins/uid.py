@@ -40,7 +40,9 @@ class _UIDMeta(type):
 
 
 class UIDBase(metaclass=_UIDMeta):
-    __slots__ = ("__dict__", "__uid", "__weakref__")
+    """Base UID Class."""
+
+    __uid: int
 
 
 class PtrMixin(UIDBase):

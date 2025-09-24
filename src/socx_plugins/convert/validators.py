@@ -1,17 +1,23 @@
-import typing as t
-from pathlib import Path as Path
+from __future__ import annotations
 
-__all__ = ("PathValidator",)
+from collections.abc import Iterable
+
+from upath import UPath as Path
+from dynaconf.base import ensure_a_list
 
 
 class PathValidator:
-    src: t.ClassVar[Path] = None
-    target: t.ClassVar[Path] = None
+    src: Path
+    target: Path
 
     @classmethod
     def source_validator(cls, src: str | Path) -> bool:
-        if not isinstance(src, Path):
+        if isinstance(src, str):
             src = Path(src)
+        try:
+            src = src.resolve()
+        except OSError:
+            return False
         return src.exists() and src.is_dir()
 
     @classmethod
@@ -24,29 +30,32 @@ class PathValidator:
     def includes_validator(
         cls,
         src: Path,
-        includes: list[str] | set[str] | tuple[str, ...],
-        excludes: list[str] | set[str] | tuple[str, ...],
+        includes: list | set | tuple,
+        excludes: list | set | tuple,
     ) -> bool:
         if not includes:
             return False
-        if not isinstance(src, Path):
+        if isinstance(src, str):
             src = Path(src)
-        if not isinstance(includes, list | set | tuple):
-            return False
+        includes = ensure_a_list(includes)
+        excludes = ensure_a_list(excludes)
         paths = cls._extract_includes(src, includes, excludes)
         return bool(paths) and all(path.is_file() for path in paths)
 
     @classmethod
     def _extract_includes(
-        cls, src: Path, includes: set[Path], excludes: set[Path]
+        cls,
+        src: Path,
+        includes: Iterable[str],
+        excludes: Iterable[str],
     ) -> set[Path]:
         paths = set()
         globpaths = set()
-        if not isinstance(src, Path):
+        if isinstance(src, str):
             src = Path(src)
         for include in includes:
             if "*" not in include:
-                paths.add(Path(src / include))
+                paths.add(src / include)
             else:
                 globpaths = globpaths.union(set(src.glob(str(include))))
         for exclude in excludes:

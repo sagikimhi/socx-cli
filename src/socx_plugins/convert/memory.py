@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import typing as t
-import dataclasses as dc
+from typing import TypedDict
 
-import rich as rich
-import rich.table as table
+from pydantic import BaseModel
 
 
-@dc.dataclass(frozen=True)
-class MemorySegment:
+class MemorySegment(BaseModel):
     origin: int
     """
     Origin/Base address of the address space.
@@ -25,8 +22,7 @@ class MemorySegment:
     """
 
 
-@dc.dataclass(frozen=True)
-class DynamicSymbol:
+class DynamicSymbol(BaseModel):
     name: str
     """
     Name identifier aliased with the symbol.
@@ -48,8 +44,7 @@ class DynamicSymbol:
     """
 
 
-@dc.dataclass
-class SymbolTable(t.TypedDict):
+class SymbolTable(TypedDict):
     device: str
     """
     Name identifier of the device associated with the address space.
@@ -60,26 +55,7 @@ class SymbolTable(t.TypedDict):
     Address space memory adress specification.
     """
 
-    symbols: tuple[DynamicSymbol, ...] | None = None
-    """
-    Tuple listing of all dynamic symbols associated with the device and their
-    mapping within the address space.
-    """
-
-
-@table.dataclass
-class RichSymTable:
-    device: str
-    """
-    Name identifier of the device associated with the address space.
-    """
-
-    segment: MemorySegment
-    """
-    Address space memory adress specification.
-    """
-
-    symbols: tuple[DynamicSymbol, ...] | None = None
+    symbols: list[DynamicSymbol]
     """
     Tuple listing of all dynamic symbols associated with the device and their
     mapping within the address space.

@@ -6,7 +6,7 @@ import asyncio as aio
 from typing import Any, TypeVar
 from typing import cast, override
 from threading import RLock
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections import deque
 from collections.abc import Iterator
 from collections.abc import Iterable
@@ -39,7 +39,7 @@ TestType = TypeVar("TestType", bound=Test)
 
 @dataclass(init=False)
 class Regression(TestBase):
-    _tests: deque
+    _tests: deque[Test] = field(default_factory=deque)
 
     def __init__(
         self, name: str, tests: Iterable[TestType], *args: Any, **kwargs: Any

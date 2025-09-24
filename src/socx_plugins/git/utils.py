@@ -87,8 +87,8 @@ def find_repositories(directory: str | Path) -> Generator[git.Repo]:
         directory = Path(directory)
 
     if directory.exists() and directory.is_dir():
-        subdirs = filter(is_git_dir, directory.iterdir())
-        subdirs = sorted(subdirs, key=lambda x: Path(x).name)
+        subdirs = list(filter(is_git_dir, directory.iterdir()))
+        subdirs.sort(key=lambda x: Path(x).name)
         for subdir in subdirs:
             if repo := get_repo(subdir):
                 yield repo

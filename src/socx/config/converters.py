@@ -4,6 +4,7 @@ import contextlib
 import sys
 import abc
 import runpy
+import inspect
 import logging
 from types import CodeType
 from types import ModuleType
@@ -26,7 +27,6 @@ from rich_click import (
     argument,
     UNPROCESSED,
     Command,
-    Group,
 )
 
 from socx.config._settings import Settings
@@ -53,17 +53,25 @@ class Converter(abc.ABC):
 
 
 class PathConverter(Converter):
+    @overload
+    def __call__(self, value: str | Path) -> Path: ...
+
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
+
     @override
-    def __call__(self, value: str | Lazy) -> Path | Lazy | str:
+    def __call__(self, value: str | Path | Lazy) -> Lazy | Path:
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
+        path = Path(value) if isinstance(value, str) else value
+
         try:
-            rv = Path(value).resolve()
+            path = path.resolve()
         except OSError:
-            rv = value
-            self.exception(value)
-        return rv
+            self.exception(str(value))
+
+        return path
 
 
 class CompileConverter(Converter):
@@ -182,15 +190,15 @@ class CommandConverter(Converter):
     def __call__(self, value: str | None) -> Command | None: ...
 
     @overload
-    def __call__(self, value: Lazy) -> Lazy: ...
+    def __call__(self, value: Command) -> Command: ...
 
     @overload
-    def __call__(self, value: Command) -> Command: ...
+    def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
     def __call__(
-        self, value: str | Lazy | Command | None
-    ) -> Group | Command | Lazy | None:
+        self, value: str | Command | Lazy | None
+    ) -> Command | Lazy | None:
         if value is None:
             return None
 
@@ -202,19 +210,24 @@ class CommandConverter(Converter):
 
         path, _, symbol = value.partition(":")
 
-        if self.is_script_path(path) or self.is_package_path(path):
+        if self.is_script_path(path):
             run = runpy.run_path
         else:
-            run = runpy.run_module
             if symbol:
                 with contextlib.suppress(ImportError):
                     module = import_module(path)
                     symbol = getattr(module, symbol)
+            run = runpy.run_module
 
         if isinstance(symbol, Command):
             return symbol
 
-        @command(context_settings=self.context_settings)
+        if symbol is None or isinstance(symbol, str):
+            doc = ""
+        else:
+            doc = inspect.getdoc(symbol) or ""
+
+        @command(help=doc, context_settings=self.context_settings)
         @argument("args", nargs=-1, type=UNPROCESSED)
         def cli(args):
             rv = 0
@@ -245,7 +258,7 @@ class CommandConverter(Converter):
                 sys.argv[1:] = _argv
             return rv
 
-        # cli.__doc__ = doc
+        cli.__doc__ = doc
         return cli
 
     def is_script_path(self, path: str) -> bool:

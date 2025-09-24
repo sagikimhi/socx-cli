@@ -13,6 +13,16 @@ from dynaconf.utils.boxing import DynaBox
 class Tokenizer(abc.ABC):
     """Convert text to tokens."""
 
+    @property
+    @abc.abstractmethod
+    def lang(self) -> str: ...
+
+    @abc.abstractmethod
+    def tokenize(self: Self, text: str) -> list[re.Match]: ...
+
+
+@dataclass(unsafe_hash=True)
+class LstTokenizer(Tokenizer):
     def __init__(self) -> None:
         self._matchs = {}
         self._token_map = {token.name: token for token in self.tokens}
@@ -22,8 +32,9 @@ class Tokenizer(abc.ABC):
         return settings.lang.get(self.lang)
 
     @property
-    @abc.abstractmethod
-    def lang(self) -> DynaBox: ...
+    @override
+    def lang(self) -> str:
+        return "lst"
 
     @property
     def tokens(self) -> DynaBox:
@@ -33,22 +44,8 @@ class Tokenizer(abc.ABC):
     def token_map(self) -> dict[str, DynaBox]:
         return self._token_map
 
-    @abc.abstractmethod
-    def tokenize(self: Self, text: str) -> tuple[re.Match]: ...
-
-
-@dataclass(unsafe_hash=True)
-class LstTokenizer(Tokenizer):
-    def __init__(self) -> None:
-        super().__init__()
-
     @override
-    @property
-    def lang(self) -> DynaBox:
-        return "lst"
-
-    @override
-    def tokenize(self, text: str) -> tuple[re.Match]:
+    def tokenize(self, text: str) -> list[re.Match]:
         matches = []
         flags = re.MULTILINE | re.DOTALL | re.VERBOSE
         template = "|".join(
@@ -58,4 +55,4 @@ class LstTokenizer(Tokenizer):
         for line in text.splitlines():
             matches += list(pattern.finditer(line))
             # matches.extend(match for match in pattern.finditer(line))
-        return tuple(matches)
+        return matches

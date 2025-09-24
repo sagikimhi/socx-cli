@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def find_root_dir() -> Path | None:
     """Find the outermost parent directory containing a .socx.yaml file."""
     root = None
-    for parent in LOCAL_CONFIG_FILE.parents:
+    for parent in Path(LOCAL_CONFIG_FILE).parents:
         cfg = parent / LOCAL_CONFIG_FILENAME
         if cfg.exists() and cfg.is_file():
             root = cfg
@@ -59,15 +59,12 @@ def get_local_settings_files() -> list[Path]:
     loaded in that exact order to preserve the described overrides order.
 
     """
-    user_includes = []
     local_includes = []
-
-    for parent in LOCAL_CONFIG_FILE.parents:
+    for parent in Path(LOCAL_CONFIG_FILE).parents:
         cfg = parent / LOCAL_CONFIG_FILENAME
         if cfg.exists() and cfg.is_file():
             local_includes.append(cfg)
-
-    return [*user_includes, *local_includes]
+    return local_includes
 
 
 def get_excludes(settings: Settings) -> list[str]:
@@ -89,7 +86,7 @@ def get_settings(path: str | Path | None = None, *args, **kwargs) -> Settings:
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer
 
-    path = path or paths.APP_CONFIG_FILE
+    path = path or Path(paths.APP_CONFIG_FILE)
 
     if isinstance(path, str):
         path = Path(path).resolve()
@@ -103,10 +100,10 @@ def get_settings(path: str | Path | None = None, *args, **kwargs) -> Settings:
     converters._init()
     settings = Settings(
         *args,
-        **kwargs,
         env="default",
         includes=includes,
         settings_files=settings_files,
+        **kwargs,
         **ModuleSerializer.serialize(paths),
         **ModuleSerializer.serialize(metadata),
     )

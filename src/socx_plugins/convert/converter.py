@@ -1,46 +1,48 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
+from dynaconf.base import DynaBox
 
 from socx import settings, get_logger
 
-from socx_plugins.convert.reader import Reader, FileReader
-from socx_plugins.convert.writer import Writer, FileWriter
-from socx_plugins.convert.parser import Parser, LstParser
-from socx_plugins.convert.tokenizer import Tokenizer, LstTokenizer
-from socx_plugins.convert.formatter import Formatter, SystemVerilogFormatter
+from socx_plugins.convert.reader import FileReader
+from socx_plugins.convert.writer import FileWriter
+from socx_plugins.convert.parser import LstParser
+from socx_plugins.convert.tokenizer import LstTokenizer
+from socx_plugins.convert.formatter import SystemVerilogFormatter
 
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class Converter(ABC):
-    reader: Reader | None = None
-    writer: Writer | None = None
-    parser: Parser | None = None
-    tokenizer: Tokenizer | None = None
-    formatter: Formatter | None = None
+@dataclass(init=False)
+class LstConverter:
+    reader: FileReader
+    writer: FileWriter
+    parser: LstParser
+    tokenizer: LstTokenizer
+    formatter: SystemVerilogFormatter
 
-    @abstractmethod
-    def convert(self) -> None: ...
-
-
-@dataclass
-class LstConverter(Converter):
-    def __post_init__(self) -> None:
-        self.parser = LstParser()
-        self.reader = FileReader(
+    def __init__(
+        self,
+        reader: FileReader | None = None,
+        writer: FileWriter | None = None,
+        parser: LstParser | None = None,
+        tokenizer: LstTokenizer | None = None,
+        formatter: SystemVerilogFormatter | None = None,
+    ) -> None:
+        self.parser = parser or LstParser()
+        self.reader = reader or FileReader(
             self.cfg.source, self.cfg.includes, self.cfg.excludes
         )
-        self.writer = FileWriter(self.cfg.target)
-        self.tokenizer = LstTokenizer()
-        self.formatter = SystemVerilogFormatter()
+        self.writer = writer or FileWriter(self.cfg.target)
+        self.tokenizer = tokenizer or LstTokenizer()
+        self.formatter = formatter or SystemVerilogFormatter()
 
     @property
-    def cfg(self):
-        return settings.convert.get(self.lang)
+    def cfg(self) -> DynaBox:
+        return settings.convert.lst
 
     @property
     def lang(self) -> str:
@@ -53,7 +55,7 @@ class LstConverter(Converter):
         for path, input_text in inputs.items():
             matches = self.tokenizer.tokenize(input_text)
             outputs[path] = self.formatter.format(
-                self.tokenizer.token_map, matches, self.parser.sym_table
+                self.tokenizer.token_map, matches
             )
             logger.debug(f"{input_text=}")
             logger.debug(f"{outputs[path]=}")

@@ -14,18 +14,19 @@ logger = logging.getLogger(__name__)
 class PixieTest(Test):
     @override
     def _parse_result(self) -> TestResult:
-        if self.returncode != 0:
+        rv = super()._parse_result
+
+        if rv is TestResult.Failed:
             return TestResult.Failed
 
-        run_log = self.runtime_logs / self.name / "logs" / "run.log"
-        logger.debug(f"parsing result from file: '{run_log}'")
-
         result_parser = TestResults()
+        run_log = self.runtime_logs / self.name / "logs" / "run.log"
+
+        logger.debug(f"parsing result from file: '{run_log}'")
         result_parser.reset_log(run_log)
         result_parser.parse_log()
-        result_str = result_parser.result
 
-        match result_str:
+        match result_parser.result:
             case "PASS":
                 return TestResult.Passed
             case "FAIL":
@@ -33,6 +34,7 @@ class PixieTest(Test):
             case _:
                 err = (
                     "Test result could not be determined: Expected 'PASS' or "
-                    f"'FAIL', but got '{result_str}'"
+                    f"'FAIL', but got '{result_parser.result}'"
                 )
-                raise ValueError(err)
+                logger.error(err)
+                return TestResult.Failed
