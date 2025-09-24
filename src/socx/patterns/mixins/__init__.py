@@ -1,3 +1,5 @@
+"""Expose mixins supporting visitor traversal and pointer semantics."""
+
 __all__ = (
     "UIDMixin",
     "PtrMixin",

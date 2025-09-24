@@ -1,3 +1,5 @@
+"""Asynchronous regression runner that orchestrates test execution."""
+
 from __future__ import annotations
 
 import time
@@ -39,6 +41,8 @@ TestType = TypeVar("TestType", bound=Test)
 
 @dataclass(init=False)
 class Regression(TestBase):
+    """Manage and execute a collection of tests with concurrency control."""
+
     _tests: deque[Test] = field(default_factory=deque)
 
     def __init__(
@@ -73,10 +77,12 @@ class Regression(TestBase):
     def from_lines(
         cls, name: str, lines: Iterable[str], test_cls: type = Test
     ) -> Regression:
+        """Construct a regression from serialized command lines."""
         tests = [test_cls(line) for line in lines]
         return Regression(name, tests)
 
     def __len__(self) -> int:
+        """Return the number of tests scheduled within the regression."""
         return self._num_tests
 
     def __iter__(self) -> Iterator[Test]:
@@ -84,21 +90,23 @@ class Regression(TestBase):
         return iter(self._tests)
 
     async def __aiter__(self) -> AsyncIterator[Test]:
+        """Allow asynchronous iteration over the regression tests."""
         for test in self._tests:
             yield test
 
     def __contains__(self, test: Test) -> bool:
+        """Return ``True`` if ``test`` is tracked by this regression."""
         return test is not None and test in self._tests
 
     @property
     def cfg(self) -> DynaBox:
-        """Regression settings accessed via property."""
+        """Return the regression configuration namespace."""
         with self._lock:
             return cast(DynaBox, settings.regression)
 
     @property
     def options(self) -> DynaBox:
-        """Regression settings accessed via property."""
+        """Return the nested options block under the regression settings."""
         with self._lock:
             return cast(DynaBox, self.cfg.opts)
 
@@ -110,13 +118,13 @@ class Regression(TestBase):
 
     @property
     def progress(self):
-        """The regression's progress."""
+        """Expose the ``Progress`` instance tracking regression status."""
         with self._lock:
             return self._progress
 
     @property
     def run_limit(self) -> int:
-        """The max_runs_in_parallel configuration accessed via property."""
+        """Return the maximum number of tests that may run concurrently."""
         return cast(int, self.options.max_runs_in_parallel)
 
     @override
@@ -180,6 +188,7 @@ class Regression(TestBase):
             test.kill()
 
     async def _schedule_tests(self) -> None:
+        """Spawn scheduler tasks responsible for queueing each test."""
         try:
             await self.messages.put("Scheduling tests...")
             async with aio.TaskGroup() as tg:
@@ -190,6 +199,7 @@ class Regression(TestBase):
             raise
 
     async def _scheduler(self, test) -> None:
+        """Queue an individual test for execution."""
         try:
             test._status = TestStatus.Pending
             await self.pending.put(test)
@@ -202,6 +212,7 @@ class Regression(TestBase):
             await self.pending.join()
 
     async def _run_tests(self) -> None:
+        """Run the configured number of worker tasks that execute tests."""
         while self.pending.empty():
             await aio.sleep(0)
         async with aio.TaskGroup() as tg:
@@ -211,6 +222,7 @@ class Regression(TestBase):
         await self.pending.join()
 
     async def _runner(self) -> None:
+        """Consume tests from the queue and execute them sequentially."""
         while self.pending.qsize():
             try:
                 test = await self.pending.get()
@@ -225,6 +237,7 @@ class Regression(TestBase):
                 self.pending.task_done()
 
     async def _animate_progress(self) -> None:
+        """Update progress tasks and flush log messages while running."""
         with self.progress as progress:
             self._scheduler_start()
             self._runner_start()
@@ -234,6 +247,7 @@ class Regression(TestBase):
                 await aio.sleep(0)
 
     async def _process_messages(self) -> None:
+        """Drain the message queue and mirror events to the progress log."""
         while not self.messages.empty():
             try:
                 msg = await self.messages.get()
@@ -245,6 +259,7 @@ class Regression(TestBase):
                 self.messages.task_done()
 
     def _scheduler_start(self) -> None:
+        """Initialise the scheduler progress task if it is not active."""
         if self._scheduler_tid is None:
             self._scheduler_tid = self.progress.add_task(
                 description="[red]Schedulers: pending...",
@@ -254,6 +269,7 @@ class Regression(TestBase):
             )
 
     def _scheduler_advance(self) -> None:
+        """Advance the scheduler progress task based on queued tests."""
         if self._scheduler_tid is not None:
             if not self.progress.tasks[self._scheduler_tid].started:
                 self.progress.start_task(self._scheduler_tid)
@@ -272,6 +288,7 @@ class Regression(TestBase):
                 self._scheduler_finish()
 
     def _scheduler_finish(self) -> None:
+        """Mark the scheduler task as complete in the progress view."""
         if self._scheduler_tid is not None:
             self.progress.update(
                 task_id=self._scheduler_tid,
@@ -280,6 +297,7 @@ class Regression(TestBase):
             )
 
     def _runner_start(self) -> None:
+        """Initialise the runner progress task if it is not active."""
         if self._runner_tid is None:
             self._runner_tid = self.progress.add_task(
                 description="[red]Runners: pending...",
@@ -289,6 +307,7 @@ class Regression(TestBase):
             )
 
     def _runner_advance(self) -> None:
+        """Advance the runner progress task for each completed test."""
         if self._runner_tid is not None:
             if not self.progress.tasks[self._runner_tid].started:
                 self.progress.start_task(self._runner_tid)
@@ -305,6 +324,7 @@ class Regression(TestBase):
                 self._regression_finish()
 
     def _runner_finish(self) -> None:
+        """Mark the runner task as complete in the progress view."""
         if self._runner_tid is not None:
             self.progress.update(
                 task_id=self._runner_tid,
@@ -313,6 +333,7 @@ class Regression(TestBase):
             )
 
     def _regression_start(self) -> None:
+        """Initialise the overall regression progress task."""
         if self._regression_tid is None:
             self._regression_tid = self.progress.add_task(
                 description="[red]Regression: pending...",
@@ -322,6 +343,7 @@ class Regression(TestBase):
             )
 
     def _regression_advance(self) -> None:
+        """Advance the overall regression progress task once work begins."""
         if self._regression_tid is not None:
             if self.progress.tasks[self._regression_tid].started:
                 return
@@ -334,6 +356,7 @@ class Regression(TestBase):
             )
 
     def _regression_finish(self) -> None:
+        """Mark the regression progress task as completed."""
         if self._regression_tid is not None:
             self.progress.update(
                 task_id=self._regression_tid,

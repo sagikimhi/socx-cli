@@ -1,9 +1,13 @@
+"""Pydantic models describing SoCX CLI plugin registrations."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class PluginModel(BaseModel):
+    """Metadata describing a plugin-backed CLI command."""
+
     name: str = Field(
         frozen=True, pattern=r"\w+", description="Name of the plugin"
     )

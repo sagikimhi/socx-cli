@@ -1,3 +1,5 @@
+"""Interactive helpers that power the ``socx config`` edit workflow."""
+
 from __future__ import annotations
 
 import os
@@ -13,6 +15,7 @@ logger = get_logger(__name__)
 
 
 def edit_config():
+    """Prompt the user for a config file and editor, then persist edits."""
     files = {
         Path(file).stem: Path(settings.app_settings_dir / file)
         for file in settings.dynaconf_include

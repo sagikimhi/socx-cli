@@ -1,3 +1,5 @@
+"""Click commands and helpers for converting LST symbol tables."""
+
 from __future__ import annotations
 
 __all__ = (

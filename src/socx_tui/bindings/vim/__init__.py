@@ -1,3 +1,5 @@
+"""Re-export Vim-style bindings used by the SoCX Textual widgets."""
+
 __all__ = (
     # "Vim",
     "VimMode",

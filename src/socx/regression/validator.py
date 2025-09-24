@@ -1,9 +1,12 @@
+"""Validation helpers for regression test collections."""
+
 from collections.abc import Iterable
 
 from socx.regression.test import Test
 
 
 def _duplicates(tests: Iterable[Test]) -> Iterable[Test]:
+    """Return tests that appear more than once in the iterable."""
     rv = list()
     seen = set()
     for x in tests:
@@ -17,19 +20,16 @@ def _duplicates(tests: Iterable[Test]) -> Iterable[Test]:
 def _warn_duplicates(
     ntests: int, nunique: int, duplicates: Iterable[Test]
 ) -> None:
+    """Raise a descriptive error highlighting duplicate regression tests."""
     error = f"""
-    Note that as a set, the total number of tests in the regression
-    has less tests than what the original input list of tests included.
-    (i.e. some hashes of the tests were found to be duplicates).
-
-    The original number of tests was: {ntests}.
-    The total number of unique tests is: {nunique}.
-    The suspected duplicate values are: {duplicates}.
-    """
+Note that the total number of unique tests ({nunique}) is smaller than the
+number supplied ({ntests}). The suspected duplicate values are {duplicates}.
+"""
     raise ValueError(error)
 
 
 def validate_test_list(tests: Iterable[Test]) -> None:
+    """Ensure the provided test iterable does not contain duplicates."""
     dups = _duplicates(tests)
     unique = set(tests)
     ntests, nunique = len(tuple(tests)), len(tuple(unique))

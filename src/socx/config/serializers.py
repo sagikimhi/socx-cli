@@ -1,3 +1,5 @@
+"""Serialization helpers used when bootstrapping configuration objects."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -6,6 +8,8 @@ from typing import Any, override
 
 
 class Serializer[T](ABC):
+    """Generic protocol for converting values into configuration payloads."""
+
     @classmethod
     @abstractmethod
     def serialize(cls, value: T) -> dict[str, Any]:
@@ -14,6 +18,8 @@ class Serializer[T](ABC):
 
 
 class ModuleSerializer(Serializer[ModuleType]):
+    """Serialize module globals into a Dynaconf-ready mapping."""
+
     @classmethod
     @override
     def serialize(cls, value: ModuleType) -> dict[str, Any]:

@@ -1,3 +1,5 @@
+"""Rich-Click callbacks used by the SoCX CLI global options."""
+
 from __future__ import annotations
 
 import logging
@@ -18,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 @log_it(logger=logger)
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
+    """Enable debug logging and persist the CLI switch to settings."""
     value = settings.cli.get(param.name) or value
 
     if value and log.get_level(log.logger) != Level.DEBUG:
@@ -31,6 +34,7 @@ def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 
 @log_it(logger=logger)
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
+    """Toggle whether user overrides should be merged into settings."""
     value = settings.cli.get(param.name) and value
 
     if not value:
@@ -50,6 +54,7 @@ def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 
 @log_it(logger=logger)
 def verbosity_cb(ctx: Context, param: Parameter, value: str) -> str:
+    """Update the global log level while respecting existing overrides."""
     new_verbosity = log.Level[value]
     curr_verbosity = log.Level[settings.cli.get(param.name)]
 

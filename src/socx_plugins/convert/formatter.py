@@ -1,3 +1,5 @@
+"""Formatting utilities for turning parsed LST tokens into output code."""
+
 import re
 import abc
 from typing import override
@@ -9,15 +11,19 @@ from dynaconf.utils.boxing import DynaBox
 
 @dataclass
 class Formatter(abc.ABC):
+    """Describe the protocol for formatting tokenised conversion results."""
+
     @abc.abstractmethod
     def format(
         self, tokens: dict[str, DynaBox], matches: list[re.Match]
     ) -> str:
-        """Format matches as text."""
+        """Return formatted text derived from token lookup ``matches``."""
         ...
 
 
 class SystemVerilogFormatter(Formatter):
+    """Render SystemVerilog covergroup definitions from token matches."""
+
     @override
     def format(
         self,

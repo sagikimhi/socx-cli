@@ -1,3 +1,5 @@
+"""Preconfigured Rich console used throughout SoCX."""
+
 from rich import pretty
 from rich import traceback
 from rich import reconfigure, get_console

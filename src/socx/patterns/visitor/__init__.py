@@ -1,3 +1,5 @@
+"""Expose visitor pattern building blocks."""
+
 __all__ = (
     "Node",
     "Visitor",

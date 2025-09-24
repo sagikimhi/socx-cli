@@ -1,3 +1,5 @@
+"""Aggregate configuration utilities and metadata for SoCX."""
+
 __all__ = (
     # Settings
     "SETTINGS_OPTIONS",

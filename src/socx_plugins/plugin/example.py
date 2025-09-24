@@ -1,3 +1,5 @@
+"""Static Markdown content used by the plugin quickstart command."""
+
 from __future__ import annotations
 
 from rich.markdown import Markdown

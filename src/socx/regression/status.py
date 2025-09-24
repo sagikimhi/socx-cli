@@ -1,3 +1,5 @@
+"""Enum helpers describing regression lifecycle states and results."""
+
 from enum import IntEnum
 from enum import auto
 
@@ -40,7 +42,7 @@ class RegressionStatus(IntEnum):
         Test is running.
 
     Stopped: IntEnum
-        Test has been stopped intentionaly.
+        Test has been stopped intentionally.
 
     Finished: IntEnum
         Test had finished running normally with an exit code 0.

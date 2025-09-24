@@ -1,3 +1,5 @@
+"""Dynaconf converter implementations tailored for SoCX."""
+
 from __future__ import annotations
 
 import contextlib
@@ -36,23 +38,31 @@ logger = logging.getLogger(__name__)
 
 
 class Converter(abc.ABC):
+    """Base protocol for Dynaconf converters used by SoCX."""
+
     @abc.abstractmethod
-    def __call__(self, value: Any) -> Any: ...
+    def __call__(self, value: Any) -> Any:
+        """Convert Dynaconf configuration values into runtime objects."""
 
     @property
     def name(self) -> str:
+        """Return the registered converter name inferred from the class."""
         return self.__class__.__name__.lower().removesuffix("converter")
 
     def exception(self, value: str) -> None:
+        """Log a conversion failure with context for debugging."""
         logger.exception(
             f"Converter({self.name}): failed to convert value '{value}'"
         )
 
     def error(self, error: str) -> None:
+        """Log a recoverable converter error message."""
         logger.error(f"Converter({self.name}): {error}")
 
 
 class PathConverter(Converter):
+    """Resolve string inputs into concrete filesystem paths."""
+
     @overload
     def __call__(self, value: str | Path) -> Path: ...
 
@@ -61,6 +71,7 @@ class PathConverter(Converter):
 
     @override
     def __call__(self, value: str | Path | Lazy) -> Lazy | Path:
+        """Return a resolved ``Path`` or preserve deferred conversion."""
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
@@ -75,8 +86,11 @@ class PathConverter(Converter):
 
 
 class CompileConverter(Converter):
+    """Compile python source files referenced in configuration values."""
+
     @override
     def __call__(self, value: str | Path | Lazy) -> CodeType | Lazy | None:
+        """Return compiled code objects or propagate lazy evaluation."""
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
@@ -98,8 +112,11 @@ class CompileConverter(Converter):
 
 
 class ImportConverter(Converter):
+    """Import modules referenced in configuration entries."""
+
     @override
     def __call__(self, value: str | Lazy) -> ModuleType | Lazy | None:
+        """Import a module referenced by dotted string or handle laziness."""
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
@@ -112,11 +129,14 @@ class ImportConverter(Converter):
 
 
 class EvalConverter(Converter):
+    """Evaluate compiled python code in an isolated namespace."""
+
     def __init__(self) -> None:
         self.compiler = CompileConverter()
 
     @override
     def __call__(self, value: str | Path | CodeType | Lazy) -> Any:
+        """Provide an execution namespace for compiled configuration code."""
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
@@ -136,6 +156,8 @@ class EvalConverter(Converter):
 
 
 class SymbolConverter(Converter):
+    """Resolve dotted ``path:attribute`` references or file symbols."""
+
     def __init__(self) -> None:
         self.importer = ImportConverter()
         self.compiler = CompileConverter()
@@ -149,6 +171,7 @@ class SymbolConverter(Converter):
 
     @override
     def __call__(self, value: str | Lazy) -> Any:
+        """Resolve a symbol from a module or python file path."""
         logger.debug(f"Symbol converter called with value: {value}")
         if isinstance(value, Lazy):
             return value.set_casting(self)
@@ -179,6 +202,8 @@ class SymbolConverter(Converter):
 
 
 class CommandConverter(Converter):
+    """Turn module or script references into Rich Click commands."""
+
     def __init__(self) -> None:
         self.context_settings = dict(
             help_option_names=[],
@@ -199,6 +224,7 @@ class CommandConverter(Converter):
     def __call__(
         self, value: str | Command | Lazy | None
     ) -> Command | Lazy | None:
+        """Build a Click command from dotted paths or reuse existing ones."""
         if value is None:
             return None
 
@@ -262,6 +288,7 @@ class CommandConverter(Converter):
         return cli
 
     def is_script_path(self, path: str) -> bool:
+        """Return ``True`` if ``path`` points to a python script file."""
         filepath = Path(path)
         return (
             filepath.exists()
@@ -270,6 +297,7 @@ class CommandConverter(Converter):
         )
 
     def is_package_path(self, path: str) -> bool:
+        """Return ``True`` if ``path`` refers to an importable package."""
         filepath = Path(path)
         return (
             filepath.exists()
@@ -279,8 +307,11 @@ class CommandConverter(Converter):
 
 
 class IncludeConverter(Converter):
+    """Load configuration files referenced within other settings."""
+
     @override
     def __call__(self, value: str | Path | Lazy) -> Settings | Lazy | None:
+        """Return a new ``Settings`` instance for the provided include path."""
         if isinstance(value, Lazy):
             value.set_casting(self)
             return value
@@ -297,6 +328,8 @@ class IncludeConverter(Converter):
 
 
 class GenericConverter(Converter):
+    """Adapter turning plain callables into ``Converter`` instances."""
+
     @override
     def __init__(self, name: str, cvt: MethodType | FunctionType) -> None:
         self._cvt = cvt
@@ -309,15 +342,18 @@ class GenericConverter(Converter):
 
     @override
     def __call__(self, value: Any) -> Any:
+        """Delegate conversion to the wrapped callable."""
         return self._cvt(value)
 
 
 def add_converters(converters: Iterable[Converter]) -> None:
+    """Register converters with Dynaconf using their inferred names."""
     for converter in converters:
         add_converter(converter.name, converter)
 
 
 def get_converters() -> Iterable[tuple[str, Converter]]:
+    """Yield converter registrations, wrapping raw callables as needed."""
     from dynaconf.utils.parse_conf import converters
 
     rv = []
@@ -329,6 +365,7 @@ def get_converters() -> Iterable[tuple[str, Converter]]:
 
 
 def _init() -> None:
+    """Register the default set of converters used by SoCX."""
     converters = [
         PathConverter(),
         ImportConverter(),

@@ -1,3 +1,5 @@
+"""Textual application glue for the SoCX terminal user interface."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -39,15 +41,18 @@ class SoCX(App[int]):
     }
 
     def compose(self) -> ComposeResult:
+        """Lay out the application chrome shared between all screens."""
         yield Header()
         yield Footer()
 
     async def on_mount(self) -> None:
+        """Run any startup logic once the app attaches to the event loop."""
         pass
 
     def get_system_commands(
         self, screen: Screen[None]
     ) -> Iterable[SystemCommand]:
+        """Expose extra debug commands alongside Textual's defaults."""
         yield from super().get_system_commands(screen)
         yield SystemCommand(
             "Log DOM Tree",

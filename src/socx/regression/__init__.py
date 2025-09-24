@@ -1,3 +1,5 @@
+"""Expose regression primitives for use throughout SoCX."""
+
 __all__ = (
     "Test",
     "TestBase",

@@ -1,3 +1,5 @@
+"""Dynaconf configuration wrappers used across SoCX."""
+
 from __future__ import annotations
 
 import logging
@@ -27,10 +29,14 @@ SETTINGS_OPTIONS: dict[str, Any] = dict(
 
 
 class Settings(LazySettings):
+    """SoCX-specific ``LazySettings`` with convenience helpers."""
+
     def __init__(self, wrapped=None, **kwargs: Any) -> None:
+        """Initialise Dynaconf with project defaults and user overrides."""
         LazySettings.__init__(self, wrapped, **{**SETTINGS_OPTIONS, **kwargs})
 
     def to_yaml(self, key: str | None = None) -> str:
+        """Serialize all settings or a nested key selection to YAML."""
         if key is None:
             data = DynaBox(**self.as_dict())  # pyright: ignore[reportCallIssue, reportOptionalCall]
         else:

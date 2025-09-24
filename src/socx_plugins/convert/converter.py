@@ -1,3 +1,5 @@
+"""High-level orchestration for the configurable conversion pipeline."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,6 +20,8 @@ logger = get_logger(__name__)
 
 @dataclass(init=False)
 class LstConverter:
+    """Run the full conversion workflow for LST symbol table inputs."""
+
     reader: FileReader
     writer: FileWriter
     parser: LstParser
@@ -42,13 +46,16 @@ class LstConverter:
 
     @property
     def cfg(self) -> DynaBox:
+        """Return the conversion configuration namespace for LST jobs."""
         return settings.convert.lst
 
     @property
     def lang(self) -> str:
+        """Expose the source language handled by this converter."""
         return "lst"
 
     def convert(self) -> None:
+        """Execute the configured read/parse/tokenize/format/write pipeline."""
         inputs = self.reader.read()
         outputs = dict.fromkeys(inputs, "")
         self.parser.parse()

@@ -1,10 +1,4 @@
-"""
-post proccesing run.log for errors/warning
-input - log
-parse log for errors - return pass or fail
-fail - what failed (add aeon errors)
-output - print to screen, log if failed
-"""  # noqa: D400
+"""Utilities for post-processing Pixie ``run.log`` files."""
 
 import argparse
 import os
@@ -15,7 +9,10 @@ sim_ended_time_re = re.compile("finish at simulation time ([\\d]+)\\...ns")
 
 
 class TestResults:
+    """Parse Pixie simulation logs and track resulting status metadata."""
+
     def __init__(self):
+        """Initialise ignore list paths and reset mutable state."""
         #        self.uvm_error = uvm_error
         self.ExceptionStr = ""
         self.ignoreListPath = os.path.join(
@@ -28,6 +25,7 @@ class TestResults:
         self.reset_log(None)
 
     def reset_log(self, log_path, out_log_path=None):
+        """Assign the primary log to parse and reset cached metrics."""
         self.log_path = log_path
         self.outLogPath = out_log_path
         self.result = "NA"
@@ -39,7 +37,7 @@ class TestResults:
         self.seed = 0
 
     def parse_log(self):
-        """Parse the log."""
+        """Parse the configured log, populating result and error metadata."""
         if os.path.exists(self.log_path):
             #             status = 'PASS'
             self.result = "FAIL"
@@ -100,14 +98,7 @@ class TestResults:
             raise ValueError(err)
 
     def check_err(self, line):
-        """Check line if any ERROR pattern exists.
-
-        The function will run for every line in log.
-
-        Returns
-        -------
-        A string status, either 'ERROR' or 'IGNORE'.
-        """
+        """Populate ``errorList`` with entries that are not ignored."""
         # 'UVM_ERROR', - included in ERROR
         str_to_check = [
             "ERROR",
@@ -130,6 +121,7 @@ class TestResults:
                 self.numErrors += 1
 
     def init_ignore_list(self):
+        """Load patterns that should not be treated as fatal errors."""
         self.ignToCheck = [
             "error_response_policy_enum",
             "UVM_ERROR :    0",
@@ -162,15 +154,13 @@ class TestResults:
                     self.ignToCheck.append(line.strip())
 
     def ignore_err(self, line) -> bool:
-        """Check line if any ignore pattern exists.
-
-        The function will run for every line in log.
-        """
+        """Return ``True`` if ``line`` matches a configured ignore pattern."""
         str_to_check_re = "(" + "|".join(self.ignToCheck) + ")"
         return bool(re.search(str_to_check_re, line))
 
 
 def main():
+    """CLI entry point for ad-hoc log parsing of Pixie runs."""
     # getting the log from user
     parser = argparse.ArgumentParser(
         prog="ARGPARSER", description="Short sample app", add_help=False

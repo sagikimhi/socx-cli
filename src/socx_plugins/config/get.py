@@ -1,3 +1,5 @@
+"""Helpers for the ``socx config get`` command wiring and formatting."""
+
 from functools import partial
 
 import rich_click as click
@@ -9,6 +11,7 @@ field_argument = partial(
 
 
 def command():
+    """Build a Click command decorator preloaded with dynamic help text."""
     from socx import settings
 
     return partial(
@@ -25,6 +28,7 @@ def command():
 def get_nested_keys(
     mapping: dict, indent: int = 0, max_indent: int = 2
 ) -> str:
+    """Render nested dictionary keys as an indented bullet list."""
     rv = "\n\n"
 
     if indent == max_indent:

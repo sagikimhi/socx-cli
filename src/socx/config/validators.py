@@ -1,3 +1,5 @@
+"""Dynaconf validator helpers for SoCX configuration."""
+
 from itertools import chain
 from typing import ClassVar
 from pathlib import Path
@@ -19,17 +21,21 @@ from dynaconf.validator import ValidationError as ValidationError
 
 
 class PathValidator:
+    """Validate include/exclude path configuration for converters."""
+
     src: ClassVar[Path]
     target: ClassVar[Path]
 
     @classmethod
     def source_validator(cls, src: str | Path) -> bool:
+        """Validate that ``src`` points to an existing directory."""
         if not isinstance(src, Path):
             src = Path(src)
         return src.exists() and src.is_dir()
 
     @classmethod
     def target_validator(cls, target: str | Path) -> bool:
+        """Ensure target either does not exist or resolves to a directory."""
         if not isinstance(target, Path):
             target = Path(target)
         return target.is_dir() or not target.exists()
@@ -38,6 +44,7 @@ class PathValidator:
     def includes_validator(
         cls, src: Path, includes: Iterable[str], excludes: Iterable[str]
     ) -> bool:
+        """Validate include patterns resolve to files once exclusions apply."""
         if not includes:
             return False
         if not isinstance(src, Path):
@@ -51,6 +58,7 @@ class PathValidator:
     def _extract_includes(
         cls, src: Path, includes: Iterable[str], excludes: Iterable[str]
     ) -> set[Path]:
+        """Resolve include/exclude patterns into a set of concrete paths."""
         paths: set[Path] = set()
         globpaths: set[Path] = set()
 
@@ -73,6 +81,8 @@ class PathValidator:
 
 
 def _convert_validators(settings: LazySettings) -> Iterable[Validator]:
+    """Build validators related to converter configuration blocks."""
+
     def _source_validator(lang: str) -> Validator:
         yield Validator(
             f"convert.{lang}.source",
@@ -99,10 +109,12 @@ def _convert_validators(settings: LazySettings) -> Iterable[Validator]:
 
 
 def get_validators(settings: LazySettings):
+    """Yield all validators expected for the provided ``settings``."""
     yield from _convert_validators(settings)
 
 
 def validate_all(settings: LazySettings, register: bool = False) -> None:
+    """Run validation against all registered validators."""
     if register:
         settings.validators.register(get_validators(settings))
 

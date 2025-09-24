@@ -1,3 +1,5 @@
+"""Expose regression-related widgets used by the SoCX TUI."""
+
 __all__ = (
     "Table",
     "TableVisitor",

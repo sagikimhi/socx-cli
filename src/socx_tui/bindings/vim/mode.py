@@ -1,3 +1,5 @@
+"""Definitions of Textual key binding presets that emulate Vim modes."""
+
 from __future__ import annotations
 
 from enum import Enum

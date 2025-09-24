@@ -1,3 +1,5 @@
+"""Mixins that provide unique identifiers and weak references for objects."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -19,12 +21,14 @@ class _UIDMeta(type):
     __inst_map: ClassVar[InstMapType] = WeakValueDictionary()
 
     def __call__(cls, *args: Any, **kwargs: Any) -> Any:
+        """Assign a unique identifier to each created instance."""
         inst = super().__call__(*args, **kwargs)
         inst.__uid = cls._next_uid()
         cls.__inst_map[inst.__uid] = inst
         return inst
 
     def _next_uid(cls) -> int:
+        """Compute the next unique identifier for ``cls`` instances."""
         with _UIDMeta.__lock:
             rv = cls.__uid_map.get(cls, 0)
             cls.__uid_map[cls] = rv + 1
@@ -32,15 +36,17 @@ class _UIDMeta(type):
 
     @classmethod
     def _get_uid(cls, inst: UIDBase) -> int:
+        """Return the unique identifier assigned to ``inst``."""
         return inst.__uid
 
     def _get_inst(cls, uid: int) -> UIDBase | None:
+        """Return the instance associated with ``uid`` if it exists."""
         with cls.__lock:
             return cls.__inst_map.get(uid)
 
 
 class UIDBase(metaclass=_UIDMeta):
-    """Base UID Class."""
+    """Base class that stores the generated UID attribute."""
 
     __uid: int
 
@@ -55,10 +61,12 @@ class PtrMixin(UIDBase):
 
     @property
     def ref(self) -> int:
+        """Return the object's assigned unique identifier."""
         return UIDBase._get_uid(self)
 
     @classmethod
     def dref(cls, ref: int) -> UIDBase | None:
+        """Dereference a stored UID and return the tracked instance."""
         return UIDBase._get_inst(ref)
 
 

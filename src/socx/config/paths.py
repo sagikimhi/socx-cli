@@ -1,3 +1,5 @@
+"""Canonical filesystem paths used throughout SoCX."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -98,7 +100,7 @@ USER_CONFIG_FILE: Path = USER_CONFIG_DIR / USER_CONFIG_FILENAME
 """Absolute path to application's user config file."""
 
 LOCAL_CONFIG_FILE: Path = Path.cwd() / LOCAL_CONFIG_FILENAME
-"""Absolute path to application's user config file."""
+"""Absolute path to the nearest local override configuration file."""
 
 # -----------------------------------------------------------------------------
 # Application Directories

@@ -1,3 +1,5 @@
+"""Runtime helpers for loading and composing SoCX configuration objects."""
+
 from __future__ import annotations
 
 from itertools import chain
@@ -68,10 +70,12 @@ def get_local_settings_files() -> list[Path]:
 
 
 def get_excludes(settings: Settings) -> list[str]:
+    """Return glob patterns that should be ignored when loading settings."""
     return [str(f) for f in ensure_a_list(settings.SKIP_FILES_FOR_DYNACONF)]
 
 
 def get_includes(settings: Settings) -> list[str]:
+    """Aggregate configured include patterns while respecting exclusions."""
     excludes = set(get_excludes(settings))
     includes_it = chain(
         iter(ensure_a_list(settings.DYNACONF_INCLUDE)),
@@ -82,6 +86,7 @@ def get_includes(settings: Settings) -> list[str]:
 
 
 def get_settings(path: str | Path | None = None, *args, **kwargs) -> Settings:
+    """Create a configured ``Settings`` instance, including overrides."""
     from socx.config import paths
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer

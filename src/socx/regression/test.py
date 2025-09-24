@@ -1,3 +1,5 @@
+"""Test execution primitives used by the regression runner."""
+
 from __future__ import annotations
 
 import os
@@ -21,24 +23,7 @@ from socx.patterns import UIDMixin
 
 @dataclass(init=False)
 class TestCommand(UIDMixin):
-    """
-    Representation of a 'run test' command-line as an object.
-
-    Members
-    -------
-    line: str
-        Full commandline string of the command represented by this object.
-
-    name: str
-        Name of the command represented by this object, i.e. sys.argv[0].
-
-    escaped: str
-        Escaped version of the original commandline string after shlex.quote
-        has been applied.
-    arguments: list[str]
-        Arguments of the command represented by this object split by
-        whitespace.
-    """
+    """Represent a test invocation parsed from a command-line string."""
 
     line: str
     name: str
@@ -56,6 +41,7 @@ class TestCommand(UIDMixin):
         self.escaped = shlex.quote(self.line)
 
     def extract_argv(self, arg: str) -> str | None:
+        """Return the value that follows the requested CLI argument."""
         for i, attr in enumerate(self.arguments):
             if attr.startswith("--") or attr.startswith("-"):
                 if attr == arg and i + 1 < len(self.arguments):
@@ -71,6 +57,7 @@ class TestCommand(UIDMixin):
         return None
 
     def __getattr__(self, attr: str) -> str:
+        """Provide attribute-style access to parsed command arguments."""
         rv = self.extract_argv(attr)
         if rv is not None:
             return rv
@@ -84,7 +71,7 @@ class TestCommand(UIDMixin):
 
 @dataclass(init=False)
 class TestABC:
-    """Definition of basic properties common accross all test types."""
+    """Define basic properties common across all test types."""
 
     _pid: int
     _name: str
@@ -129,6 +116,8 @@ class TestABC:
 
 
 class TestBase(TestABC):
+    """Provide common process-management behaviour for regression tests."""
+
     def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
         if isinstance(command, str):
             command = TestCommand(command)
@@ -149,12 +138,12 @@ class TestBase(TestABC):
 
     @property
     def pid(self) -> int:
-        """Name of a test."""
+        """Return the process identifier for the test's subprocess."""
         return self._process.pid if self._process is not None else os.getpid()
 
     @property
     def name(self) -> str:
-        """Name of a test."""
+        """Return the test's human readable name."""
         return self._name
 
     @property
@@ -164,22 +153,22 @@ class TestBase(TestABC):
 
     @property
     def status(self) -> TestStatus:
-        """Status of a test."""
+        """Return the current lifecycle status of the test."""
         return self._status
 
     @property
     def result(self):
-        """Result of a finished test."""
+        """Return the result enum once a test has completed."""
         return self._result
 
     @property
     def started_time(self) -> str:
-        """Time measured at the begining of a test."""
+        """Return the formatted timestamp captured when the test started."""
         return time.ctime(self._started_time)
 
     @property
     def finished_time(self) -> str:
-        """Time measured at the end of a test."""
+        """Return the formatted timestamp captured when the test finished."""
         return time.ctime(self._finished_time)
 
 
@@ -218,7 +207,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def flow(self) -> str:
-        """The selected execution flow of the test."""
+        """Return the execution flow name extracted from the command."""
         try:
             rv = self.command.flow
         except AttributeError:
@@ -228,7 +217,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def build(self) -> str:
-        """Randomization build of a test's RNG."""
+        """Return the randomisation build identifier, if provided."""
         try:
             return str(self.command.build)
         except AttributeError:
@@ -236,7 +225,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def seed(self) -> int:
-        """Randomization seed of a test's RNG."""
+        """Return the randomisation seed for the test."""
         try:
             rv = int(self.command.seed)
         except AttributeError:
@@ -250,17 +239,17 @@ class Test(UIDMixin, TestBase):
 
     @property
     def pending(self):
-        """The test is scheduled to be started soon but has not yet started."""
+        """Return ``True`` if the test is queued but not yet running."""
         return self._process is None and self.status == TestStatus.Pending
 
     @property
     def started(self) -> bool:
-        """True if test was started via a prior call to method `start`."""
+        """Return ``True`` once ``start`` has spawned the subprocess."""
         return self._process is not None and self.status is TestStatus.Running
 
     @property
     def suspended(self) -> bool:
-        """True if test was started via a prior call to method `start`."""
+        """Return ``True`` if the subprocess is currently stopped."""
         return self.started and self.process.status() == psutil.STATUS_STOPPED
 
     @property
@@ -270,7 +259,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def finished(self) -> bool:
-        """True if test finished running without normally interruption."""
+        """Return ``True`` if the test completed and recorded a result."""
         return (
             self.started
             and self.returncode is not None
@@ -279,29 +268,29 @@ class Test(UIDMixin, TestBase):
 
     @property
     def terminated(self) -> bool:
-        """True if test started but was intentionaly terminated."""
+        """Return ``True`` if the test ended due to termination signals."""
         return self.started and self.status is TestStatus.Terminated
 
     @property
     def passed(self) -> bool:
-        """True if test has finished running and no errors occured."""
+        """Return ``True`` if the test finished successfully."""
         # change back to finished and return_code == 0 once patch is removed
         return self.finished and self.result is TestResult.Passed
 
     @property
     def failed(self) -> bool:
-        """True if test finished running and at least one error occured."""
+        """Return ``True`` if the test finished with a failure result."""
         # change back to finished and return_code != 0 once patch is removed
         return self.finished and self.result is TestResult.Failed
 
     @property
     def stdin(self) -> str | None:
-        """The standard input of the test's process or None if not running."""
-        return None  # not currently needed, can be overriden by subclass
+        """Return ``None``; subclasses may override to expose stdin."""
+        return None  # not currently needed, can be overridden by subclass
 
     @property
     def stdout(self) -> str | None:
-        """The standard output of the test's process or None if not running."""
+        """Return captured standard output once the test has finished."""
         if self.finished:
             return self._stdout
         else:
@@ -309,7 +298,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def stderr(self) -> str | None:
-        """The standard error of the test's process or None if not running."""
+        """Return captured standard error once the test has finished."""
         if self.finished:
             return self._stderr
         else:
@@ -317,7 +306,7 @@ class Test(UIDMixin, TestBase):
 
     @property
     def process(self) -> psutil.Process:
-        """The active process of the running test or None if not running."""
+        """Return a ``psutil.Process`` wrapper for the test's subprocess."""
         if self.pid == -1:
             return psutil.Process()
         else:
@@ -332,17 +321,12 @@ class Test(UIDMixin, TestBase):
 
     @property
     def runtime_cfg(self) -> DynaBox:
-        """Get the simulation's runtime settings object."""
+        """Return the runtime settings section for this test."""
         return cast(DynaBox, self.cfg.run)
 
     @property
     def runtime_path(self) -> Path:
-        """
-        Get the simulation's runtime path.
-
-        The runtime referes to the path where compilation database and run logs
-        are dumped by default by the simulator.
-        """
+        """Return the resolved runtime directory for this test instance."""
         path = cast(str | Path, self.runtime_cfg.get("logs.path"))
 
         if isinstance(path, str):
@@ -352,13 +336,13 @@ class Test(UIDMixin, TestBase):
 
     @property
     def runtime_logs(self):
-        """Get the simulation's configured runtime path for ouput logs."""
+        """Return the path where the simulator writes log files."""
         log_dir = cast(str | Path, self.runtime_cfg.get("logs.directory"))
         return self.runtime_path / log_dir
 
     @property
     def dirname(self):
-        """The simulation's runtime directory name."""
+        """Return the directory name derived from the test identifier."""
         return Path(self.command.test).with_suffix("")
 
     @override
@@ -423,17 +407,12 @@ class Test(UIDMixin, TestBase):
 
     @override
     def kill(self) -> None:
-        """Kill the process with signal SIGKILL.
-
-        Try using terminate prior to calling this method as kill does not allow
-        the process to clean up properly on exit and terminate nicely.
-
-        Kill should only ever be used when you NEED the process gone ASAP.
-        """
+        """Kill the process with SIGKILL as a last resort."""
         if self.running:
             self.process.kill()
 
     def _parse_result(self) -> TestResult:
+        """Map the subprocess return code to a ``TestResult`` enum."""
         return TestResult.Failed if self.returncode != 0 else TestResult.Passed
 
     def __hash__(self) -> int:
@@ -487,7 +466,7 @@ class TestStatus(IntEnum):
         Test is currently running.
 
     Stopped: IntEnum
-        Test has been stopped intentionaly.
+        Test has been stopped intentionally.
 
     Finished: IntEnum
         Test had finished running normally with an exit code 0.

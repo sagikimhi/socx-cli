@@ -1,3 +1,5 @@
+"""Convenience exports for mixins used by SoCX TUI components."""
+
 __all__ = ("Composable",)
 
 
