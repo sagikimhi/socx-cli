@@ -1,90 +1,92 @@
 # socx
 
+Aggregate public SoCX APIs to provide a concise import surface.
+
 Modules:
 
-- **`cli`** –
-- **`cli_cfg`** –
-- **`config`** –
-- **`console`** –
-- **`io`** –
-- **`log`** –
-- **`patterns`** –
-- **`regression`** –
+- **`cli`** – Expose primary CLI entry points and shared helpers.
+- **`cli_cfg`** – Configuration and theme defaults for the SoCX CLI.
+- **`config`** – Aggregate configuration utilities and metadata for SoCX.
+- **`console`** – Preconfigured Rich console used throughout SoCX.
+- **`io`** – Expose logging, console, and decorator utilities for I/O facilities.
+- **`log`** – Logging helpers that standardise Rich-powered output across SoCX.
+- **`patterns`** – Expose reusable design-pattern utilities leveraged throughout SoCX.
+- **`regression`** – Expose regression primitives for use throughout SoCX.
 
 Classes:
 
-- **`BottomUpTraversal`** –
-- **`ByLevelTraversal`** –
-- **`CompileConverter`** –
-- **`Converter`** –
-- **`Formatter`** –
-- **`ImportConverter`** –
-- **`Level`** –
-- **`Node`** –
-- **`PathConverter`** –
+- **`BottomUpTraversal`** – Post-order traversal that visits descendants before parents.
+- **`ByLevelTraversal`** – Breadth-first traversal that visits nodes one level at a time.
+- **`CompileConverter`** – Compile python source files referenced in configuration values.
+- **`Converter`** – Base protocol for Dynaconf converters used by SoCX.
+- **`Formatter`** – Base callable used to format configuration objects for display.
+- **`ImportConverter`** – Import modules referenced in configuration entries.
+- **`Level`** – Log level enumeration mirroring the standard library constants.
+- **`Node`** – Protocol for nodes that accept visitors.
+- **`PathConverter`** – Resolve string inputs into concrete filesystem paths.
 - **`PtrMixin`** – Pointer mixin class.
-- **`Regression`** –
+- **`Regression`** – Manage and execute a collection of tests with concurrency control.
 - **`Singleton`** – Mixin class for creating singleton classes.
-- **`Structure`** –
-- **`SymbolConverter`** –
+- **`Structure`** – Protocol for structures exposing child relationships.
+- **`SymbolConverter`** – Resolve dotted path:attribute references or file symbols.
 - **`Test`** – Holds information about a test.
-- **`TestBase`** –
-- **`TestCommand`** – Representation of a 'run test' command-line as an object.
+- **`TestBase`** – Provide common process-management behaviour for regression tests.
+- **`TestCommand`** – Represent a test invocation parsed from a command-line string.
 - **`TestResult`** – Represents the result of a test that had finished and exited normally.
 - **`TestStatus`** – TestStatus representation of a test process as an IntEnum.
-- **`TopDownTraversal`** –
-- **`Traversal`** – An adapter for a Node accepting visits of NODE from a Visitor.
-- **`TreeFormatter`** –
+- **`TopDownTraversal`** – Pre-order traversal that visits parents before descendants.
+- **`Traversal`** – Adapter interface that controls how nodes accept visitors.
+- **`TreeFormatter`** – Format Dynaconf settings into an inspectable tree view.
 - **`UIDMixin`** – Unique instance ID mixin class.
-- **`Visitor`** –
+- **`Visitor`** – Protocol describing objects that can visit nodes.
 
 Functions:
 
-- **`add_converters`** –
-- **`add_filter`** – See documentation of builtin logging.addFilter function.
-- **`add_handler`** – See documentation of builtin logging.addHandler function.
-- **`add_options`** –
-- **`get_converters`** –
-- **`get_handler`** – See documentation of builtin logging.getHandler function.
-- **`get_handler_names`** – See documentation of builtin logging.getHandlerNames function.
-- **`get_level`** – See documentation of builtin logging.getLevel function.
-- **`get_logger`** – Get a pretty printing log handler.
-- **`global_options`** –
-- **`has_handlers`** – See documentation of builtin logging.hasHandler function.
-- **`is_enabled_for`** – See documentation of builtin logging.isEnabledFor function.
+- **`add_converters`** – Register converters with Dynaconf using their inferred names.
+- **`add_filter`** – Attach a filter to the module-level logger.
+- **`add_handler`** – Attach handler to the module-level logger.
+- **`add_options`** – Compose multiple option decorators into a single decorator.
+- **`get_converters`** – Yield converter registrations, wrapping raw callables as needed.
+- **`get_handler`** – Return a handler registered under name if one exists.
+- **`get_handler_names`** – Return the names of all registered logging handlers.
+- **`get_level`** – Return the effective log level for logger\_ as a Level enum.
+- **`get_logger`** – Return a child logger configured with optional file output.
+- **`global_options`** – Apply the standard set of global SoCX CLI options.
+- **`has_handlers`** – Return True if the module-level logger has active handlers.
+- **`is_enabled_for`** – Return True if the module-level logger handles level.
 - **`log_it`** – Add automatic entered/returned logging to decorated callables.
-- **`remove_filter`** – See documentation of builtin logging.removeFilter function.
-- **`remove_handler`** – See documentation of builtin logging.removeHandler function.
-- **`set_level`** – See documentation of builtin logging.setLevel function.
-- **`validate_all`** –
+- **`remove_filter`** – Detach a filter from the module-level logger.
+- **`remove_handler`** – Remove handler from the module-level logger.
+- **`set_level`** – Set the log level on the provided logger (defaults to module logger).
+- **`validate_all`** – Run validation against all registered validators.
 
 Attributes:
 
-- **`APP_CONFIG_DIR`** (`UPath`) – Path to application's settings files directory.
-- **`APP_CONFIG_FILE`** (`UPath`) – File path to application's main settings file.
-- **`APP_STATIC_DIR`** (`UPath`) – Path to application's static files directory.
-- **`APP_TEMPLATES_DIR`** (`UPath`) – Path to application's template files directory.
+- **`APP_CONFIG_DIR`** (`Path`) – Path to application's settings files directory.
+- **`APP_CONFIG_FILE`** (`Path`) – File path to application's main settings file.
+- **`APP_STATIC_DIR`** (`Path`) – Path to application's static files directory.
+- **`APP_TEMPLATES_DIR`** (`Path`) – Path to application's template files directory.
 - **`AnyCallable`** –
-- **`DEFAULT_FORMAT`** (`Final[str]`) – Default logger message format.
-- **`DEFAULT_HANDLERS`** (`Final[list[Handler]]`) – Default logging handlers of this module's default logger.
+- **`DEFAULT_FORMAT`** (`Final[str]`) – Default log message format used by the root handler.
+- **`DEFAULT_HANDLERS`** (`Final[list[Handler]]`) – Handlers attached to the module-level logger by default.
 - **`DEFAULT_LEVEL`** (`Final[Level]`) – Default logger level, a.k.a verbosity.
-- **`DEFAULT_TIME_FORMAT`** (`Final[str]`) – Default logger date format logs.
+- **`DEFAULT_TIME_FORMAT`** (`Final[str]`) – Default timestamp format injected into log records.
 - **`Decorator`** –
-- **`USER_CACHE_DIR`** (`Final[UPath]`) – Absolute path to platform's native application cache directory.
-- **`USER_CONFIG_DIR`** (`Final[UPath]`) – Absolute path to platform's native application config directory.
-- **`USER_CONFIG_FILE`** (`UPath`) – Absolute path to application's user config file.
-- **`USER_DATA_DIR`** (`Final[UPath]`) – Absolute path to platform's native application data directory.
-- **`USER_LOG_DIR`** (`Final[UPath]`) – Absolute path to platform's native application logs directory.
-- **`USER_LOG_FILE`** (`UPath`) – Absolute path to application's main log for the current local user.
-- **`USER_RUNTIME_DIR`** (`Final[UPath]`) – Absolute path to platform's native application runtime directory.
-- **`USER_STATE_DIR`** (`Final[UPath]`) – Absolute path to platform's native application state directory.
+- **`USER_CACHE_DIR`** (`Path`) – Absolute path to platform's native application cache directory.
+- **`USER_CONFIG_DIR`** (`Path`) – Absolute path to platform's native application config directory.
+- **`USER_CONFIG_FILE`** (`Path`) – Absolute path to application's user config file.
+- **`USER_DATA_DIR`** (`Path`) – Absolute path to platform's native application data directory.
+- **`USER_LOG_DIR`** (`Path`) – Absolute path to platform's native application logs directory.
+- **`USER_LOG_FILE`** (`Path`) – Absolute path to application's main log for the current local user.
+- **`USER_RUNTIME_DIR`** (`Path`) – Absolute path to platform's native application runtime directory.
+- **`USER_STATE_DIR`** (`Path`) – Absolute path to platform's native application state directory.
 - **`logger`** – Default logging handler.
 - **`settings`** (`Settings`) –
 
 ## APP_CONFIG_DIR
 
 ```
-APP_CONFIG_DIR: UPath = APP_STATIC_DIR / 'settings'
+APP_CONFIG_DIR: Path = APP_STATIC_DIR / 'settings'
 ```
 
 Path to application's settings files directory.
@@ -92,7 +94,7 @@ Path to application's settings files directory.
 ## APP_CONFIG_FILE
 
 ```
-APP_CONFIG_FILE: UPath = APP_CONFIG_DIR / 'settings.yaml'
+APP_CONFIG_FILE: Path = APP_CONFIG_DIR / 'settings.yaml'
 ```
 
 File path to application's main settings file.
@@ -100,7 +102,7 @@ File path to application's main settings file.
 ## APP_STATIC_DIR
 
 ```
-APP_STATIC_DIR: UPath = __directory__ / 'static'
+APP_STATIC_DIR: Path = __directory__ / 'static'
 ```
 
 Path to application's static files directory.
@@ -108,7 +110,7 @@ Path to application's static files directory.
 ## APP_TEMPLATES_DIR
 
 ```
-APP_TEMPLATES_DIR: UPath = __directory__ / 'templates'
+APP_TEMPLATES_DIR: Path = __directory__ / 'templates'
 ```
 
 Path to application's template files directory.
@@ -127,7 +129,7 @@ DEFAULT_FORMAT: Final[str] = get(
 )
 ```
 
-Default logger message format.
+Default log message format used by the root handler.
 
 ## DEFAULT_HANDLERS
 
@@ -140,7 +142,7 @@ DEFAULT_HANDLERS: Final[list[Handler]] = [
 ]
 ```
 
-Default logging handlers of this module's default `logger`.
+Handlers attached to the module-level logger by default.
 
 ## DEFAULT_LEVEL
 
@@ -160,7 +162,7 @@ DEFAULT_TIME_FORMAT: Final[str] = get(
 )
 ```
 
-Default logger date format logs.
+Default timestamp format injected into log records.
 
 ## Decorator
 
@@ -171,7 +173,7 @@ Decorator = Callable[[FuncType], FuncType]
 ## USER_CACHE_DIR
 
 ```
-USER_CACHE_DIR: Final[UPath] = resolve()
+USER_CACHE_DIR: Path = resolve()
 ```
 
 Absolute path to platform's native application cache directory.
@@ -179,7 +181,7 @@ Absolute path to platform's native application cache directory.
 ## USER_CONFIG_DIR
 
 ```
-USER_CONFIG_DIR: Final[UPath] = resolve()
+USER_CONFIG_DIR: Path = resolve()
 ```
 
 Absolute path to platform's native application config directory.
@@ -187,7 +189,7 @@ Absolute path to platform's native application config directory.
 ## USER_CONFIG_FILE
 
 ```
-USER_CONFIG_FILE: UPath = (
+USER_CONFIG_FILE: Path = (
     USER_CONFIG_DIR / USER_CONFIG_FILENAME
 )
 ```
@@ -197,7 +199,7 @@ Absolute path to application's user config file.
 ## USER_DATA_DIR
 
 ```
-USER_DATA_DIR: Final[UPath] = resolve()
+USER_DATA_DIR: Path = resolve()
 ```
 
 Absolute path to platform's native application data directory.
@@ -205,7 +207,7 @@ Absolute path to platform's native application data directory.
 ## USER_LOG_DIR
 
 ```
-USER_LOG_DIR: Final[UPath] = resolve()
+USER_LOG_DIR: Path = resolve()
 ```
 
 Absolute path to platform's native application logs directory.
@@ -213,7 +215,7 @@ Absolute path to platform's native application logs directory.
 ## USER_LOG_FILE
 
 ```
-USER_LOG_FILE: UPath = USER_LOG_DIR / USER_LOG_FILENAME
+USER_LOG_FILE: Path = USER_LOG_DIR / USER_LOG_FILENAME
 ```
 
 Absolute path to application's main log for the current local user.
@@ -221,7 +223,7 @@ Absolute path to application's main log for the current local user.
 ## USER_RUNTIME_DIR
 
 ```
-USER_RUNTIME_DIR: Final[UPath] = resolve()
+USER_RUNTIME_DIR: Path = resolve()
 ```
 
 Absolute path to platform's native application runtime directory.
@@ -229,7 +231,7 @@ Absolute path to platform's native application runtime directory.
 ## USER_STATE_DIR
 
 ```
-USER_STATE_DIR: Final[UPath] = resolve()
+USER_STATE_DIR: Path = resolve()
 ```
 
 Absolute path to platform's native application state directory.
@@ -254,9 +256,11 @@ settings: Settings = get_settings()
 
 ## BottomUpTraversal
 
+Post-order traversal that visits descendants before parents.
+
 Methods:
 
-- **`accept`** – Accept visits of a NODE n from a Visitor v.
+- **`accept`** – Traverse child subtrees prior to visiting n.
 
 ### accept
 
@@ -266,14 +270,14 @@ accept(
 ) -> None
 ```
 
-Accept visits of a `NODE` n from a `Visitor` v.
+Traverse child subtrees prior to visiting `n`.
 
 Source code in `src/socx/patterns/visitor/traversal.py`
 
 ```
 @classmethod
 def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
-    """Accept visits of a `NODE` n from a `Visitor` v."""
+    """Traverse child subtrees prior to visiting ``n``."""
     for c in p.children(n):
         cls.accept(c, v, p)
 
@@ -282,9 +286,11 @@ def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
 
 ## ByLevelTraversal
 
+Breadth-first traversal that visits nodes one level at a time.
+
 Methods:
 
-- **`accept`** – Accept visits of a NODE n from a Visitor v.
+- **`accept`** – Walk the structure level-by-level starting from n.
 
 ### accept
 
@@ -294,14 +300,14 @@ accept(
 ) -> None
 ```
 
-Accept visits of a `NODE` n from a `Visitor` v.
+Walk the structure level-by-level starting from `n`.
 
 Source code in `src/socx/patterns/visitor/traversal.py`
 
 ```
 @classmethod
 def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
-    """Accept visits of a `NODE` n from a `Visitor` v."""
+    """Walk the structure level-by-level starting from ``n``."""
     q: list[NODE] = [n]
 
     while q:
@@ -316,14 +322,16 @@ def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
 
 ## CompileConverter
 
+Compile python source files referenced in configuration values.
+
 Methods:
 
-- **`error`** –
-- **`exception`** –
+- **`error`** – Log a recoverable converter error message.
+- **`exception`** – Log a conversion failure with context for debugging.
 
 Attributes:
 
-- **`name`** (`str`) –
+- **`name`** (`str`) – Return the registered converter name inferred from the class.
 
 ### name
 
@@ -331,16 +339,21 @@ Attributes:
 name: str
 ```
 
+Return the registered converter name inferred from the class.
+
 ### error
 
 ```
 error(error: str) -> None
 ```
 
+Log a recoverable converter error message.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def error(self, error: str) -> None:
+    """Log a recoverable converter error message."""
     logger.error(f"Converter({self.name}): {error}")
 ```
 
@@ -350,10 +363,13 @@ def error(self, error: str) -> None:
 exception(value: str) -> None
 ```
 
+Log a conversion failure with context for debugging.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def exception(self, value: str) -> None:
+    """Log a conversion failure with context for debugging."""
     logger.exception(
         f"Converter({self.name}): failed to convert value '{value}'"
     )
@@ -361,14 +377,16 @@ def exception(self, value: str) -> None:
 
 ## Converter
 
+Base protocol for Dynaconf converters used by SoCX.
+
 Methods:
 
-- **`error`** –
-- **`exception`** –
+- **`error`** – Log a recoverable converter error message.
+- **`exception`** – Log a conversion failure with context for debugging.
 
 Attributes:
 
-- **`name`** (`str`) –
+- **`name`** (`str`) – Return the registered converter name inferred from the class.
 
 ### name
 
@@ -376,16 +394,21 @@ Attributes:
 name: str
 ```
 
+Return the registered converter name inferred from the class.
+
 ### error
 
 ```
 error(error: str) -> None
 ```
 
+Log a recoverable converter error message.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def error(self, error: str) -> None:
+    """Log a recoverable converter error message."""
     logger.error(f"Converter({self.name}): {error}")
 ```
 
@@ -395,10 +418,13 @@ def error(self, error: str) -> None:
 exception(value: str) -> None
 ```
 
+Log a conversion failure with context for debugging.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def exception(self, value: str) -> None:
+    """Log a conversion failure with context for debugging."""
     logger.exception(
         f"Converter({self.name}): failed to convert value '{value}'"
     )
@@ -406,16 +432,20 @@ def exception(self, value: str) -> None:
 
 ## Formatter
 
+Base callable used to format configuration objects for display.
+
 ## ImportConverter
+
+Import modules referenced in configuration entries.
 
 Methods:
 
-- **`error`** –
-- **`exception`** –
+- **`error`** – Log a recoverable converter error message.
+- **`exception`** – Log a conversion failure with context for debugging.
 
 Attributes:
 
-- **`name`** (`str`) –
+- **`name`** (`str`) – Return the registered converter name inferred from the class.
 
 ### name
 
@@ -423,16 +453,21 @@ Attributes:
 name: str
 ```
 
+Return the registered converter name inferred from the class.
+
 ### error
 
 ```
 error(error: str) -> None
 ```
 
+Log a recoverable converter error message.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def error(self, error: str) -> None:
+    """Log a recoverable converter error message."""
     logger.error(f"Converter({self.name}): {error}")
 ```
 
@@ -442,16 +477,21 @@ def error(self, error: str) -> None:
 exception(value: str) -> None
 ```
 
+Log a conversion failure with context for debugging.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def exception(self, value: str) -> None:
+    """Log a conversion failure with context for debugging."""
     logger.exception(
         f"Converter({self.name}): failed to convert value '{value}'"
     )
 ```
 
 ## Level
+
+Log level enumeration mirroring the standard library constants.
 
 Attributes:
 
@@ -514,6 +554,8 @@ WARNING = 30
 
 ## Node
 
+Protocol for nodes that accept visitors.
+
 Methods:
 
 - **`accept`** – Accept a visit from a Visitor.
@@ -536,14 +578,16 @@ def accept(self, v: Visitor[NODE]) -> None:
 
 ## PathConverter
 
+Resolve string inputs into concrete filesystem paths.
+
 Methods:
 
-- **`error`** –
-- **`exception`** –
+- **`error`** – Log a recoverable converter error message.
+- **`exception`** – Log a conversion failure with context for debugging.
 
 Attributes:
 
-- **`name`** (`str`) –
+- **`name`** (`str`) – Return the registered converter name inferred from the class.
 
 ### name
 
@@ -551,16 +595,21 @@ Attributes:
 name: str
 ```
 
+Return the registered converter name inferred from the class.
+
 ### error
 
 ```
 error(error: str) -> None
 ```
 
+Log a recoverable converter error message.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def error(self, error: str) -> None:
+    """Log a recoverable converter error message."""
     logger.error(f"Converter({self.name}): {error}")
 ```
 
@@ -570,10 +619,13 @@ def error(self, error: str) -> None:
 exception(value: str) -> None
 ```
 
+Log a conversion failure with context for debugging.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def exception(self, value: str) -> None:
+    """Log a conversion failure with context for debugging."""
     logger.exception(
         f"Converter({self.name}): failed to convert value '{value}'"
     )
@@ -587,11 +639,11 @@ Extending this class adds the `ref` property to subclass instances and the `dref
 
 Methods:
 
-- **`dref`** –
+- **`dref`** – Dereference a stored UID and return the tracked instance.
 
 Attributes:
 
-- **`ref`** (`int`) –
+- **`ref`** (`int`) – Return the object's assigned unique identifier.
 
 ### ref
 
@@ -599,17 +651,22 @@ Attributes:
 ref: int
 ```
 
+Return the object's assigned unique identifier.
+
 ### dref
 
 ```
 dref(ref: int) -> UIDBase | None
 ```
 
+Dereference a stored UID and return the tracked instance.
+
 Source code in `src/socx/patterns/mixins/uid.py`
 
 ```
 @classmethod
 def dref(cls, ref: int) -> UIDBase | None:
+    """Dereference a stored UID and return the tracked instance."""
     return UIDBase._get_inst(ref)
 ```
 
@@ -624,10 +681,12 @@ Regression(
 )
 ```
 
+Manage and execute a collection of tests with concurrency control.
+
 Methods:
 
 - **`accept`** – Accept a visit from a Visitor.
-- **`from_lines`** –
+- **`from_lines`** – Construct a regression from serialized command lines.
 - **`interrupt`** – Interrupt the execution of a running test with a SIGINT signal.
 - **`kill`** – Interrupt the execution of a running test with a SIGKILL signal.
 - **`resume`** – Resume the execution of a paused test.
@@ -638,19 +697,19 @@ Methods:
 
 Attributes:
 
-- **`cfg`** (`DynaBox`) – Regression settings accessed via property.
+- **`cfg`** (`DynaBox`) – Return the regression configuration namespace.
 - **`command`** (`TestCommand`) – Test execution command representation as an object.
-- **`finished_time`** (`str`) – Time measured at the end of a test.
+- **`finished_time`** (`str`) – Return the formatted timestamp captured when the test finished.
 - **`messages`** (`Queue`) –
-- **`name`** (`str`) – Name of a test.
-- **`options`** (`DynaBox`) – Regression settings accessed via property.
+- **`name`** (`str`) – Return the test's human readable name.
+- **`options`** (`DynaBox`) – Return the nested options block under the regression settings.
 - **`pending`** (`Queue`) –
-- **`pid`** (`int`) – Name of a test.
-- **`progress`** – The regression's progress.
-- **`result`** – Result of a finished test.
-- **`run_limit`** (`int`) – The max_runs_in_parallel configuration accessed via property.
-- **`started_time`** (`str`) – Time measured at the begining of a test.
-- **`status`** (`TestStatus`) – Status of a test.
+- **`pid`** (`int`) – Return the process identifier for the test's subprocess.
+- **`progress`** – Expose the Progress instance tracking regression status.
+- **`result`** – Return the result enum once a test has completed.
+- **`run_limit`** (`int`) – Return the maximum number of tests that may run concurrently.
+- **`started_time`** (`str`) – Return the formatted timestamp captured when the test started.
+- **`status`** (`TestStatus`) – Return the current lifecycle status of the test.
 - **`tests`** (`deque[Test]`) – An iterable of all tests defined in the regression.
 
 Source code in `src/socx/regression/regression.py`
@@ -691,7 +750,7 @@ def __init__(
 cfg: DynaBox
 ```
 
-Regression settings accessed via property.
+Return the regression configuration namespace.
 
 ### command
 
@@ -707,7 +766,7 @@ Test execution command representation as an object.
 finished_time: str
 ```
 
-Time measured at the end of a test.
+Return the formatted timestamp captured when the test finished.
 
 ### messages
 
@@ -721,7 +780,7 @@ messages: Queue = Queue()
 name: str
 ```
 
-Name of a test.
+Return the test's human readable name.
 
 ### options
 
@@ -729,7 +788,7 @@ Name of a test.
 options: DynaBox
 ```
 
-Regression settings accessed via property.
+Return the nested options block under the regression settings.
 
 ### pending
 
@@ -743,7 +802,7 @@ pending: Queue = Queue(run_limit)
 pid: int
 ```
 
-Name of a test.
+Return the process identifier for the test's subprocess.
 
 ### progress
 
@@ -751,7 +810,7 @@ Name of a test.
 progress
 ```
 
-The regression's progress.
+Expose the `Progress` instance tracking regression status.
 
 ### result
 
@@ -759,7 +818,7 @@ The regression's progress.
 result
 ```
 
-Result of a finished test.
+Return the result enum once a test has completed.
 
 ### run_limit
 
@@ -767,7 +826,7 @@ Result of a finished test.
 run_limit: int
 ```
 
-The max_runs_in_parallel configuration accessed via property.
+Return the maximum number of tests that may run concurrently.
 
 ### started_time
 
@@ -775,7 +834,7 @@ The max_runs_in_parallel configuration accessed via property.
 started_time: str
 ```
 
-Time measured at the begining of a test.
+Return the formatted timestamp captured when the test started.
 
 ### status
 
@@ -783,7 +842,7 @@ Time measured at the begining of a test.
 status: TestStatus
 ```
 
-Status of a test.
+Return the current lifecycle status of the test.
 
 ### tests
 
@@ -818,6 +877,8 @@ from_lines(
 ) -> Regression
 ```
 
+Construct a regression from serialized command lines.
+
 Source code in `src/socx/regression/regression.py`
 
 ```
@@ -825,6 +886,7 @@ Source code in `src/socx/regression/regression.py`
 def from_lines(
     cls, name: str, lines: Iterable[str], test_cls: type = Test
 ) -> Regression:
+    """Construct a regression from serialized command lines."""
     tests = [test_cls(line) for line in lines]
     return Regression(name, tests)
 ```
@@ -985,9 +1047,11 @@ Extending this class enforces the singleton pattern on the subclass.
 
 ## Structure
 
+Protocol for structures exposing child relationships.
+
 Methods:
 
-- **`children`** – Retrieve the immediate children of a node in a node.
+- **`children`** – Return the immediate children of s.
 
 ### children
 
@@ -995,14 +1059,14 @@ Methods:
 children(s: NODE) -> Iterable[NODE]
 ```
 
-Retrieve the immediate children of a node in a node.
+Return the immediate children of `s`.
 
 Source code in `src/socx/patterns/visitor/protocol.py`
 
 ```
 @classmethod
 def children(cls, s: NODE) -> Iterable[NODE]:
-    """Retrieve the immediate children of a node in a node."""
+    """Return the immediate children of ``s``."""
     ...
 ```
 
@@ -1012,17 +1076,19 @@ def children(cls, s: NODE) -> Iterable[NODE]:
 SymbolConverter()
 ```
 
+Resolve dotted `path:attribute` references or file symbols.
+
 Methods:
 
-- **`error`** –
-- **`exception`** –
+- **`error`** – Log a recoverable converter error message.
+- **`exception`** – Log a conversion failure with context for debugging.
 
 Attributes:
 
 - **`compiler`** –
 - **`evaluator`** –
 - **`importer`** –
-- **`name`** (`str`) –
+- **`name`** (`str`) – Return the registered converter name inferred from the class.
 
 Source code in `src/socx/config/converters.py`
 
@@ -1057,16 +1123,21 @@ importer = ImportConverter()
 name: str
 ```
 
+Return the registered converter name inferred from the class.
+
 ### error
 
 ```
 error(error: str) -> None
 ```
 
+Log a recoverable converter error message.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def error(self, error: str) -> None:
+    """Log a recoverable converter error message."""
     logger.error(f"Converter({self.name}): {error}")
 ```
 
@@ -1076,10 +1147,13 @@ def error(self, error: str) -> None:
 exception(value: str) -> None
 ```
 
+Log a conversion failure with context for debugging.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def exception(self, value: str) -> None:
+    """Log a conversion failure with context for debugging."""
     logger.exception(
         f"Converter({self.name}): failed to convert value '{value}'"
     )
@@ -1096,9 +1170,9 @@ Holds information about a test.
 Methods:
 
 - **`accept`** – Accept a visit from a Visitor.
-- **`dref`** –
+- **`dref`** – Dereference a stored UID and return the tracked instance.
 - **`interrupt`** – Interrupt the execution of a running test with a SIGINT signal.
-- **`kill`** – Kill the process with signal SIGKILL.
+- **`kill`** – Kill the process with SIGKILL as a last resort.
 - **`resume`** – Resume the process if it is paused (sends a SIGCONT signal).
 - **`start`** – Start a test in a subprocess.
 - **`suspend`** – Send a SIGSTOP signal to suspend the test's running process.
@@ -1107,36 +1181,36 @@ Methods:
 
 Attributes:
 
-- **`build`** (`str`) – Randomization build of a test's RNG.
+- **`build`** (`str`) – Return the randomisation build identifier, if provided.
 - **`cfg`** (`DynaBox`) –
 - **`command`** (`TestCommand`) – Test execution command representation as an object.
-- **`dirname`** – The simulation's runtime directory name.
-- **`failed`** (`bool`) – True if test finished running and at least one error occured.
-- **`finished`** (`bool`) – True if test finished running without normally interruption.
-- **`finished_time`** (`str`) – Time measured at the end of a test.
-- **`flow`** (`str`) – The selected execution flow of the test.
+- **`dirname`** – Return the directory name derived from the test identifier.
+- **`failed`** (`bool`) – Return True if the test finished with a failure result.
+- **`finished`** (`bool`) – Return True if the test completed and recorded a result.
+- **`finished_time`** (`str`) – Return the formatted timestamp captured when the test finished.
+- **`flow`** (`str`) – Return the execution flow name extracted from the command.
 - **`idle`** (`bool`) – True if test has no active process and has not yet started.
-- **`name`** (`str`) – Name of a test.
-- **`passed`** (`bool`) – True if test has finished running and no errors occured.
-- **`pending`** – The test is scheduled to be started soon but has not yet started.
-- **`pid`** (`int`) – Name of a test.
-- **`process`** (`Process`) – The active process of the running test or None if not running.
-- **`ref`** (`int`) –
-- **`result`** – Result of a finished test.
+- **`name`** (`str`) – Return the test's human readable name.
+- **`passed`** (`bool`) – Return True if the test finished successfully.
+- **`pending`** – Return True if the test is queued but not yet running.
+- **`pid`** (`int`) – Return the process identifier for the test's subprocess.
+- **`process`** (`Process`) – Return a psutil.Process wrapper for the test's subprocess.
+- **`ref`** (`int`) – Return the object's assigned unique identifier.
+- **`result`** – Return the result enum once a test has completed.
 - **`returncode`** (`int | None`) – The return code from the test process or None if running or idle.
 - **`running`** (`bool`) – True if test is currently running in a dedicated process.
-- **`runtime_cfg`** (`DynaBox`) – Get the simulation's runtime settings object.
-- **`runtime_logs`** – Get the simulation's configured runtime path for ouput logs.
-- **`runtime_path`** (`Path`) – Get the simulation's runtime path.
-- **`seed`** (`int`) – Randomization seed of a test's RNG.
-- **`started`** (`bool`) – True if test was started via a prior call to method start.
-- **`started_time`** (`str`) – Time measured at the begining of a test.
-- **`status`** (`TestStatus`) – Status of a test.
-- **`stderr`** (`str | None`) – The standard error of the test's process or None if not running.
-- **`stdin`** (`str | None`) – The standard input of the test's process or None if not running.
-- **`stdout`** (`str | None`) – The standard output of the test's process or None if not running.
-- **`suspended`** (`bool`) – True if test was started via a prior call to method start.
-- **`terminated`** (`bool`) – True if test started but was intentionaly terminated.
+- **`runtime_cfg`** (`DynaBox`) – Return the runtime settings section for this test.
+- **`runtime_logs`** – Return the path where the simulator writes log files.
+- **`runtime_path`** (`Path`) – Return the resolved runtime directory for this test instance.
+- **`seed`** (`int`) – Return the randomisation seed for the test.
+- **`started`** (`bool`) – Return True once start has spawned the subprocess.
+- **`started_time`** (`str`) – Return the formatted timestamp captured when the test started.
+- **`status`** (`TestStatus`) – Return the current lifecycle status of the test.
+- **`stderr`** (`str | None`) – Return captured standard error once the test has finished.
+- **`stdin`** (`str | None`) – Return None; subclasses may override to expose stdin.
+- **`stdout`** (`str | None`) – Return captured standard output once the test has finished.
+- **`suspended`** (`bool`) – Return True if the subprocess is currently stopped.
+- **`terminated`** (`bool`) – Return True if the test ended due to termination signals.
 - **`uid`** (`property`) –
 
 Source code in `src/socx/regression/test.py`
@@ -1168,7 +1242,7 @@ def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
 build: str
 ```
 
-Randomization build of a test's RNG.
+Return the randomisation build identifier, if provided.
 
 ### cfg
 
@@ -1190,7 +1264,7 @@ Test execution command representation as an object.
 dirname
 ```
 
-The simulation's runtime directory name.
+Return the directory name derived from the test identifier.
 
 ### failed
 
@@ -1198,7 +1272,7 @@ The simulation's runtime directory name.
 failed: bool
 ```
 
-True if test finished running and at least one error occured.
+Return `True` if the test finished with a failure result.
 
 ### finished
 
@@ -1206,7 +1280,7 @@ True if test finished running and at least one error occured.
 finished: bool
 ```
 
-True if test finished running without normally interruption.
+Return `True` if the test completed and recorded a result.
 
 ### finished_time
 
@@ -1214,7 +1288,7 @@ True if test finished running without normally interruption.
 finished_time: str
 ```
 
-Time measured at the end of a test.
+Return the formatted timestamp captured when the test finished.
 
 ### flow
 
@@ -1222,7 +1296,7 @@ Time measured at the end of a test.
 flow: str
 ```
 
-The selected execution flow of the test.
+Return the execution flow name extracted from the command.
 
 ### idle
 
@@ -1238,7 +1312,7 @@ True if test has no active process and has not yet started.
 name: str
 ```
 
-Name of a test.
+Return the test's human readable name.
 
 ### passed
 
@@ -1246,7 +1320,7 @@ Name of a test.
 passed: bool
 ```
 
-True if test has finished running and no errors occured.
+Return `True` if the test finished successfully.
 
 ### pending
 
@@ -1254,7 +1328,7 @@ True if test has finished running and no errors occured.
 pending
 ```
 
-The test is scheduled to be started soon but has not yet started.
+Return `True` if the test is queued but not yet running.
 
 ### pid
 
@@ -1262,7 +1336,7 @@ The test is scheduled to be started soon but has not yet started.
 pid: int
 ```
 
-Name of a test.
+Return the process identifier for the test's subprocess.
 
 ### process
 
@@ -1270,7 +1344,7 @@ Name of a test.
 process: Process
 ```
 
-The active process of the running test or None if not running.
+Return a `psutil.Process` wrapper for the test's subprocess.
 
 ### ref
 
@@ -1278,13 +1352,15 @@ The active process of the running test or None if not running.
 ref: int
 ```
 
+Return the object's assigned unique identifier.
+
 ### result
 
 ```
 result
 ```
 
-Result of a finished test.
+Return the result enum once a test has completed.
 
 ### returncode
 
@@ -1308,7 +1384,7 @@ True if test is currently running in a dedicated process.
 runtime_cfg: DynaBox
 ```
 
-Get the simulation's runtime settings object.
+Return the runtime settings section for this test.
 
 ### runtime_logs
 
@@ -1316,7 +1392,7 @@ Get the simulation's runtime settings object.
 runtime_logs
 ```
 
-Get the simulation's configured runtime path for ouput logs.
+Return the path where the simulator writes log files.
 
 ### runtime_path
 
@@ -1324,9 +1400,7 @@ Get the simulation's configured runtime path for ouput logs.
 runtime_path: Path
 ```
 
-Get the simulation's runtime path.
-
-The runtime referes to the path where compilation database and run logs are dumped by default by the simulator.
+Return the resolved runtime directory for this test instance.
 
 ### seed
 
@@ -1334,7 +1408,7 @@ The runtime referes to the path where compilation database and run logs are dump
 seed: int
 ```
 
-Randomization seed of a test's RNG.
+Return the randomisation seed for the test.
 
 ### started
 
@@ -1342,7 +1416,7 @@ Randomization seed of a test's RNG.
 started: bool
 ```
 
-True if test was started via a prior call to method `start`.
+Return `True` once `start` has spawned the subprocess.
 
 ### started_time
 
@@ -1350,7 +1424,7 @@ True if test was started via a prior call to method `start`.
 started_time: str
 ```
 
-Time measured at the begining of a test.
+Return the formatted timestamp captured when the test started.
 
 ### status
 
@@ -1358,7 +1432,7 @@ Time measured at the begining of a test.
 status: TestStatus
 ```
 
-Status of a test.
+Return the current lifecycle status of the test.
 
 ### stderr
 
@@ -1366,7 +1440,7 @@ Status of a test.
 stderr: str | None
 ```
 
-The standard error of the test's process or None if not running.
+Return captured standard error once the test has finished.
 
 ### stdin
 
@@ -1374,7 +1448,7 @@ The standard error of the test's process or None if not running.
 stdin: str | None
 ```
 
-The standard input of the test's process or None if not running.
+Return `None`; subclasses may override to expose stdin.
 
 ### stdout
 
@@ -1382,7 +1456,7 @@ The standard input of the test's process or None if not running.
 stdout: str | None
 ```
 
-The standard output of the test's process or None if not running.
+Return captured standard output once the test has finished.
 
 ### suspended
 
@@ -1390,7 +1464,7 @@ The standard output of the test's process or None if not running.
 suspended: bool
 ```
 
-True if test was started via a prior call to method `start`.
+Return `True` if the subprocess is currently stopped.
 
 ### terminated
 
@@ -1398,7 +1472,7 @@ True if test was started via a prior call to method `start`.
 terminated: bool
 ```
 
-True if test started but was intentionaly terminated.
+Return `True` if the test ended due to termination signals.
 
 ### uid
 
@@ -1433,11 +1507,14 @@ def accept(self, v: Visitor[TestABC]) -> None:
 dref(ref: int) -> UIDBase | None
 ```
 
+Dereference a stored UID and return the tracked instance.
+
 Source code in `src/socx/patterns/mixins/uid.py`
 
 ```
 @classmethod
 def dref(cls, ref: int) -> UIDBase | None:
+    """Dereference a stored UID and return the tracked instance."""
     return UIDBase._get_inst(ref)
 ```
 
@@ -1463,24 +1540,14 @@ def interrupt(self) -> None:
 kill() -> None
 ```
 
-Kill the process with signal SIGKILL.
-
-Try using terminate prior to calling this method as kill does not allow the process to clean up properly on exit and terminate nicely.
-
-Kill should only ever be used when you NEED the process gone ASAP.
+Kill the process with SIGKILL as a last resort.
 
 Source code in `src/socx/regression/test.py`
 
 ```
 @override
 def kill(self) -> None:
-    """Kill the process with signal SIGKILL.
-
-    Try using terminate prior to calling this method as kill does not allow
-    the process to clean up properly on exit and terminate nicely.
-
-    Kill should only ever be used when you NEED the process gone ASAP.
-    """
+    """Kill the process with SIGKILL as a last resort."""
     if self.running:
         self.process.kill()
 ```
@@ -1611,6 +1678,8 @@ def wait(self, timeout: float | None = None) -> None:
 TestBase(command: str | TestCommand, *args, **kwargs)
 ```
 
+Provide common process-management behaviour for regression tests.
+
 Methods:
 
 - **`accept`** – Accept a visit from a Visitor.
@@ -1625,12 +1694,12 @@ Methods:
 Attributes:
 
 - **`command`** (`TestCommand`) – Test execution command representation as an object.
-- **`finished_time`** (`str`) – Time measured at the end of a test.
-- **`name`** (`str`) – Name of a test.
-- **`pid`** (`int`) – Name of a test.
-- **`result`** – Result of a finished test.
-- **`started_time`** (`str`) – Time measured at the begining of a test.
-- **`status`** (`TestStatus`) – Status of a test.
+- **`finished_time`** (`str`) – Return the formatted timestamp captured when the test finished.
+- **`name`** (`str`) – Return the test's human readable name.
+- **`pid`** (`int`) – Return the process identifier for the test's subprocess.
+- **`result`** – Return the result enum once a test has completed.
+- **`started_time`** (`str`) – Return the formatted timestamp captured when the test started.
+- **`status`** (`TestStatus`) – Return the current lifecycle status of the test.
 
 Source code in `src/socx/regression/test.py`
 
@@ -1663,7 +1732,7 @@ Test execution command representation as an object.
 finished_time: str
 ```
 
-Time measured at the end of a test.
+Return the formatted timestamp captured when the test finished.
 
 ### name
 
@@ -1671,7 +1740,7 @@ Time measured at the end of a test.
 name: str
 ```
 
-Name of a test.
+Return the test's human readable name.
 
 ### pid
 
@@ -1679,7 +1748,7 @@ Name of a test.
 pid: int
 ```
 
-Name of a test.
+Return the process identifier for the test's subprocess.
 
 ### result
 
@@ -1687,7 +1756,7 @@ Name of a test.
 result
 ```
 
-Result of a finished test.
+Return the result enum once a test has completed.
 
 ### started_time
 
@@ -1695,7 +1764,7 @@ Result of a finished test.
 started_time: str
 ```
 
-Time measured at the begining of a test.
+Return the formatted timestamp captured when the test started.
 
 ### status
 
@@ -1703,7 +1772,7 @@ Time measured at the begining of a test.
 status: TestStatus
 ```
 
-Status of a test.
+Return the current lifecycle status of the test.
 
 ### accept
 
@@ -1840,26 +1909,12 @@ def wait(self, timeout: float | None = None) -> None:
 TestCommand(line: str | TestCommand)
 ```
 
-Representation of a 'run test' command-line as an object.
-
-#### Members
-
-line: str Full commandline string of the command represented by this object.
-
-str
-
-Name of the command represented by this object, i.e. sys.argv[0].
-
-str
-
-Escaped version of the original commandline string after shlex.quote has been applied.
-
-arguments: list[str] Arguments of the command represented by this object split by whitespace.
+Represent a test invocation parsed from a command-line string.
 
 Methods:
 
-- **`dref`** –
-- **`extract_argv`** –
+- **`dref`** – Dereference a stored UID and return the tracked instance.
+- **`extract_argv`** – Return the value that follows the requested CLI argument.
 
 Attributes:
 
@@ -1867,7 +1922,7 @@ Attributes:
 - **`escaped`** (`str`) –
 - **`line`** (`str`) –
 - **`name`** (`str`) –
-- **`ref`** (`int`) –
+- **`ref`** (`int`) – Return the object's assigned unique identifier.
 - **`uid`** (`property`) –
 
 Source code in `src/socx/regression/test.py`
@@ -1916,6 +1971,8 @@ name: str = arguments[0] if arguments else ''
 ref: int
 ```
 
+Return the object's assigned unique identifier.
+
 ### uid
 
 ```
@@ -1932,11 +1989,14 @@ uid: property = field(
 dref(ref: int) -> UIDBase | None
 ```
 
+Dereference a stored UID and return the tracked instance.
+
 Source code in `src/socx/patterns/mixins/uid.py`
 
 ```
 @classmethod
 def dref(cls, ref: int) -> UIDBase | None:
+    """Dereference a stored UID and return the tracked instance."""
     return UIDBase._get_inst(ref)
 ```
 
@@ -1946,10 +2006,13 @@ def dref(cls, ref: int) -> UIDBase | None:
 extract_argv(arg: str) -> str | None
 ```
 
+Return the value that follows the requested CLI argument.
+
 Source code in `src/socx/regression/test.py`
 
 ```
 def extract_argv(self, arg: str) -> str | None:
+    """Return the value that follows the requested CLI argument."""
     for i, attr in enumerate(self.arguments):
         if attr.startswith("--") or attr.startswith("-"):
             if attr == arg and i + 1 < len(self.arguments):
@@ -2025,7 +2088,7 @@ Test is currently running.
 
 IntEnum
 
-Test has been stopped intentionaly.
+Test has been stopped intentionally.
 
 IntEnum
 
@@ -2082,9 +2145,11 @@ Terminated = auto()
 
 ## TopDownTraversal
 
+Pre-order traversal that visits parents before descendants.
+
 Methods:
 
-- **`accept`** – Accept visits of a NODE n from a Visitor v.
+- **`accept`** – Visit n before recursively traversing its children.
 
 ### accept
 
@@ -2094,14 +2159,14 @@ accept(
 ) -> None
 ```
 
-Accept visits of a `NODE` n from a `Visitor` v.
+Visit `n` before recursively traversing its children.
 
 Source code in `src/socx/patterns/visitor/traversal.py`
 
 ```
 @classmethod
 def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
-    """Accept visits of a `NODE` n from a `Visitor` v."""
+    """Visit ``n`` before recursively traversing its children."""
     v.visit(n)
 
     for c in p.children(n):
@@ -2110,7 +2175,7 @@ def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
 
 ## Traversal
 
-An adapter for a `Node` accepting visits of `NODE` from a `Visitor`.
+Adapter interface that controls how nodes accept visitors.
 
 Methods:
 
@@ -2137,6 +2202,8 @@ def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
 
 ## TreeFormatter
 
+Format Dynaconf settings into an inspectable tree view.
+
 ## UIDMixin
 
 ```
@@ -2149,11 +2216,11 @@ Extending this class assigns a unique instance id to all instances of the extend
 
 Methods:
 
-- **`dref`** –
+- **`dref`** – Dereference a stored UID and return the tracked instance.
 
 Attributes:
 
-- **`ref`** (`int`) –
+- **`ref`** (`int`) – Return the object's assigned unique identifier.
 - **`uid`** (`property`) –
 
 ### ref
@@ -2161,6 +2228,8 @@ Attributes:
 ```
 ref: int
 ```
+
+Return the object's assigned unique identifier.
 
 ### uid
 
@@ -2178,15 +2247,20 @@ uid: property = field(
 dref(ref: int) -> UIDBase | None
 ```
 
+Dereference a stored UID and return the tracked instance.
+
 Source code in `src/socx/patterns/mixins/uid.py`
 
 ```
 @classmethod
 def dref(cls, ref: int) -> UIDBase | None:
+    """Dereference a stored UID and return the tracked instance."""
     return UIDBase._get_inst(ref)
 ```
 
 ## Visitor
+
+Protocol describing objects that can visit nodes.
 
 Methods:
 
@@ -2214,10 +2288,13 @@ def visit(self, n: NODE) -> None:
 add_converters(converters: Iterable[Converter]) -> None
 ```
 
+Register converters with Dynaconf using their inferred names.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def add_converters(converters: Iterable[Converter]) -> None:
+    """Register converters with Dynaconf using their inferred names."""
     for converter in converters:
         add_converter(converter.name, converter)
 ```
@@ -2228,13 +2305,13 @@ def add_converters(converters: Iterable[Converter]) -> None:
 add_filter(filter: Filter) -> None
 ```
 
-See documentation of builtin `logging.addFilter` function.
+Attach a filter to the module-level logger.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def add_filter(filter: logging.Filter) -> None:  # noqa: A002
-    """See documentation of builtin `logging.addFilter` function."""
+    """Attach a filter to the module-level logger."""
     logger.addFilter(filter)
 ```
 
@@ -2244,13 +2321,13 @@ def add_filter(filter: logging.Filter) -> None:  # noqa: A002
 add_handler(handler: Handler) -> None
 ```
 
-See documentation of builtin `logging.addHandler` function.
+Attach `handler` to the module-level logger.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def add_handler(handler: logging.Handler) -> None:
-    """See documentation of builtin `logging.addHandler` function."""
+    """Attach ``handler`` to the module-level logger."""
     logger.addHandler(handler)
 ```
 
@@ -2260,10 +2337,14 @@ def add_handler(handler: logging.Handler) -> None:
 add_options(*options: Any) -> Decorator[AnyCallable]
 ```
 
+Compose multiple option decorators into a single decorator.
+
 Source code in `src/socx/cli/options.py`
 
 ```
 def add_options(*options: Any) -> Decorator[AnyCallable]:
+    """Compose multiple option decorators into a single decorator."""
+
     def _add_options(func):
         for opt in reversed(options):
             func = opt(func)
@@ -2278,10 +2359,13 @@ def add_options(*options: Any) -> Decorator[AnyCallable]:
 get_converters() -> Iterable[tuple[str, Converter]]
 ```
 
+Yield converter registrations, wrapping raw callables as needed.
+
 Source code in `src/socx/config/converters.py`
 
 ```
 def get_converters() -> Iterable[tuple[str, Converter]]:
+    """Yield converter registrations, wrapping raw callables as needed."""
     from dynaconf.utils.parse_conf import converters
 
     rv = []
@@ -2298,13 +2382,13 @@ def get_converters() -> Iterable[tuple[str, Converter]]:
 get_handler(name: str) -> Handler | None
 ```
 
-See documentation of builtin `logging.getHandler` function.
+Return a handler registered under `name` if one exists.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def get_handler(name: str) -> logging.Handler | None:
-    """See documentation of builtin `logging.getHandler` function."""
+    """Return a handler registered under ``name`` if one exists."""
     return logging.getHandlerByName(name)
 ```
 
@@ -2314,13 +2398,13 @@ def get_handler(name: str) -> logging.Handler | None:
 get_handler_names() -> Iterable[str]
 ```
 
-See documentation of builtin `logging.getHandlerNames` function.
+Return the names of all registered logging handlers.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def get_handler_names() -> Iterable[str]:
-    """See documentation of builtin `logging.getHandlerNames` function."""
+    """Return the names of all registered logging handlers."""
     return logging.getHandlerNames()
 ```
 
@@ -2330,13 +2414,13 @@ def get_handler_names() -> Iterable[str]:
 get_level(logger_: Logger) -> Level
 ```
 
-See documentation of builtin `logging.getLevel` function.
+Return the effective log level for `logger_` as a `Level` enum.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def get_level(logger_: logging.Logger) -> Level:
-    """See documentation of builtin `logging.getLevel` function."""
+    """Return the effective log level for ``logger_`` as a ``Level`` enum."""
     return Level(logger_.getEffectiveLevel())
 ```
 
@@ -2348,40 +2432,13 @@ get_logger(
 ) -> Logger
 ```
 
-Get a pretty printing log handler.
-
-#### Parameters
-
-name: str Name of the logger.
-
-str
-
-Specifies that a FileHandler be created, using the specified filename
-
-#### Returns
-
-A pretty printing logging.Logger instance.
+Return a child logger configured with optional file output.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def get_logger(name: str, filename: str | None = None) -> logging.Logger:
-    """
-    Get a pretty printing log handler.
-
-    Parameters
-    ----------
-    name: str
-        Name of the logger.
-
-    filename: str
-        Specifies that a FileHandler be created, using the specified filename
-
-    Returns
-    -------
-    A pretty printing logging.Logger instance.
-
-    """
+    """Return a child logger configured with optional file output."""
     rv = logger.getChild(name)
     if filename is not None:
         handler = _get_file_handler(filename)
@@ -2396,27 +2453,30 @@ def get_logger(name: str, filename: str | None = None) -> logging.Logger:
 global_options() -> Callable[..., Decorator[AnyCallable]]
 ```
 
+Apply the standard set of global SoCX CLI options.
+
 Source code in `src/socx/cli/options.py`
 
 ```
 def global_options() -> Callable[..., Decorator[AnyCallable]]:
+    """Apply the standard set of global SoCX CLI options."""
     return add_options(debug, configure, verbosity)
 ```
 
 ## has_handlers
 
 ```
-has_handlers() -> None
+has_handlers() -> bool
 ```
 
-See documentation of builtin `logging.hasHandler` function.
+Return `True` if the module-level logger has active handlers.
 
 Source code in `src/socx/io/log.py`
 
 ```
-def has_handlers() -> None:
-    """See documentation of builtin `logging.hasHandler` function."""
-    logger.hasHandlers()
+def has_handlers() -> bool:
+    """Return ``True`` if the module-level logger has active handlers."""
+    return logger.hasHandlers()
 ```
 
 ## is_enabled_for
@@ -2425,13 +2485,13 @@ def has_handlers() -> None:
 is_enabled_for(level: Level) -> bool
 ```
 
-See documentation of builtin `logging.isEnabledFor` function.
+Return `True` if the module-level logger handles `level`.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def is_enabled_for(level: Level) -> bool:
-    """See documentation of builtin `logging.isEnabledFor` function."""
+    """Return ``True`` if the module-level logger handles ``level``."""
     if isinstance(level, str):
         level = logging.getLevelName(level)
     return logger.isEnabledFor(level)
@@ -2483,13 +2543,13 @@ def log_it(
 remove_filter(filter: Filter) -> None
 ```
 
-See documentation of builtin `logging.removeFilter` function.
+Detach a filter from the module-level logger.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def remove_filter(filter: logging.Filter) -> None:  # noqa: A002
-    """See documentation of builtin `logging.removeFilter` function."""
+    """Detach a filter from the module-level logger."""
     logger.removeFilter(filter)
 ```
 
@@ -2499,13 +2559,13 @@ def remove_filter(filter: logging.Filter) -> None:  # noqa: A002
 remove_handler(handler: Handler) -> None
 ```
 
-See documentation of builtin `logging.removeHandler` function.
+Remove `handler` from the module-level logger.
 
 Source code in `src/socx/io/log.py`
 
 ```
 def remove_handler(handler: logging.Handler) -> None:
-    """See documentation of builtin `logging.removeHandler` function."""
+    """Remove ``handler`` from the module-level logger."""
     logger.removeHandler(handler)
 ```
 
@@ -2517,14 +2577,15 @@ set_level(
 ) -> None
 ```
 
-See documentation of builtin `logging.setLevel` function.
+Set the log level on the provided logger (defaults to module logger).
 
 Source code in `src/socx/io/log.py`
 
 ```
 def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
-    """See documentation of builtin `logging.setLevel` function."""
-    logging.getLogger().setLevel(level)
+    """Set the log level on the provided logger (defaults to module logger)."""
+    target = logger_ or logger
+    target.setLevel(level)
 ```
 
 ## validate_all
@@ -2535,10 +2596,13 @@ validate_all(
 ) -> None
 ```
 
+Run validation against all registered validators.
+
 Source code in `src/socx/config/validators.py`
 
 ```
 def validate_all(settings: LazySettings, register: bool = False) -> None:
+    """Run validation against all registered validators."""
     if register:
         settings.validators.register(get_validators(settings))
 

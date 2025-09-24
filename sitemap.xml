@@ -2,34 +2,54 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/changelog/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/code_of_conduct/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/contributing/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/credits/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/license/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://sagikimhi.github.io/socx-cli/quickstart/</loc>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/reference/api/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://sagikimhi.github.io/socx-cli/user-guide/cli/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://sagikimhi.github.io/socx-cli/user-guide/configuration/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://sagikimhi.github.io/socx-cli/user-guide/plugins/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://sagikimhi.github.io/socx-cli/user-guide/regression/</loc>
+         <lastmod>2025-09-24</lastmod>
     </url>
     <url>
          <loc>https://sagikimhi.github.io/socx-cli/coverage/</loc>
-         <lastmod>2025-09-22</lastmod>
+         <lastmod>2025-09-24</lastmod>
     </url>
 </urlset>
