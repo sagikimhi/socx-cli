@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import contextlib
 import sys
 import abc
 import runpy
-import inspect
 import logging
 from types import CodeType
 from types import ModuleType
@@ -235,30 +233,11 @@ class CommandConverter(Converter):
             return value
 
         path, _, symbol = value.partition(":")
+        run = runpy.run_path if self.is_script_path(path) else runpy.run_module
 
-        if self.is_script_path(path):
-            run = runpy.run_path
-        else:
-            if symbol:
-                with contextlib.suppress(ImportError):
-                    module = import_module(path)
-                    symbol = getattr(module, symbol)
-            run = runpy.run_module
-
-        if isinstance(symbol, Command):
-            return symbol
-
-        if symbol is None or isinstance(symbol, str):
-            doc = ""
-        else:
-            doc = inspect.getdoc(symbol) or ""
-
-        @command(help=doc, context_settings=self.context_settings)
+        @command(context_settings=self.context_settings)
         @argument("args", nargs=-1, type=UNPROCESSED)
         def cli(args):
-            rv = 0
-            _argv = sys.argv[1:].copy()
-            _syspath = sys.path.copy()
             theme = (
                 rich_click.THEME.name
                 if isinstance(rich_click.THEME, RichClickTheme)
@@ -266,25 +245,29 @@ class CommandConverter(Converter):
             )
             cfg = RichHelpConfiguration.load_from_globals(theme=theme)
             patch(cfg, patch_rich_click=True, patch_typer=True)
+
+            rv = 0
+            argv = sys.argv[1:].copy()
+            syspath = sys.path.copy()
+
+            if self.is_script_path(path):
+                sys.path.insert(0, str(Path(path).parent))
+            elif self.is_package_path(path):
+                sys.path.insert(0, path)
+
+            sys.argv[1:] = args
+
             try:
-                sys.argv[1:] = args
-                if self.is_script_path(path):
-                    try:
-                        sys.path.insert(0, str(Path(path).parent))
-                        if callable(symbol):
-                            return symbol()
-                    finally:
-                        sys.path = _syspath
-                rv = (
-                    run(path).get(symbol, lambda: None)()
-                    if symbol
-                    else run(path, run_name="__main__")
-                )
+                if symbol:
+                    rv = run(path).get(symbol, lambda: None)()
+                else:
+                    rv = run(path, run_name="__main__")
             finally:
-                sys.argv[1:] = _argv
+                sys.path = syspath
+                sys.argv[1:] = argv
+
             return rv
 
-        cli.__doc__ = doc
         return cli
 
     def is_script_path(self, path: str) -> bool:
