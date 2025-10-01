@@ -102,7 +102,7 @@ class CompileConverter(Converter):
             return None
 
         try:
-            rv = compile(value.read_text(), value, "exec")
+            rv = compile(value.read_text(), str(value), "exec")
         except (SyntaxError, ValueError):
             rv = None
             self.exception(str(value))
@@ -203,6 +203,7 @@ class CommandConverter(Converter):
     """Turn module or script references into Rich Click commands."""
 
     def __init__(self) -> None:
+        self.importer = ImportConverter()
         self.context_settings = dict(
             help_option_names=[],
             ignore_unknown_options=True,
@@ -258,7 +259,10 @@ class CommandConverter(Converter):
             sys.argv[1:] = args
 
             try:
-                if symbol:
+                if not self.is_filesystem_path(path) and symbol:
+                    mod = self.importer(path)
+                    rv = getattr(mod, symbol, lambda: None)()
+                elif symbol:
                     rv = run(path).get(symbol, lambda: None)()
                 else:
                     rv = run(path, run_name="__main__")
@@ -270,6 +274,10 @@ class CommandConverter(Converter):
 
         return cli
 
+    def is_filesystem_path(self, path: str) -> bool:
+        """Return ``True`` if ``path`` is either a script or package path."""
+        return self.is_script_path(path) or self.is_package_path(path)
+
     def is_script_path(self, path: str) -> bool:
         """Return ``True`` if ``path`` points to a python script file."""
         filepath = Path(path)
@@ -280,7 +288,7 @@ class CommandConverter(Converter):
         )
 
     def is_package_path(self, path: str) -> bool:
-        """Return ``True`` if ``path`` refers to an importable package."""
+        """Return ``True`` if ``path`` points to a python package directory."""
         filepath = Path(path)
         return (
             filepath.exists()
