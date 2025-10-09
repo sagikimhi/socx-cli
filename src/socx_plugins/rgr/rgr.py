@@ -30,7 +30,8 @@ def run(input, output):  # noqa: A002
 
     For more info regarding configurations, check out `socx config` command.
     """
-    import uvloop
+    import asyncio
+    from socx import settings
     from socx_plugins.rgr._rgr import _run_from_file
 
-    uvloop.run(_run_from_file(input, output))
+    asyncio.run(_run_from_file(input, output), debug=settings.cli.debug)

@@ -71,7 +71,6 @@ dependencies = [
     "click",
     "jinja2",
     "psutil",
-    "uvloop",
     "hoptex",
     "textual",
     "pydantic",
