@@ -106,11 +106,8 @@ plugins:
   - search
   - coverage
   - autorefs
-  - glightbox
   - section-index
   - markdown-exec
-  - minify:
-      minify_html: true
   - git-revision-date-localized:
       type: date
       strict: false
