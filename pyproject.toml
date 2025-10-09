@@ -38,7 +38,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.5.3"
+version = "0.5.4"
 license = "Apache-2.0 OR MIT"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -71,7 +71,6 @@ dependencies = [
     "click",
     "jinja2",
     "psutil",
-    "uvloop",
     "hoptex",
     "textual",
     "pydantic",
@@ -110,19 +109,16 @@ dev = [
     "mypy>=1.18.2",
 ]
 docs = [
-    "markdown-exec",
-    "markdown-callouts",
-    "mkdocstrings[python]",
     "mike",
     "mkdocs",
     "mkdocs-coverage",
-    "mkdocs-llmstxt",
     "mkdocs-material",
     "mkdocs-material-extensions",
     "mkdocs-section-index",
-    "mkdocs-minify-plugin",
-    "mkdocs-glightbox",
     "mkdocs-git-revision-date-localized-plugin",
+    "markdown-exec",
+    "markdown-callouts",
+    "mkdocstrings[python]",
     "tomli>=2.0; python_version < '3.11'",
 ]
 
@@ -135,7 +131,6 @@ docs = [
 package = true
 managed = true
 default-groups = ["dev", "docs"]
-
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
