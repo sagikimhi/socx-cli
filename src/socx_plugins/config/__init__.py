@@ -7,6 +7,8 @@ import rich_click as click
 from dynaconf.utils.inspect import get_debug_info
 
 from socx import (
+    USER_CONFIG_FILE,
+    cli as _cli,
     console,
     settings,
     TreeFormatter,
@@ -19,7 +21,9 @@ from socx_plugins.config.get import field_argument, command
 logger = get_logger(__name__)
 
 
-@click.group("config")
+@click.group(
+    "config", context_settings=dict(help_option_names=["--help", "-h"])
+)
 @global_options()
 def cli():
     """Get, set, list, or modify settings configuration values."""
@@ -27,11 +31,19 @@ def cli():
 
 @cli.command()
 @global_options()
-def edit():
+@click.option(
+    "--user",
+    "-u",
+    is_flag=True,
+    type=click.BOOL,
+    default=False,
+    help="edit user configurations.",
+)
+def edit(user: bool):
     """Edit settings with nano/vim/nvim/gvim."""
-    import socx_plugins.config.edit as _edit
+    from socx_plugins.config.edit import edit as _edit
 
-    _edit.edit()
+    _edit(USER_CONFIG_FILE if user else None)
 
 
 @cli.command()
@@ -52,7 +64,7 @@ def list_():
 @cli.command()
 @global_options()
 def debug():
-    """Dump config debug info and modification history."""
+    """Dump cli debug info and modification history."""
     console.print(get_debug_info(settings))
 
 

@@ -14,12 +14,13 @@ from socx import (
     get_logger,
     get_settings,
 )
+from socx.config.paths import LOCAL_CONFIG_FILENAME
 
 
 logger: Logger = get_logger(__name__)
 
 
-def edit():
+def edit(target_path: Path | None = None):
     """Launch the user's editor with the selected configuration snapshot."""
     settings = get_settings(auto_cast=False)
     file_choices = {
@@ -53,15 +54,7 @@ def edit():
         show_default=True,
         case_sensitive=False,
     )
-    # format_choice = Prompt.ask(
-    #     prompt="What is your preffered configuration format?",
-    #     console=console,
-    #     choices=format_choices,
-    #     show_choices=True,
-    #     show_default=True,
-    #     case_sensitive=True,
-    # )
-    target_path = (USER_CONFIG_DIR / file_choice).with_suffix(".yaml")
+    target_path = target_path or Path.cwd() / LOCAL_CONFIG_FILENAME
     modified_text = click.edit(
         env=os.environ,
         text=settings.to_yaml(file_choice),
@@ -70,9 +63,10 @@ def edit():
         require_save=True,
     )
 
-    if not modified_text:
+    if modified_text:
+        if target_path.exists():
+            modified_text = "\n".join([target_path.read_text(), modified_text])
+        target_path.write_text(modified_text)
+        logger.info(f"settings file written to: '{target_path}'")
+    else:
         logger.info("File was not saved/modified - operation aborted.")
-        return
-
-    target_path.write_text(modified_text)
-    logger.info(f"settings file written to: '{target_path}'")
