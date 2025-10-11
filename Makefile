@@ -30,7 +30,7 @@ PUBLISHER ?= devpi
 # Variables
 # -----------------------------------------------------------------------------
 
-SVG_DIR ?= $(CWD)/images
+SVG_DIR ?= $(CWD)/docs/images
 
 SITE_DIR ?= $(CWD)/site
 
@@ -209,12 +209,12 @@ check_types: uv ## Check that code is properly typed
 
 export_svg: uv sync ## Export help menus of all 'socx [subcmd]' commands as svg images
 	$(HIDE)$(MKDIR) $(SVG_DIR)
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx -h > docs/images/socx-cli.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx git -h > docs/images/socx-git.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx rgr -h > docs/images/socx-rgr.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx config -h > docs/images/socx-config.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx plugin -h > docs/images/socx-plugin.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx convert -h > docs/images/socx-convert.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- --help > $(SVG_DIR)/socx-cli.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- git --help > $(SVG_DIR)/socx-git.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- rgr --help > $(SVG_DIR)/socx-rgr.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- config --help > $(SVG_DIR)/socx-config.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- plugin --help > $(SVG_DIR)/socx-plugin.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- convert --help > $(SVG_DIR)/socx-convert.svg &
 
 docs_deploy: uv ## Deploy documentation to GitHub Pages
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
