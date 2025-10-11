@@ -30,7 +30,7 @@ PUBLISHER ?= devpi
 # Variables
 # -----------------------------------------------------------------------------
 
-SVG_DIR ?= $(CWD)/images
+SVG_DIR ?= $(CWD)/docs/images
 
 SITE_DIR ?= $(CWD)/site
 
@@ -59,8 +59,8 @@ CLEAN_ARTIFACTS ?= \
 	$(SVG_DIR) \
 	$(SITE_DIR) \
 	$(BUILD_DIR) \
-	$(WORKRUN_DIR) \
 	$(CACHE_DIRS) \
+	$(WORKRUN_DIR) \
 	$(COVERAGE_DIRS)
 
 
@@ -74,10 +74,10 @@ VERBOSE ?=
 # Options appliance
 # -----------------------------------------------------------------------------
 
-ifneq ($(VERBOSE),)
-	HIDE =
-else
+ifeq ($(VERBOSE),)
 	HIDE = @
+else
+	HIDE =
 endif
 
 # -----------------------------------------------------------------------------
@@ -157,16 +157,16 @@ sync: uv ## Refresh, sync and upgrade project dependencies (including 'dev')
 	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups --managed-python
 
 docs: uv ## Serve project documentation at http://127.0.0.1:8000
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 test: uv ## Run project tests
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 check: uv ## Run all checks
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 setup: ## Set up the project
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 build: clean sync check_code format changelog ## Build wheel and sdist targets of the project for publish
 	$(HIDE)$(UV) build --refresh --upgrade --sdist --wheel
@@ -177,44 +177,45 @@ build: clean sync check_code format changelog ## Build wheel and sdist targets o
 
 clean: ## Remove all auto generated artifacts (e.g. build artifacts)
 	$(HIDE)$(RMDIR) $(CLEAN_ARTIFACTS) 2> /dev/null || exit 0
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 format: uv ## Run ruff formatter on project source code
-	$(HIDE)$(UV) run ruff format
+	$(HIDE)$(UV) run ruff format $(CWD)/src
 
 release: uv ## Release a new package version to github
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 publish: build ## Publish project to private devpi index
 	$(HIDE)$(PUBLISHER) upload \
 		--verbose --no-vcs --only-latest --from-dir $(BUILD_DIR)
 
 coverage: uv ## Report coverage as text and HTML
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 changelog: ## Update the project's CHANGELOG.md from the git commit log
 	$(HIDE)$(CHANGELOG_BIN) $(CHANGELOG_FLAGS)
 
 check_api: uv ## Check API for breaking changes.
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 check_code: uv ## Lint project code and auto apply fixes if possible
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 check_docs: uv ## Check that project documentation builds correctly
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 check_types: uv ## Check that code is properly typed
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 export_svg: uv sync ## Export help menus of all 'socx [subcmd]' commands as svg images
 	$(HIDE)$(MKDIR) $(SVG_DIR)
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx -h > docs/images/socx-cli.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx git -h > docs/images/socx-git.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx rgr -h > docs/images/socx-rgr.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx config -h > docs/images/socx-config.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx plugin -h > docs/images/socx-plugin.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- socx convert -h > docs/images/socx-convert.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- --help > $(SVG_DIR)/socx-cli.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- git --help > $(SVG_DIR)/socx-git.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- rgr --help > $(SVG_DIR)/socx-rgr.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- config --help > $(SVG_DIR)/socx-config.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- plugin --help > $(SVG_DIR)/socx-plugin.svg &
+	$(HIDE)$(UV) run rich-click -o svg socx -- convert --help > $(SVG_DIR)/socx-convert.svg &
 
 docs_deploy: uv ## Deploy documentation to GitHub Pages
-	$(HIDE)$(UV) run scripts/make.py "$@"
+	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
+	$(HIDE)$(MAKE) clean
