@@ -3,3 +3,7 @@ cli:
   debug: false
   configure: true
   verbosity: INFO
+  context_settings:
+    help_option_names:
+      - -h
+      - --help
