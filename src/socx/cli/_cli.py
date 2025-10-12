@@ -17,14 +17,11 @@ from socx.cli.plugin import PluginModel
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-context_settings = DynaBox(help_option_names=["--help", "-h"])
-
-
 class _CmdLine(click.RichGroup):
     """Custom Click group that loads plugin commands on demand."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("context_settings", context_settings)
+        kwargs.setdefault("context_settings", settings.cli.context_settings)
         super().__init__(*args, **kwargs)
         self._converter = CommandConverter()
         self._plugins = {p.name: PluginModel(**p) for p in settings.plugins}  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
