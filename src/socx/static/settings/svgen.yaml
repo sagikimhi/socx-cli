@@ -1,0 +1,3 @@
+svgen:
+  src_path: >-
+    git+ssh://git@bitbucket.org/wiliot/copier-sv

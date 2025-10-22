@@ -4,5 +4,6 @@ dynaconf_include:
   - cli.yaml
   - git.yaml
   - lang.yaml
+  - svgen.yaml
   - convert.yaml
   - regression.yaml

@@ -82,6 +82,8 @@ dependencies = [
     "textual-speedups",
     "universal-pathlib",
     "typer>=0.19.1",
+    "copier>=9.10.3",
+    "copier-template-extensions>=0.3.3",
 ]
 
 [project.urls]
