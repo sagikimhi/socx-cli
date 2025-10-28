@@ -9,7 +9,6 @@ from rich.prompt import Prompt
 
 from socx import (
     APP_CONFIG_DIR,
-    USER_CONFIG_DIR,
     console,
     get_logger,
     get_settings,
