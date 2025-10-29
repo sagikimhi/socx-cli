@@ -59,6 +59,8 @@
 
 - *(.env)* correct dotenv development env variables [bfe012e](https://bitbucket.org/wiliot/socenv/commits/bfe012e20a896e3efbf6a9d1f0a633b85ae5f373)
 
+- *(Makefile)* fix export_svg rule [c2427ca](https://bitbucket.org/wiliot/socenv/commits/c2427ca98fd39232966819da69453084ba765b51)
+
 - *(Makefile)* fix incorrect flags in `make publish` rule [b35f0bf](https://bitbucket.org/wiliot/socenv/commits/b35f0bfa9bca327858dd2074e89c5ce8d2182552)
 
 - *(Makefile)* fix `make clean` rules [ab17ac2](https://bitbucket.org/wiliot/socenv/commits/ab17ac21cf22269760af8a2a4b0d990968a1bc16)
@@ -81,9 +83,13 @@
 
 - *(config)* correct typing of `get_settings` [edc084d](https://bitbucket.org/wiliot/socenv/commits/edc084d10265a1136eabd93455170a9b6d3548a8)
 
+- *(config.converters)* fix IncludeConverter [147ef9a](https://bitbucket.org/wiliot/socenv/commits/147ef9a0506e0c36f604d6475e5961fd72847127)
+
 - *(config.converters)* fix @command help texts [8ece5cb](https://bitbucket.org/wiliot/socenv/commits/8ece5cb4f3850b917059a7ab230665b3835ffbf1)
 
 - *(config/metadata)* use __spec__.name instead of __package__ [9d27ca6](https://bitbucket.org/wiliot/socenv/commits/9d27ca628c98720a02b44e3873edd499eef63ee7)
+
+- *(converters)* fix command converter runtime warning [04a8ca7](https://bitbucket.org/wiliot/socenv/commits/04a8ca7ef9e6819125c43fdab1e7fb60ff810c46)
 
 - *(decorators)* log_it now logs to global socx.log run log [c18e495](https://bitbucket.org/wiliot/socenv/commits/c18e495d892b2770fcd4d9c751b5342e2d0958cd)
 
@@ -153,11 +159,15 @@
 
 - *(socx.regression.regression)* set start and finish times [9c0b64c](https://bitbucket.org/wiliot/socenv/commits/9c0b64cbcd62b721e362da19e0ef87ba19ce5c2e)
 
+- *(socx_plugins.config)* fix `socx config get` help menu [97a4d04](https://bitbucket.org/wiliot/socenv/commits/97a4d0405cc9e40105c64106e7adb052f80893b7)
+
 - *(socx_plugins.config.edit)* fix edit command [7133779](https://bitbucket.org/wiliot/socenv/commits/71337798f37918f47c720840c4e3231bda1708eb)
 
 - *(socx_plugins.git)* fix some typing issues in manifest, utils [b72a44a](https://bitbucket.org/wiliot/socenv/commits/b72a44a0a08e15c486e131689cc418ca1e3329f6)
 
 - *(socx_plugins.git)* minor typing fixes in git manifest plugin [64acf03](https://bitbucket.org/wiliot/socenv/commits/64acf03864dd9be029f3956967e2c710ad4de786)
+
+- *(socx_plugins.rgr)* fix -h flag not triggering help menu [717b424](https://bitbucket.org/wiliot/socenv/commits/717b424c85ec2f9ff43891a7258da3809fd62d0a)
 
 - *(socx_plugins.rgr.pixie_test)* correct path to test's log file [f525fa5](https://bitbucket.org/wiliot/socenv/commits/f525fa568cb4cb37195bb0c080dc9395c9680817)
 
@@ -173,6 +183,8 @@
 
 - *(visitor)* add empty __slots__ to protocol classes [356fdcd](https://bitbucket.org/wiliot/socenv/commits/356fdcdc8122c7db08e1bc3448a7a4f0f98fe77e)
 
+- discard uvloop dependency to support for python3.14 [621a1f2](https://bitbucket.org/wiliot/socenv/commits/621a1f214fb18d98218796fdd785a6168496fa87)
+
 - fix mypy typing errors [702ec05](https://bitbucket.org/wiliot/socenv/commits/702ec052803011b8e0184751ee8ca4ae01b66f55)
 
 - fix all mypy errors [dd80f31](https://bitbucket.org/wiliot/socenv/commits/dd80f31155efff34ca9451e3147bfcf6dd4bf50c)
@@ -186,9 +198,13 @@
 
 ### 🚜 Refactor
 
+- *(Makefile)* run 'make clean' at the end of 'docs_deploy' [db554b3](https://bitbucket.org/wiliot/socenv/commits/db554b33c0762161e46ce133d33851c183740988)
+
 - *(Makefile)* add changelog generation variables [6a9887a](https://bitbucket.org/wiliot/socenv/commits/6a9887a14786914bacc69a99e0994b0cb6b5004c)
 
 - *(Makefile)* use `$(UV)` instead of `uv` in export_svg [893daa8](https://bitbucket.org/wiliot/socenv/commits/893daa82215e0a567ed253ce6e95e5ca73dfb821)
+
+- *(cli)* read context_settings from settings.cli [80eabdd](https://bitbucket.org/wiliot/socenv/commits/80eabdd1a9e81f6f7d667f93472176fbc72fe4b9)
 
 - *(cli.cfg)* adjust default configurations [ddc414b](https://bitbucket.org/wiliot/socenv/commits/ddc414b855d38778344bf3d096844dafc69d743e)
 
@@ -234,6 +250,8 @@
 
 - *(test)* raise exception if start is called on a running test [520fbd0](https://bitbucket.org/wiliot/socenv/commits/520fbd094b2e13736bc411b6dbbc64858a4a0c18)
 
+- add settings.cli.context_settings config field [2416e2b](https://bitbucket.org/wiliot/socenv/commits/2416e2b69e68b512194fb2e3cbe76980f16f1cdd)
+
 - simplify and improve plugin support and loading [bfa6d65](https://bitbucket.org/wiliot/socenv/commits/bfa6d65c128b1cfe2cbade121e392a9e51f5990d)
 
 - [**breaking**] clean up and re organize code and structure [ab35344](https://bitbucket.org/wiliot/socenv/commits/ab353445e51bb5b95fc6fc069b4f593fcf1bd996)
@@ -257,6 +275,14 @@
 
 - *(socx.cli.cfg)* correct docs of `GROUP_ARGUMENT_OPTIONS` [9864f7b](https://bitbucket.org/wiliot/socenv/commits/9864f7bb3d841722a518774dc565d2f1bfef565b)
 
+- add a 'Core Concepts' section to the top navigation menu [7e45d2b](https://bitbucket.org/wiliot/socenv/commits/7e45d2bb8bbb87457a6123f26e28758cf0bc2814)
+
+- add/update missing/outdated python docstrings (#71) [6fdba72](https://bitbucket.org/wiliot/socenv/commits/6fdba7202efce2ffa1d03d39886c5f7ebf311e99)
+
+- update project documentation [7988e0c](https://bitbucket.org/wiliot/socenv/commits/7988e0c1d9121cd1bf95beab4d1b32de6efb1b81)
+
+- add/update missing/outdated python docstrings [7f6dee1](https://bitbucket.org/wiliot/socenv/commits/7f6dee149190eef4dbae2f801cf295c1f86d0afc)
+
 - add missing mkdocs.yml [bd46cb0](https://bitbucket.org/wiliot/socenv/commits/bd46cb0410e6e57a98807feb9ed9b64e5d092576)
 
 - configure and build documentation with mkdocs [325efb2](https://bitbucket.org/wiliot/socenv/commits/325efb2f5b0affc415d7d4a04af5deb70e9d0149)
@@ -271,6 +297,10 @@
 - *(.env)* remove redundant comment lines [31766f7](https://bitbucket.org/wiliot/socenv/commits/31766f770cc8401855fa7ff92f5f854e8d176ef3)
 
 - *(.env)* remove redundant comment lines [1abf1dc](https://bitbucket.org/wiliot/socenv/commits/1abf1dc09fb31ba0c9bb19f8d4a39d7a789d764a)
+
+- *(.gitignore)* stop ignoring pre-commit config [f8f31ec](https://bitbucket.org/wiliot/socenv/commits/f8f31ec47b4809d536eb9e8e8de1bddf6e40c5ce)
+
+- *(Makefile)* explicitly specify python wheel path in `make publish` [b5b3044](https://bitbucket.org/wiliot/socenv/commits/b5b3044726f19081db396ded3fc67f4090214593)
 
 - *(Makefile)* add changelog rule to generate CHANGELOG.md [b5ba650](https://bitbucket.org/wiliot/socenv/commits/b5ba650138f15753fcdf5b6ff3f6628ab9c4b5fc)
 
@@ -323,6 +353,10 @@
 - *(plugins/rgr)* rename functions to more appropriate names [585fe20](https://bitbucket.org/wiliot/socenv/commits/585fe20be8568132d0d9287a29df8cbfe94001f2)
 
 - *(plugins/version)* add logging and make output prettier [cdde915](https://bitbucket.org/wiliot/socenv/commits/cdde915b554ab3d7d8684d5cc847e6ec9cd1f717)
+
+- *(pre-commit)* update python version to 3.13 [1c8bd01](https://bitbucket.org/wiliot/socenv/commits/1c8bd01ddc78835e0170834eb64ddcb488712522)
+
+- *(pre-commit)* update pre-commit config [86c8789](https://bitbucket.org/wiliot/socenv/commits/86c8789e17b6e84f8c360cceae65c38b51bfdaae)
 
 - *(pre-commit)* update pre-commit config [6108920](https://bitbucket.org/wiliot/socenv/commits/61089206655258637cca8a2d29d22a59e38e1571)
 
@@ -379,6 +413,16 @@
 - *(version)* bump version to 0.4.4.dev1 [8f071f5](https://bitbucket.org/wiliot/socenv/commits/8f071f5f47778c6e245585d340851c17ac9e3cac)
 
 - *(visitor)* sort exports [bb376e2](https://bitbucket.org/wiliot/socenv/commits/bb376e216f8a183855dabb123e738b84c522c648)
+
+- apply `ruff check` auto fixes [29eccd0](https://bitbucket.org/wiliot/socenv/commits/29eccd074af4a0e84eabebe3c790180024163ab5)
+
+- update issue templates [fe7b988](https://bitbucket.org/wiliot/socenv/commits/fe7b9888d03160c507b3abed2024c5ddda9b1c05)
+
+- prepare release 0.5.4 [cf6446f](https://bitbucket.org/wiliot/socenv/commits/cf6446f3b22494970bc22060b9905eab45384524)
+
+- prepare release 0.5.3 [17df8d0](https://bitbucket.org/wiliot/socenv/commits/17df8d0f7bc7f93f29e4f039793a618cf3b85724)
+
+- prepare release 0.5.2 [4aaaddc](https://bitbucket.org/wiliot/socenv/commits/4aaaddcc931fdfd32c1ee29620916729b34eac68)
 
 - add mypy dev dependency and enable 'check_types' duty [d6e1cba](https://bitbucket.org/wiliot/socenv/commits/d6e1cba13cd71da7fa8b17b41c3ca01a8c8bacb5)
 
