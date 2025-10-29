@@ -1,6 +1,6 @@
 ---
 default_language_version:
-  python: python3.12
+  python: python3.13
 
 default_stages:
   - pre-commit
@@ -12,11 +12,16 @@ repos:
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
+      - id: mixed-line-ending
       - id: trailing-whitespace
+      - id: check-merge-conflict
+        args:
+          - --assume-in-merge
       - id: check-added-large-files
+      - id: check-illegal-windows-names
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.11
+    rev: v0.14.1
     hooks:
       - id: ruff
         args:
@@ -26,13 +31,8 @@ repos:
           - python
 
       - id: ruff-format
-        args: [
-          --line-length,
-          '79',
-          --respect-gitignore,
-          --target-version,
-          py312
-        ]
+        args:
+          [--line-length, "79", --respect-gitignore, --target-version, py312]
         types_or:
           - pyi
           - python

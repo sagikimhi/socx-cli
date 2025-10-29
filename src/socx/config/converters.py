@@ -308,14 +308,15 @@ class IncludeConverter(Converter):
             return value
 
         path = Path(value) if isinstance(value, str) else value
+
         try:
             path = path.resolve()
-            rv = Settings(path)
+            rv = Settings(settings_files=str(path))
         except Exception:
-            rv = None
             self.exception(str(value))
-
-        return rv
+            return None
+        else:
+            return rv
 
 
 class GenericConverter(Converter):

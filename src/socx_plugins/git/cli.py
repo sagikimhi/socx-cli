@@ -7,12 +7,14 @@ from socx import console
 from socx import global_options
 from upath import UPath as Path
 
+from socx import settings
+
 from socx_plugins.git.manifest import Manifest
 from socx_plugins.git.arguments import format_
 from socx_plugins.git.arguments import root_path
 
 
-@click.group()
+@click.group(context_settings=settings.cli.context_settings)
 @global_options()
 def cli() -> None:
     """Various common git command utilities to manage your environment."""

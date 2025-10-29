@@ -154,7 +154,7 @@ help: ## Prints help for targets with comments
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 sync: uv ## Refresh, sync and upgrade project dependencies (including 'dev')
-	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups --managed-python
+	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups --managed-python --native-tls
 
 docs: uv ## Serve project documentation at http://127.0.0.1:8000
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"

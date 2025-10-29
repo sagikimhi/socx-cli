@@ -33,6 +33,7 @@
 !.gitignore
 !.gitattributes
 !.python-version
+!.pre-commit-config.yaml
 
 !**/*.ini
 !**/*.yml

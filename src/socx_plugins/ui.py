@@ -2,13 +2,11 @@
 
 import rich_click as click
 
-from socx import global_options
+from socx import settings
 from socx_tui import SoCX as SoCX
 
 
-@click.command("ui")
-@global_options()
-@click.pass_context
-def cli(ctx: click.Context) -> None:
+@click.command("ui", context_settings=settings.cli.context_settings)
+def cli() -> None:
     """Launch the SoCX Textual UI from the command line."""
     SoCX().run()
