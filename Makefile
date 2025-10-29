@@ -187,7 +187,7 @@ release: uv ## Release a new package version to github
 
 publish: build ## Publish project to private devpi index
 	$(HIDE)$(PUBLISHER) upload \
-		--verbose --no-vcs --only-latest --from-dir $(BUILD_DIR)
+		--verbose --no-vcs --only-latest --wheel $(wildcard $(BUILD_DIR)/*.whl)
 
 coverage: uv ## Report coverage as text and HTML
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
