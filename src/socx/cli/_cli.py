@@ -7,7 +7,6 @@ import logging
 from collections.abc import Callable
 
 import rich_click as click
-from dynaconf.utils.boxing import DynaBox
 
 from socx.config import settings, CommandConverter
 from socx.cli.types import AnyCallable
