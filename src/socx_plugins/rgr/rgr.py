@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import rich_click as click
 
+from socx import settings
+
 from socx_plugins.rgr._rgr import options
 
 
-@click.group("rgr")
+@click.group("rgr", context_settings=settings.cli.context_settings)
 def cli() -> None:
     """Perform various regression related actions."""
 
