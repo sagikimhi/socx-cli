@@ -44,7 +44,7 @@ authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 description = "System on chip verification and tooling infrastructure."
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers = [
     "Topic :: Utilities",
     "Topic :: Documentation",
@@ -58,7 +58,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
