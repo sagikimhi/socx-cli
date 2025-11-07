@@ -12,11 +12,11 @@ from socx import (
     Regression,
     Decorator,
     AnyCallable,
+    SymbolConverter,
     settings,
     add_options,
 )
 
-from socx_plugins.rgr.pixie_test import PixieTest
 from socx_plugins.rgr.callbacks import input_cb, output_cb
 
 
@@ -72,12 +72,12 @@ def _correct_path_in(input_path: str | Path | None = None) -> Path:
         input_cfg = settings.regression.run.input
         dir_in = input_cfg.directory
         file_in = input_cfg.filename
-        input_path = dir_in / file_in
+        input_path = Path(f"{dir_in}/{file_in}")
 
     if isinstance(input_path, str):
         input_path = Path(input_path)
 
-    return input_path.resolve().absolute()
+    return input_path.resolve()
 
 
 def _correct_paths_out(
@@ -130,8 +130,16 @@ def _populate_regression(filepath: Path) -> Regression:
     """Construct a ``Regression`` model from the recorded commands file."""
     logger.info(f"reading input from file path: {filepath}")
     with click.open_file(filepath, mode="r", encoding="utf-8") as file:
+        test_cls = settings.regression.get("test_cls")
+
+        if test_cls:
+            converter = SymbolConverter()
+            test_cls = converter(test_cls)
+
         return Regression.from_lines(
-            "rgr", tuple(line for line in file), test_cls=PixieTest
+            name=filepath.name,
+            lines=tuple(line for line in file),
+            test_cls=test_cls,
         )
 
 

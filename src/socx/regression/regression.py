@@ -75,9 +75,10 @@ class Regression(TestBase):
 
     @classmethod
     def from_lines(
-        cls, name: str, lines: Iterable[str], test_cls: type = Test
+        cls, name: str, lines: Iterable[str], test_cls: type | None = None
     ) -> Regression:
         """Construct a regression from serialized command lines."""
+        test_cls = test_cls or Test
         tests = [test_cls(line) for line in lines]
         return Regression(name, tests)
 
