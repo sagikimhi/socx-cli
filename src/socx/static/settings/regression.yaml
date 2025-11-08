@@ -1,6 +1,7 @@
 ---
 regression:
   path: "@path @format {this.paths.APP_ROOT_DIR}/assets/rgr"
+  test_cls: "socx.regression.test:Test"
 
   opts:
     max_runs_in_parallel: 10

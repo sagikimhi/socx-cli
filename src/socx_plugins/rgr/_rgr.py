@@ -128,19 +128,14 @@ def _write_results(
 
 def _populate_regression(filepath: Path) -> Regression:
     """Construct a ``Regression`` model from the recorded commands file."""
+    converter = SymbolConverter()
+    test_cls = converter(settings.regression.test_cls)
     logger.info(f"reading input from file path: {filepath}")
-    with click.open_file(filepath, mode="r", encoding="utf-8") as file:
-        test_cls = settings.regression.get("test_cls")
-
-        if test_cls:
-            converter = SymbolConverter()
-            test_cls = converter(test_cls)
-
-        return Regression.from_lines(
-            name=filepath.name,
-            lines=tuple(line for line in file),
-            test_cls=test_cls,
-        )
+    return Regression.from_lines(
+        name=filepath.name,
+        lines=filepath.read_text().splitlines(),
+        test_cls=test_cls,
+    )
 
 
 async def _run_from_file(
