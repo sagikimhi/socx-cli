@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import rich_click as click
+from pathlib import Path
 
+import rich_click as click
 from socx import settings
 
-from socx_plugins.rgr._rgr import options
+from socx_plugins.rgr._rgr import options, _run_from_file
 
 
 @click.group("rgr", context_settings=settings.cli.context_settings)
@@ -24,7 +25,8 @@ def tui() -> None:
 
 @cli.command()
 @options()
-def run(input, output):  # noqa: A002
+@click.pass_context
+def run(ctx: click.Context, input: Path, output: Path):  # noqa: A002
     """Run regression from a file of test commands.
 
     The file can get passed via flag, or, if left unspecified,
@@ -33,7 +35,13 @@ def run(input, output):  # noqa: A002
     For more info regarding configurations, check out `socx config` command.
     """
     import asyncio
-    from socx import settings
-    from socx_plugins.rgr._rgr import _run_from_file
 
-    asyncio.run(_run_from_file(input, output), debug=settings.cli.debug)
+    try:
+        regression = asyncio.run(
+            _run_from_file(input, output), debug=settings.cli.debug
+        )
+    except (asyncio.CancelledError, KeyboardInterrupt):
+        ctx.exit(0x80 + 2)  # SIGINT
+    else:
+        rv = sum(1 if test.passed else 0 for test in regression)
+        ctx.exit(rv)

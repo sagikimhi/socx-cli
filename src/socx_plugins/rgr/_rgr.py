@@ -133,7 +133,7 @@ def _populate_regression(filepath: Path) -> Regression:
     logger.info(f"reading input from file path: {filepath}")
     return Regression.from_lines(
         name=filepath.name,
-        lines=filepath.read_text().splitlines(),
+        lines=filepath.read_text().splitlines(keepends=True),
         test_cls=test_cls,
     )
 
@@ -141,7 +141,7 @@ def _populate_regression(filepath: Path) -> Regression:
 async def _run_from_file(
     input: str | Path | None = None,  # noqa: A002
     output: str | Path | None = None,
-) -> None:
+) -> Regression:
     """Run a regression using file inputs and persist the results."""
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
@@ -157,3 +157,5 @@ async def _run_from_file(
         logger.exception(err)
     finally:
         _write_results(pass_out, fail_out, regression)
+
+    return regression

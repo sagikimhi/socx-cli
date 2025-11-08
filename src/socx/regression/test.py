@@ -6,7 +6,7 @@ import os
 import time
 import shlex
 import asyncio
-from enum import auto, IntEnum
+from enum import auto, IntEnum, StrEnum
 from typing import cast, override
 from pathlib import Path
 from dataclasses import dataclass
@@ -19,6 +19,63 @@ from socx.io import logger
 from socx.config import settings
 from socx.patterns import Visitor
 from socx.patterns import UIDMixin
+
+
+class TestResult(StrEnum):
+    """
+    Represents the result of a test that had finished and exited normally.
+
+    Members
+    -------
+    NA: StrEnum
+        Test has not yet finished running and therefore result is
+        non-applicable.
+
+    Passed: StrEnum
+        Test had finished and terminated normally with no errors and a 0 exit
+        code.
+
+    Failed: StrEnum
+        Test had finished either normally or abnormally with a non-zero exit
+        code.
+    """
+
+    NA = "n/a"
+    Passed = "passed"
+    Failed = "failed"
+
+
+class TestStatus(IntEnum):
+    """
+    TestStatus representation of a test process as an `IntEnum`.
+
+    Members
+    -------
+    Idle: IntEnum
+        Idle, waiting to be scheduled for execution.
+
+    Pending: IntEnum
+        Test is scheduled for execution in an active session.
+
+    Running: IntEnum
+        Test is currently running.
+
+    Stopped: IntEnum
+        Test has been stopped intentionally.
+
+    Finished: IntEnum
+        Test had finished running normally with an exit code 0.
+
+    Terminated: IntEnum
+        Test was intentionally terminated by a signal.
+    """
+
+    Idle = 0
+    Pending = auto()
+    Running = auto()
+    Stopped = auto()
+    Finished = auto()
+    Terminated = auto()
 
 
 @dataclass(init=False)
@@ -158,7 +215,7 @@ class TestBase(TestABC):
         return self._status
 
     @property
-    def result(self):
+    def result(self) -> TestResult:
         """Return the result enum once a test has completed."""
         return self._result
 
@@ -412,60 +469,3 @@ class Test(UIDMixin, TestBase):
         exc = ValueError(err)
         logger.exception(err, exc_info=exc)
         raise exc
-
-
-class TestResult(IntEnum):
-    """
-    Represents the result of a test that had finished and exited normally.
-
-    Members
-    -------
-    NA: TestResult
-        Test has not yet finished running and therefore result is
-        non-applicable.
-
-    Passed: TestResult
-        Test had finished and terminated normally with no errors and a 0 exit
-        code.
-
-    Failed: TestResult
-        Test had finished either normally or abnormally with a non-zero exit
-        code.
-    """
-
-    NA = auto()
-    Passed = auto()
-    Failed = auto()
-
-
-class TestStatus(IntEnum):
-    """
-    TestStatus representation of a test process as an `IntEnum`.
-
-    Members
-    -------
-    Idle: IntEnum
-        Idle, waiting to be scheduled for execution.
-
-    Pending: IntEnum
-        Test is scheduled for execution in an active session.
-
-    Running: IntEnum
-        Test is currently running.
-
-    Stopped: IntEnum
-        Test has been stopped intentionally.
-
-    Finished: IntEnum
-        Test had finished running normally with an exit code 0.
-
-    Terminated: IntEnum
-        Test was intentionally terminated by a signal.
-    """
-
-    Idle = 0
-    Pending = auto()
-    Running = auto()
-    Stopped = auto()
-    Finished = auto()
-    Terminated = auto()

@@ -51,7 +51,7 @@ class Regression(TestBase):
         TestBase.__init__(self, name, *args, **kwargs)
         tests = set(tests)
         self._lock = RLock()
-        self._tests = deque(set(tests))
+        self._tests = deque(tests)
         self._runner_tid = None
         self._scheduler_tid = None
         self._regression_tid = None
@@ -59,19 +59,20 @@ class Regression(TestBase):
         self._progress: Progress = Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            TaskProgressColumn(),
-            BarColumn(),
             "[green]Completed:",
             MofNCompleteColumn(),
+            BarColumn(),
+            TaskProgressColumn(),
             "[yellow]Elapsed:",
             TimeElapsedColumn(),
             "[cyan]Remaining:",
             TimeRemainingColumn(),
+            speed_estimate_period=15,
             transient=False,
-            expand=False,
+            expand=True,
         )
-        self.pending: aio.Queue = aio.Queue(self.run_limit)
         self.messages: aio.Queue = aio.Queue()
+        self.pending: aio.Queue = aio.Queue(self.run_limit)
 
     @classmethod
     def from_lines(
@@ -106,12 +107,6 @@ class Regression(TestBase):
             return cast(DynaBox, settings.regression)
 
     @property
-    def options(self) -> DynaBox:
-        """Return the nested options block under the regression settings."""
-        with self._lock:
-            return cast(DynaBox, self.cfg.opts)
-
-    @property
     def tests(self) -> deque[Test]:
         """An iterable of all tests defined in the regression."""
         with self._lock:
@@ -126,49 +121,53 @@ class Regression(TestBase):
     @property
     def run_limit(self) -> int:
         """Return the maximum number of tests that may run concurrently."""
-        return cast(int, self.options.max_runs_in_parallel)
+        return cast(int, self.cfg.max_runs_in_parallel)
 
     @override
     async def start(self) -> None:
         """Start the regression."""
+        logger.info("regression starting...")
         self._status = TestStatus.Pending
-        logger.info("regression starting.")
-        logger.debug(f"{self=}")
-        self._started_time = time.perf_counter()
 
         try:
+            self._status = TestStatus.Running
+            logger.info("regression starting...")
+            self._started_time = time.perf_counter()
             async with aio.TaskGroup() as tg:
-                self._status = TestStatus.Running
-                tg.create_task(self._animate_progress())
-                tg.create_task(self._schedule_tests())
-                tg.create_task(self._run_tests())
-        except Exception:
-            self._status = TestStatus.Terminated
-            self._result = TestResult.Failed
-            raise
-        else:
-            self._status = TestStatus.Finished
+                if len(self):
+                    tg.create_task(self._animate_progress())
+                    tg.create_task(self._schedule_tests())
+                    tg.create_task(self._run_tests())
+                logger.info("regression started.")
+        finally:
+            self._finished_time = time.perf_counter()
             self._result = (
                 TestResult.Passed
                 if all(test.passed for test in self)
                 else TestResult.Failed
             )
-        finally:
-            self._finished_time = time.perf_counter()
-            logger.info("regression ending.")
-            logger.debug(f"{self=}")
+            self._status = (
+                TestStatus.Finished
+                if all(test.status == TestStatus.Finished for test in self)
+                else TestStatus.Terminated
+            )
+            logger.info(f"regression {self._status.name.lower()}.")
 
     @override
     def suspend(self) -> None:
         """Suspend the execution of a running test."""
         for test in self.tests:
             test.suspend()
+        if self._status == TestStatus.Running:
+            self._status = TestStatus.Stopped
 
     @override
     def resume(self) -> None:
         """Resume the execution of a paused test."""
         for test in self.tests:
             test.resume()
+        if self._status == TestStatus.Stopped:
+            self._status = TestStatus.Running
 
     @override
     def interrupt(self) -> None:
@@ -193,71 +192,64 @@ class Regression(TestBase):
         try:
             await self.messages.put("Scheduling tests...")
             async with aio.TaskGroup() as tg:
-                for test in self.tests:  # removed async cause it was 2 fast
+                async for test in self:  # removed async cause it was 2 fast
                     tg.create_task(self._scheduler(test))
+        finally:
             await self.messages.put("All tests scheduled.")
-        except Exception:
-            raise
 
     async def _scheduler(self, test) -> None:
         """Queue an individual test for execution."""
-        try:
-            test._status = TestStatus.Pending
-            await self.pending.put(test)
-        except Exception:
-            pass
-        else:
-            await self.messages.put(f"Scheduler({test.name}): test scheduled.")
-            self._scheduler_advance()
-        finally:
-            await self.pending.join()
+        await self.messages.put(f"Scheduler({test.name}): scheduling test...")
+        await self.pending.put(test)
+        await self.messages.put(f"Scheduler({test.name}): test scheduled.")
+        self._scheduler_advance()
 
     async def _run_tests(self) -> None:
         """Run the configured number of worker tasks that execute tests."""
-        while self.pending.empty():
-            await aio.sleep(0)
-        async with aio.TaskGroup() as tg:
-            for _ in range(self.run_limit):
-                tg.create_task(self._runner())
-            self._runner_advance()
-        await self.pending.join()
+        try:
+            async with aio.TaskGroup() as tg:
+                for _ in range(self.run_limit):
+                    tg.create_task(self._runner())
+        finally:
+            await self.messages.put("All tests finished.")
 
     async def _runner(self) -> None:
         """Consume tests from the queue and execute them sequentially."""
-        while self.pending.qsize():
+        while not self.progress.finished:
+            if self.pending.empty():
+                await aio.sleep(0)
+                continue
+
             try:
-                test = await self.pending.get()
+                test: Test = await self.pending.get()
                 await self.messages.put(f"Runner({test.name}): running...")
-                await test.start()
-            except Exception:
-                pass
-            else:
-                await self.messages.put(f"Runner({test.name}): done.")
-            finally:
                 self._runner_advance()
+                await test.start()
+                await self.messages.put(
+                    f"Runner({test.name}): test {test.result}."
+                )
+                self._regression_advance()
+            finally:
                 self.pending.task_done()
 
     async def _animate_progress(self) -> None:
         """Update progress tasks and flush log messages while running."""
-        with self.progress as progress:
+        with self.progress:
             self._scheduler_start()
             self._runner_start()
             self._regression_start()
-            while not progress.finished:
-                await self._process_messages()
-                await aio.sleep(0)
+            await self._process_messages()
 
     async def _process_messages(self) -> None:
         """Drain the message queue and mirror events to the progress log."""
-        while not self.messages.empty():
-            try:
-                msg = await self.messages.get()
-            except Exception:
-                pass
-            else:
-                self.progress.log(msg)
-            finally:
-                self.messages.task_done()
+        while not self.progress.finished:
+            while not self.messages.empty():
+                try:
+                    msg = await self.messages.get()
+                    self.progress.log(msg)
+                finally:
+                    self.messages.task_done()
+            await aio.sleep(0)
 
     def _scheduler_start(self) -> None:
         """Initialise the scheduler progress task if it is not active."""
@@ -272,30 +264,29 @@ class Regression(TestBase):
     def _scheduler_advance(self) -> None:
         """Advance the scheduler progress task based on queued tests."""
         if self._scheduler_tid is not None:
-            if not self.progress.tasks[self._scheduler_tid].started:
+            task = self.progress.tasks[self._scheduler_tid]
+            if not task.started:
                 self.progress.start_task(self._scheduler_tid)
                 self.progress.update(
                     self._scheduler_tid,
-                    description="[yellow]Schedulers: working...",
                     total=len(self),
                     refresh=True,
+                    description="[yellow]Schedulers: working...",
                 )
-                self._regression_advance()
-            if not self.progress.tasks[self._scheduler_tid].finished:
-                self.progress.update(
-                    self._scheduler_tid, advance=1, refresh=True
-                )
-            if self.progress.tasks[self._scheduler_tid].finished:
-                self._scheduler_finish()
 
-    def _scheduler_finish(self) -> None:
-        """Mark the scheduler task as complete in the progress view."""
-        if self._scheduler_tid is not None:
-            self.progress.update(
-                task_id=self._scheduler_tid,
-                description="[light_green]Schedulers: done.",
-                refresh=True,
-            )
+            if task.completed + 1 < len(self):
+                self.progress.update(
+                    advance=1,
+                    refresh=True,
+                    task_id=task.id,
+                )
+            else:
+                self.progress.update(
+                    advance=1,
+                    refresh=True,
+                    task_id=task.id,
+                    description="[light_green]Schedulers: done.",
+                )
 
     def _runner_start(self) -> None:
         """Initialise the runner progress task if it is not active."""
@@ -310,60 +301,56 @@ class Regression(TestBase):
     def _runner_advance(self) -> None:
         """Advance the runner progress task for each completed test."""
         if self._runner_tid is not None:
-            if not self.progress.tasks[self._runner_tid].started:
+            task = self.progress.tasks[self._runner_tid]
+            if not task.started:
                 self.progress.start_task(self._runner_tid)
                 self.progress.update(
-                    self._runner_tid,
-                    description="[yellow]Runners: working...",
-                    visible=True,
                     refresh=True,
+                    visible=True,
+                    task_id=self._runner_tid,
+                    description="[yellow]Runners: working...",
+                )
+
+            if task.completed + 1 < len(self):
+                self.progress.update(
+                    advance=1,
+                    refresh=True,
+                    task_id=self._runner_tid,
                 )
             else:
-                self.progress.update(self._runner_tid, advance=1, refresh=True)
-            if self.progress.tasks[self._runner_tid].finished:
-                self._runner_finish()
-                self._regression_finish()
-
-    def _runner_finish(self) -> None:
-        """Mark the runner task as complete in the progress view."""
-        if self._runner_tid is not None:
-            self.progress.update(
-                task_id=self._runner_tid,
-                description="[light_green]Runners: done.",
-                refresh=True,
-            )
+                self.progress.update(
+                    advance=1,
+                    refresh=True,
+                    task_id=self._runner_tid,
+                    description="[light_green]Runners: done.",
+                )
 
     def _regression_start(self) -> None:
         """Initialise the overall regression progress task."""
         if self._regression_tid is None:
             self._regression_tid = self.progress.add_task(
-                description="[red]Regression: pending...",
                 total=None,
-                start=False,
+                start=True,
                 visible=True,
+                description="[yellow]Regression: in progress...",
             )
 
     def _regression_advance(self) -> None:
         """Advance the overall regression progress task once work begins."""
         if self._regression_tid is not None:
-            if self.progress.tasks[self._regression_tid].started:
-                return
-            self.progress.start_task(self._regression_tid)
-            self.progress.update(
-                self._regression_tid,
-                description="[yellow]Regression: in progress...",
-                visible=True,
-                refresh=True,
-            )
-
-    def _regression_finish(self) -> None:
-        """Mark the regression progress task as completed."""
-        if self._regression_tid is not None:
-            self.progress.update(
-                task_id=self._regression_tid,
-                description="[light_green]Regression: done.",
-                total=len(self) * 2,
-                completed=len(self) * 2,
-                visible=True,
-                refresh=True,
-            )
+            task = self.progress.tasks[self._regression_tid]
+            if task.completed + 1 < len(self):
+                self.progress.update(
+                    total=len(self),
+                    advance=1,
+                    refresh=True,
+                    task_id=task.id,
+                )
+            else:
+                self.progress.update(
+                    total=len(self),
+                    refresh=True,
+                    task_id=task.id,
+                    completed=len(self),
+                    description="[light_green]Regression: done.",
+                )
