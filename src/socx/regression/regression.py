@@ -59,10 +59,10 @@ class Regression(TestBase):
         self._progress: Progress = Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
+            TaskProgressColumn(),
+            BarColumn(),
             "[green]Completed:",
             MofNCompleteColumn(),
-            BarColumn(),
-            TaskProgressColumn(),
             "[yellow]Elapsed:",
             TimeElapsedColumn(),
             "[cyan]Remaining:",
@@ -329,7 +329,7 @@ class Regression(TestBase):
         """Initialise the overall regression progress task."""
         if self._regression_tid is None:
             self._regression_tid = self.progress.add_task(
-                total=None,
+                total=len(self),
                 start=True,
                 visible=True,
                 description="[yellow]Regression: in progress...",
@@ -341,7 +341,6 @@ class Regression(TestBase):
             task = self.progress.tasks[self._regression_tid]
             if task.completed + 1 < len(self):
                 self.progress.update(
-                    total=len(self),
                     advance=1,
                     refresh=True,
                     task_id=task.id,

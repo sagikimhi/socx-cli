@@ -176,14 +176,12 @@ class TestBase(TestABC):
     """Provide common process-management behaviour for regression tests."""
 
     def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
-        if isinstance(command, str):
-            command = TestCommand(command)
-
+        cmd = TestCommand(command) if isinstance(command, str) else command
         self._pid = os.getpid()
-        self._name = "BASE"
+        self._name = cmd.name
         self._status = TestStatus.Idle
         self._result = TestResult.NA
-        self._command = cast(TestCommand, command)
+        self._command = cmd
         self._process = None
         self._returncode = 0
         self._started_time = None
