@@ -60,14 +60,13 @@ class Level(enum.IntEnum):
 
 def _get_console_handler(level: Level = Level.INFO) -> logging.Handler:
     """Create a Rich console handler configured for interactive output."""
-    import rich_click
-    import click
-
     console = Console(tab_size=4, markup=True, force_terminal=True)
     return RichHandler(
         level=level,
         console=console,
-        tracebacks_suppress=(rich_click, click),
+        tracebacks_suppress=("rich-click", "click"),
+        rich_tracebacks=True,
+        tracebacks_show_locals=True,
     )
 
 
