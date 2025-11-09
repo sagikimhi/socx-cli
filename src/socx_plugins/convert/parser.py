@@ -71,11 +71,15 @@ class LstParser(Parser):
             Options for handling the conversion operation. See `convert.toml`
             for additional info.
         """
+        includes = set(includes or self.cfg.get("includes", []))
+        excludes = set(excludes or self.cfg.get("excludes", []))
+        source_dir = Path(source_dir or self.cfg.source)
+        target_dir = Path(target_dir or self.cfg.target)
         self.options = options or self.cfg.options
-        self.includes = includes or self.cfg.includes
-        self.excludes = excludes or self.cfg.excludes
-        self.source_dir = source_dir or self.cfg.source_dir
-        self.target_dir = target_dir or self.cfg.target_dir
+        self.includes = {Path(include) for include in includes}
+        self.excludes = {Path(include) for include in excludes}
+        self.source_dir = source_dir
+        self.target_dir = target_dir
         self.includes = PathValidator._extract_includes(
             self.source_dir, self.includes, self.excludes
         )
@@ -100,7 +104,7 @@ class LstParser(Parser):
         memory_map = {}
         base_addr_file = str(self.cfg.base_addr_map)
         base_addr_path = Path(self.source_dir) / base_addr_file
-        field_names = tuple([field.name for field in dc.fields(MemorySegment)])
+        field_names = tuple(MemorySegment.model_fields)
         base_addr_map = json.loads(base_addr_path.read_text())
         for name in field_names:
             for device_field, value in base_addr_map.items():

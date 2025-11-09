@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import re
 import abc
+import logging
 from typing import Self
 from typing import override
 from dataclasses import dataclass
 
 from socx import settings
 from dynaconf.utils.boxing import DynaBox
+
+
+logger = logging.getLogger(__name__)
 
 
 class Tokenizer(abc.ABC):
@@ -57,10 +61,18 @@ class LstTokenizer(Tokenizer):
         matches = []
         flags = re.MULTILINE | re.DOTALL | re.VERBOSE
         template = "|".join(
-            "(?P<%s>%s)" % (token.name, token.expr) for token in self.tokens
+            r"(?P<%s>%s)" % (token.name, token.expr) for token in self.tokens
         )
-        pattern = re.compile(template, flags)
-        for line in text.splitlines():
-            matches += list(pattern.finditer(line))
-            # matches.extend(match for match in pattern.finditer(line))
+        try:
+            logger.info("compiling template pattern: %s" % template)
+            pattern = re.compile(template, flags)
+        except Exception:
+            logger.exception(
+                "Failed to compile template pattern:\n%s" % template
+            )
+        else:
+            for line in text.splitlines():
+                matches += list(pattern.finditer(line))
+                # matches.extend(match for match in pattern.finditer(line))
+
         return matches

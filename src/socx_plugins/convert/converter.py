@@ -36,8 +36,10 @@ class LstConverter:
         tokenizer: LstTokenizer | None = None,
         formatter: SystemVerilogFormatter | None = None,
     ) -> None:
-        self.parser = parser or LstParser()
         self.reader = reader or FileReader(
+            self.cfg.source, self.cfg.includes, self.cfg.excludes
+        )
+        self.parser = parser or LstParser(
             self.cfg.source, self.cfg.includes, self.cfg.excludes
         )
         self.writer = writer or FileWriter(self.cfg.target)
@@ -57,7 +59,7 @@ class LstConverter:
     def convert(self) -> None:
         """Execute the configured read/parse/tokenize/format/write pipeline."""
         inputs = self.reader.read()
-        outputs = dict.fromkeys(inputs, "")
+        outputs = dict.fromkeys(inputs.keys(), "")
         self.parser.parse()
         for path, input_text in inputs.items():
             matches = self.tokenizer.tokenize(input_text)

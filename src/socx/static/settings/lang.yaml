@@ -18,10 +18,10 @@ lang:
     syntax:
       indent: 4
       comments:
-        - line: "//"
-        - block:
-            begin: "/*"
-            end: "*/"
+        line: "//"
+        block:
+          begin: "/*"
+          end: "*/"
   lst:
     name: "lst"
     extensions:
@@ -30,34 +30,38 @@ lang:
     syntax:
       indent: 4
       comments:
-        - line: "//"
-        - block:
-            begin: "/*"
-            end: "*/"
+        line: "//"
+        block:
+          begin: "/*"
+          end: "*/"
     tokens:
       - name: "comment"
-        expr: "([#])(?!([A-Z]{2,}))(?P<content>.*)"
-        subst: "
-          @format {this.lang.systemverilog.syntax.comments.line} \\g<content>
-          "
         starts_scope: false
+        expr: >-
+          ([#])(?!([A-Z]{2,}))(?P<content>.*)
+        subst: |
+          @jinja {{  this.lang.systemverilog.syntax.comments.line }} \g<content>
+
       - name: "group"
-        expr: '([#])(?P<mem>NVM|ROM)(\W+)(?P<device>[A-Z]{2,})'
-        subst: "
-          covergroup cg__\\g<device>_\\g<mem>_access;
-
-          cp__\\g<device>_\\g<mem>_func: coverpoint { vif.\\g<device>_\\g<mem>_addr }
-
-          {
-          "
-        scope_ender: "
-          bins NoFunc = default;
-          }"
-        endgroup: "cg__\\g<device>_\\g<mem>_access"
         starts_scope: true
+        expr: >-
+          ([#])(?P<mem>NVM|ROM)(\W+)(?P<device>[A-Z]{2,})
+        subst: |
+
+          covergroup cg__\g<device>_\g<mem>_access;
+          \tcp__\g<device>_\g<mem>_func:
+          \tcoverpoint vif.\g<device>_\g<mem>_addr {
+
+        scope_ender: |
+          \t\tbins NoFunc = default;
+          \t}
+          endgroup : cg__\g<device>_\g<mem>_access
+
       - name: "statement"
-        expr: '0x(?P<addr>[0-9a-fA-F]+)\\W+(?P<func>\\w+)\\W+(?P<len>\\d+)(?P<other>.*)'
-        subst: "
-          bins \\g<func> = { [ (('h\\g<addr> - 'h{{ base }}) >> 1) : ((('h\\g<addr> - 'h{{base}} + 'd\\g<len>) >> 1) - 1) ] };
-          "
         starts_scope: false
+        expr: >-
+          0x(?P<addr>[0-9a-fA-F]+)\W+(?P<func>\w+)\W+(?P<len>\d+)(?P<other>.*)
+        subst: |
+          \t\tbins \g<func> = {[
+          \t\t\t(('h\g<addr> - 'h{{ base }})) : (('h\g<addr> - 'h{{ base }} + 'd\g<len>) - 1)
+          \t\t]};

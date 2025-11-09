@@ -16,7 +16,7 @@ convert:
     #
     source: >-
       @path @jinja
-      {{ this.paths.APP_ROOT_DIR / '../Pixie_ROM_FW/PixieROMApp/TapeOutRelease/PIXIE_E4/PixieParserOut/outputs' |abspath }}
+      {{ this.paths.APP_ROOT_DIR / 'assets/lst/inputs' |abspath }}
 
     # Field: target
     #
@@ -24,7 +24,7 @@ convert:
     #
     target: >-
       @path @jinja
-      {{ this.paths.APP_ROOT_DIR / '/assets/lst/outputs' |abspath }}
+      {{ this.paths.APP_ROOT_DIR / 'workrun/convert/lst/outputs' |abspath }}
 
     # Field: base_addr_map
     #
