@@ -6,15 +6,6 @@
 requires = ["hatchling>=1.24.2", "hatch-vcs>=0.3.0"]
 build-backend = "hatchling.build"
 
-[tool.hatch.build.targets.sdist]
-packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
-
-[tool.hatch.build.targets.binary]
-packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
-
 # -----------------------------------------------------------------------------
 # Entry Points
 # -----------------------------------------------------------------------------
@@ -106,20 +97,24 @@ dev = [
     "textual-dev",
     "duty>=1.6.3",
     "mypy>=1.18.2",
+    "hatch-uvenv",
 ]
 docs = [
     "mike",
     "mkdocs",
-    "mkdocs-coverage",
-    "mkdocs-material",
-    "mkdocs-material-extensions",
-    "mkdocs-section-index",
-    "mkdocs-git-revision-date-localized-plugin",
+    "pygments",
     "markdown-exec",
     "markdown-callouts",
-    "mkdocstrings[python]",
-    "tomli>=2.0; python_version < '3.11'",
+    "pymdown-extensions",
+    "mkdocs-macros-plugin",
     "mkdocs-llmstxt>=0.4.0",
+    "mkdocs-coverage",
+    "mkdocs-material[imaging]",
+    "mkdocstrings[python]",
+    "mkdocs-section-index",
+    "mkdocs-material-extensions",
+    "mkdocs-git-revision-date-localized-plugin",
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 
@@ -134,3 +129,19 @@ default-groups = ["dev", "docs"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.hatch.env]
+require = ["hatch-uvenv"]
+
+[tool.hatch.envs.default]
+type = "uvenv"
+installer = "uv"
+
+[tool.hatch.build.targets.sdist]
+packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
+
+[tool.hatch.build.targets.binary]
+packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]

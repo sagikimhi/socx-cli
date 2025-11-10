@@ -1,150 +1,121 @@
-# socx-cli
+# SoCX CLI
 
-SoCX is a command-line toolbox for system-on-chip verification teams. It brings
-regression automation, configuration management, reusable utilities, and a
-terminal dashboard together behind a single `socx` entry point so that teams can
-standardise their day-to-day flows.
+[![Hatch](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License](https://img.shields.io/badge/license-MIT-9400d3.svg)](https://spdx.org/licenses/)
 
-## Why SoCX?
+SoCX is a command-line toolbox for EDA development teams.
 
-- Unified CLI – every capability ships as a plugin that `socx` discovers from
-  Dynaconf settings, so teams can add or disable functionality without forking
-  the tool.
-- Configuration made visible – explore, edit, or diff settings with `socx
-  config` commands instead of guessing what will run in CI.
-- Regression workflows – replay failed suites from captured command files or
-  monitor runs in the Textual-powered terminal UI.
-- Productivity helpers – generate Git workspace manifests, convert LST symbol
-  tables into SystemVerilog covergroups, and bootstrap custom plugins.
-- Python API – the CLI is backed by typed Python helpers for custom automation
-  and continuous integration hooks.
+SoCX can also be used in your own python project/library/script and provides an
+extensive API with many useful features targeted at EDA development.
 
 ## Installation
 
 Requirements: Python 3.12 or newer.
 
-Install from PyPI:
+### Install with uv
 
-```bash
-pip install socx-cli
+=== "Install as tool"
 
-# or use uv
-uv tool install socx-cli
-```
+    ```bash
+    uv tool install socx-cli
+    ```
 
-For local development work:
+=== "Execute without installing"
 
-```bash
-make sync
+    ```bash
+    uvx socx-cli
+    ```
 
-# or
-uv sync --dev --refresh --upgrade --all-extras --all-groups
-```
+=== "Add to your project"
 
-Verify the installation:
+    ```bash
+    uv add socx-cli
+    ```
+
+=== "Add to your script"
+
+    ```bash
+    uv add --script socx-cli
+    ```
+
+### Install with pip
+
+=== "Install as tool"
+
+    ```bash
+    pipx install socx-cli
+    ```
+
+=== "Execute without installing"
+
+    ```bash
+    pipx run socx-cli
+    ```
+
+### Verify the installation
 
 ```bash
 socx --help
 socx version
 ```
 
-## Quick Start
+## License
 
-Discover the active configuration and the commands SoCX finds on your machine:
+Dual-licensed under Apache-2.0 or MIT.
 
-```bash
-socx config tree      # merged view of default, user, and local overrides
-socx config edit      # open ~/.config/socx/socx.yaml in your editor
-socx plugin example   # view a Markdown quickstart for building plugins
-```
-
-Launch the regression dashboard or replay a captured command file:
-
-```bash
-socx rgr tui                # Textual-powered terminal UI
-socx rgr run -i failed.log  # re-run commands asynchronously
-```
-
-Generate inventory for the repositories that make up a workspace:
-
-```bash
-socx git mfest --root $PWD --format table
-```
-
-## CLI Tour
-
-| Command | Focus | What it does |
-| --- | --- | --- |
-| `socx config list` | Configuration | Print the resolved settings for the current environment. |
-| `socx config debug` | Configuration | Show Dynaconf loader diagnostics and override sources. |
-| `socx git mfest` | Productivity | Emit workspace manifests as a table, JSON, or list of references. |
-| `socx convert lst` | Productivity | Translate LST symbol tables to SystemVerilog covergroups. |
-| `socx rgr run` | Regression | Run asynchronous regressions from command files and split pass/fail logs. |
-| `socx rgr tui` | Regression | Start the Textual dashboard to inspect regressions interactively. |
-| `socx plugin example` | Extensibility | Walk through building a custom plugin in a few steps. |
-
-Run `socx --help` to see every available command and plugin discovered on your
-system.
-
-## Configuration Model
-
-SoCX uses [Dynaconf](https://www.dynaconf.com/) to layer configuration from
-multiple sources:
-
-- Package defaults ship under `src/socx/static/settings/`.
-- User-level overrides live in `~/.config/socx/socx.yaml` and are created the
-  first time you run `socx config edit`.
-- Repository-local overrides are picked up by walking upward until a
-  `.socx.yaml` file is found.
-- Environment variables prefixed with `SOCX_` override individual keys
-  (e.g. `SOCX_LOG_LEVEL=DEBUG`).
-
-Helpful commands:
-
-- `socx config tree` renders the merged configuration as a Rich tree.
-- `socx config get KEY` drills into specific keys inside the tree.
-- `socx config debug` lists every source that contributed to the active values.
-
-## Regression Automation
-
-The `socx rgr` plugin turns a list of recorded commands into an asynchronous
-regression run. By default it reads from the configured
-`regression.run.input.directory/filename` path and writes timestamped pass/fail
-logs under `regression.run.output.directory`.
-
-- Use `socx rgr run -i failed.log -o results/` to override the paths.
-- Runs execute with `uvloop` and stream status to the console.
-- Results are written atomically so log collectors can tail the files mid-run.
-
-Pair the CLI with the Textual dashboard by running `socx rgr tui`, which embeds
-the same regression APIs in a terminal-friendly interface.
-
-## Extending With Plugins
-
-All subcommands are backed by metadata in `settings.plugins`. Add your own by
-placing an import path into the list (local settings support dotted paths to
-modules inside your repository). The built-in quickstart shown by `socx plugin
-example` walks through turning a simple Python function into a fully fledged
-CLI plugin.
-
-## Documentation & Community
-
-- Project documentation: <https://sagikimhi.github.io/socx-cli>
-- Changelog: `CHANGELOG.md`
-- Code of Conduct: `CODE_OF_CONDUCT.md`
-- Discussions: <https://gitter.im/socx-cli/community>
+See [LICENSE](home/license.md) for details.
 
 ## Development
 
-Contributions are welcome—check `CONTRIBUTING.md` for workflow details. Typical
-checks:
+Contributions are welcome—check `CONTRIBUTING.md` for workflow details.
 
-```bash
-uv run ruff format
-uv run ruff check --fix
-uv run pytest
-```
+Typical checks:
 
-## License
+=== "run checks"
 
-Dual-licensed under Apache-2.0 or MIT. See `LICENSE` for details.
+    ```bash
+    make check
+    ```
+
+=== "build project"
+
+    ```bash
+    make build
+    ```
+
+=== "sync dependencies"
+
+    ```bash
+    make sync
+    ```
+
+=== "build documentation"
+
+    ```bash
+    make docs
+    ```
+
+=== "deploy documentation"
+
+    ```bash
+    make docs_deploy
+    ```
+
+## Where to go from here
+
+- Proceed to the [Quick Start](home/quickstart.md) guide to get up and
+  running quickly.
+- Read the [User Guide](user-guide/cli.md) for detailed usage instructions
+  and examples.
+- Explore the [API Reference](reference/api.md) for advanced integration and
+  customization.
+- Visit the [Contributing Guide](development/contributing.md) if you’d like to help
+  improve the project.
+
+## Documentation & Community
+
+- Project Documentation: <https://sagikimhi.dev/socx-cli>
+- Community Discussions: <https://gitter.im/socx-cli/community>
+- Code of Conduct: `CODE_OF_CONDUCT.md`
+- Changelog: `CHANGELOG.md`
