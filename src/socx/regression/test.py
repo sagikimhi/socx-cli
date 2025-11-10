@@ -72,8 +72,8 @@ class TestStatus(IntEnum):
 
     Idle = 0
     Pending = auto()
-    Running = auto()
     Stopped = auto()
+    Running = auto()
     Finished = auto()
     Terminated = auto()
 

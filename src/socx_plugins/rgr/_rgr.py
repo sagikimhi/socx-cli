@@ -9,6 +9,7 @@ import rich_click as click
 
 from socx import (
     Regression,
+    TestStatus,
     Decorator,
     AnyCallable,
     SymbolConverter,
@@ -93,6 +94,38 @@ def _correct_paths_out(
     return dir_out
 
 
+async def write_results(regression: Regression, output_dir: Path) -> None:
+    """Write the regression command results to their respective files."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    while True:
+        if regression.status > TestStatus.Running:
+            break
+
+        if regression.status <= TestStatus.Stopped:
+            await asyncio.sleep(0)
+            continue
+
+        if regression.done.empty():
+            await asyncio.sleep(0)
+            continue
+
+        try:
+            test = await regression.done.get()
+            if test.stdout:
+                test_out_log = output_dir / test.name / "stdout.log"
+                test_out_log.parent.mkdir(parents=True, exist_ok=True)
+                test_out_log.write_text(test.stdout)
+                del test._stdout
+            if test.stderr:
+                test_err_log = output_dir / test.name / "stderr.log"
+                test_err_log.parent.mkdir(parents=True, exist_ok=True)
+                test_err_log.write_text(test.stderr)
+                del test._stderr
+        finally:
+            regression.done.task_done()
+
+
 def _write_results(regression: Regression, output_dir: Path) -> None:
     """Write the regression command results to their respective files."""
     fail_out = output_dir / "failed.log"
@@ -107,17 +140,6 @@ def _write_results(regression: Regression, output_dir: Path) -> None:
         for test in regression:
             f = pass_fd if test.passed else fail_fd
             f.write(test.command.line)
-
-    logger.info("writing regression outputs to disk...")
-    for test in regression:
-        if test.stdout:
-            test_out_log = output_dir / test.name / "stdout.log"
-            test_out_log.parent.mkdir(parents=True, exist_ok=True)
-            test_out_log.write_text(test.stdout)
-        if test.stderr:
-            test_err_log = output_dir / test.name / "stderr.log"
-            test_err_log.parent.mkdir(parents=True, exist_ok=True)
-            test_err_log.write_text(test.stderr)
 
     logger.info(f"regression results written to: {output_dir}")
     logger.info("regression results successfuly written to disk.")
@@ -143,12 +165,11 @@ async def _run_from_file(
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
     output_dir = _correct_paths_out(regression, output)
-    regression_task = asyncio.create_task(
-        regression.start(), name=regression.name
-    )
 
     try:
-        await regression_task
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(regression.start())
+            tg.create_task(write_results(regression, output_dir))
     except asyncio.CancelledError:
         err = "Task has been cancelled, cleaning up..."
         logger.exception(err)

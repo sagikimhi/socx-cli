@@ -6,7 +6,7 @@ import time
 import logging
 import asyncio as aio
 from typing import Any, TypeVar
-from typing import cast, override
+from typing import override
 from threading import RLock
 from dataclasses import dataclass, field
 from collections import deque
@@ -22,7 +22,6 @@ from rich.progress import TimeRemainingColumn
 from rich.progress import SpinnerColumn
 from rich.progress import TimeElapsedColumn
 from rich.progress import MofNCompleteColumn
-from dynaconf.utils.boxing import DynaBox
 
 from socx.config import settings
 from socx.regression.test import Test
@@ -50,12 +49,14 @@ class Regression(TestBase):
     ) -> None:
         TestBase.__init__(self, name, *args, **kwargs)
         tests = set(tests)
+        self.done: aio.Queue = aio.Queue()
+        self.pending: aio.Queue = aio.Queue(self.run_limit)
+        self.messages: aio.Queue = aio.Queue()
         self._lock = RLock()
         self._tests = deque(tests)
         self._runner_tid = None
         self._scheduler_tid = None
         self._regression_tid = None
-        self._num_tests = len(self._tests)
         self._progress: Progress = Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -71,21 +72,10 @@ class Regression(TestBase):
             transient=False,
             expand=True,
         )
-        self.messages: aio.Queue = aio.Queue()
-        self.pending: aio.Queue = aio.Queue(self.run_limit)
-
-    @classmethod
-    def from_lines(
-        cls, name: str, lines: Iterable[str], test_cls: type | None = None
-    ) -> Regression:
-        """Construct a regression from serialized command lines."""
-        test_cls = test_cls or Test
-        tests = [test_cls(line) for line in lines]
-        return Regression(name, tests)
 
     def __len__(self) -> int:
         """Return the number of tests scheduled within the regression."""
-        return self._num_tests
+        return len(self._tests)
 
     def __iter__(self) -> Iterator[Test]:
         """Iterate over tests defined in a regression."""
@@ -100,11 +90,14 @@ class Regression(TestBase):
         """Return ``True`` if ``test`` is tracked by this regression."""
         return test is not None and test in self._tests
 
-    @property
-    def cfg(self) -> DynaBox:
-        """Return the regression configuration namespace."""
-        with self._lock:
-            return cast(DynaBox, settings.regression)
+    @classmethod
+    def from_lines(
+        cls, name: str, lines: Iterable[str], test_cls: type | None = None
+    ) -> Regression:
+        """Construct a regression from serialized command lines."""
+        test_cls = test_cls or Test
+        tests = [test_cls(line) for line in lines]
+        return Regression(name, tests)
 
     @property
     def tests(self) -> deque[Test]:
@@ -121,7 +114,7 @@ class Regression(TestBase):
     @property
     def run_limit(self) -> int:
         """Return the maximum number of tests that may run concurrently."""
-        return cast(int, self.cfg.max_runs_in_parallel)
+        return settings.regression.max_runs_in_parallel
 
     @override
     async def start(self) -> None:
@@ -229,6 +222,7 @@ class Regression(TestBase):
                     f"Runner({test.name}): test {test.result}."
                 )
                 self._regression_advance()
+                await self.done.put(test)
             finally:
                 self.pending.task_done()
 
