@@ -1,7 +1,8 @@
 ---
 title: API reference
-hide:
-- navigation
+description: SoCX API reference.
 ---
 
-# ::: socx
+# API
+
+## ::: socx

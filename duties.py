@@ -69,10 +69,10 @@ def check_code(ctx: Context) -> None:
 @duty(nofail=PY_VERSION == PY_DEV)
 def check_docs(ctx: Context) -> None:
     """Check if the documentation builds correctly."""
-    Path("htmlcov").mkdir(parents=True, exist_ok=True)
-    Path("htmlcov/index.html").touch(exist_ok=True)
     ctx.run(
-        tools.mkdocs.build(strict=True, verbose=True),
+        tools.mkdocs.build(
+            strict=True, verbose=True, clean=True, config_file="mkdocs.yml"
+        ),
         title=pyprefix("Building documentation"),
     )
 
@@ -102,7 +102,12 @@ def docs(
 
     """
     ctx.run(
-        tools.mkdocs.serve(dev_addr=f"{host}:{port}").add_args(*cli_args),
+        tools.mkdocs.serve(
+            livereload=True,
+            config_file="mkdocs.yml",
+            strict=True,
+            dev_addr=f"{host}:{port}",
+        ).add_args(*cli_args),
         title="Serving documentation",
         capture=False,
     )
@@ -167,4 +172,13 @@ def release(ctx: Context, version: str = "") -> None:
 def docs_deploy(ctx: Context) -> None:
     """Deploy the documentation to GitHub pages."""
     os.environ["DEPLOY"] = "true"
-    ctx.run(tools.mkdocs.gh_deploy(), title="Deploying documentation")
+    ctx.run(
+        tools.mkdocs.gh_deploy(
+            config_file="mkdocs.yml",
+            clean=True,
+            strict=True,
+            verbose=True,
+            message="docs: deploy documentation",
+        ),
+        title="Deploying documentation",
+    )

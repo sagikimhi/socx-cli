@@ -1,17 +1,17 @@
 ---
 git:
   manifest:
+    format: table
     style:
       headers: underline
-
     columns:
       - name: Repository
         func: socx_plugins.git.utils:get_repo_name
         style: white
 
-      - name: Status
+      - name: "[green]Ahead󱦲[red] Behind󱦳"
         func: socx_plugins.git.utils:get_ahead_behind
-        style: green
+        style: ~
 
       - name: Branch/Tag
         func: socx_plugins.git.utils:get_ref_name
@@ -28,5 +28,3 @@ git:
       - name: Commit-Hash
         func: socx_plugins.git.utils:get_commit_hash
         style: red
-
-    default_format: table

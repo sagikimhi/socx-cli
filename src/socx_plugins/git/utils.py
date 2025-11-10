@@ -13,12 +13,12 @@ from rich.text import Text
 class AheadBehind(NamedTuple):
     """Tuple reporting how far a branch differs from its upstream."""
 
-    behind: int
     ahead: int
+    behind: int
 
     def __str__(self) -> str:
         """Return a compact formatted representation for console output."""
-        text = Text(f"[green]󱦲{self.ahead}[/], [red]{self.behind}󱦳[/]")
+        text = Text(f"[green]{self.ahead}󱦲[/] [red]{self.behind}󱦳[/]")
         return text.plain
 
 
@@ -75,19 +75,22 @@ def get_ahead_behind(repo: git.Repo) -> AheadBehind:
     with repo:
         if not is_branch(repo.head):
             return AheadBehind(0, 0)
+
         local_branch = repo.active_branch
         tracking_branch = local_branch.tracking_branch()
-        if tracking_branch is None:
+
+        if not tracking_branch:
             return AheadBehind(0, 0)
+
         ahead_behind = repo.git.rev_list(
             "--left-right",
             "--count",
-            f"{tracking_branch.name}...{local_branch.name}",
+            f"{local_branch.name}...{tracking_branch.name}",
         )
         return AheadBehind(*ahead_behind.split()[:2])
 
 
-def is_branch(head: git.HEAD) -> bool:
+def is_branch(head: git.HEAD | git.Head) -> bool:
     """Return ``True`` if ``head`` refers to a branch (non-detached)."""
     return not head.is_detached
 
