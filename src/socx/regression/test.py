@@ -6,7 +6,7 @@ import os
 import time
 import shlex
 import asyncio
-from enum import auto, IntEnum
+from enum import auto, IntEnum, StrEnum
 from typing import cast, override
 from pathlib import Path
 from dataclasses import dataclass
@@ -19,6 +19,63 @@ from socx.io import logger
 from socx.config import settings
 from socx.patterns import Visitor
 from socx.patterns import UIDMixin
+
+
+class TestResult(StrEnum):
+    """
+    Represents the result of a test that had finished and exited normally.
+
+    Members
+    -------
+    NA: StrEnum
+        Test has not yet finished running and therefore result is
+        non-applicable.
+
+    Passed: StrEnum
+        Test had finished and terminated normally with no errors and a 0 exit
+        code.
+
+    Failed: StrEnum
+        Test had finished either normally or abnormally with a non-zero exit
+        code.
+    """
+
+    NA = "n/a"
+    Passed = "passed"
+    Failed = "failed"
+
+
+class TestStatus(IntEnum):
+    """
+    TestStatus representation of a test process as an `IntEnum`.
+
+    Members
+    -------
+    Idle: IntEnum
+        Idle, waiting to be scheduled for execution.
+
+    Pending: IntEnum
+        Test is scheduled for execution in an active session.
+
+    Running: IntEnum
+        Test is currently running.
+
+    Stopped: IntEnum
+        Test has been stopped intentionally.
+
+    Finished: IntEnum
+        Test had finished running normally with an exit code 0.
+
+    Terminated: IntEnum
+        Test was intentionally terminated by a signal.
+    """
+
+    Idle = 0
+    Pending = auto()
+    Stopped = auto()
+    Running = auto()
+    Finished = auto()
+    Terminated = auto()
 
 
 @dataclass(init=False)
@@ -119,15 +176,14 @@ class TestBase(TestABC):
     """Provide common process-management behaviour for regression tests."""
 
     def __init__(self, command: str | TestCommand, *args, **kwargs) -> None:
-        if isinstance(command, str):
-            command = TestCommand(command)
-
+        cmd = TestCommand(command) if isinstance(command, str) else command
         self._pid = os.getpid()
-        self._name = "BASE"
+        self._name = cmd.name
         self._status = TestStatus.Idle
         self._result = TestResult.NA
-        self._command = cast(TestCommand, command)
+        self._command = cmd
         self._process = None
+        self._returncode = 0
         self._started_time = None
         self._finished_time = None
 
@@ -157,7 +213,7 @@ class TestBase(TestABC):
         return self._status
 
     @property
-    def result(self):
+    def result(self) -> TestResult:
         """Return the result enum once a test has completed."""
         return self._result
 
@@ -235,53 +291,49 @@ class Test(UIDMixin, TestBase):
     @property
     def idle(self) -> bool:
         """True if test has no active process and has not yet started."""
-        return self._process is None and self.status is TestStatus.Idle
+        return self.process is None and self.status is TestStatus.Idle
 
     @property
     def pending(self):
         """Return ``True`` if the test is queued but not yet running."""
-        return self._process is None and self.status == TestStatus.Pending
+        return self.status == TestStatus.Pending
 
     @property
     def started(self) -> bool:
         """Return ``True`` once ``start`` has spawned the subprocess."""
-        return self._process is not None and self.status is TestStatus.Running
+        return self.status > TestStatus.Pending
 
     @property
     def suspended(self) -> bool:
         """Return ``True`` if the subprocess is currently stopped."""
-        return self.started and self.process.status() == psutil.STATUS_STOPPED
+        return self.status == TestStatus.Stopped
 
     @property
     def running(self) -> bool:
         """True if test is currently running in a dedicated process."""
-        return self.started and self.returncode is None and not self.suspended
+        return self.process is not None and self.status is TestStatus.Running
 
     @property
     def finished(self) -> bool:
         """Return ``True`` if the test completed and recorded a result."""
-        return (
-            self.started
-            and self.returncode is not None
-            and self.status is TestStatus.Finished
-        )
+        return self.status == TestStatus.Finished
 
     @property
     def terminated(self) -> bool:
         """Return ``True`` if the test ended due to termination signals."""
-        return self.started and self.status is TestStatus.Terminated
+        return self.status == TestStatus.Terminated
 
     @property
     def passed(self) -> bool:
         """Return ``True`` if the test finished successfully."""
-        # change back to finished and return_code == 0 once patch is removed
         return self.finished and self.result is TestResult.Passed
 
     @property
     def failed(self) -> bool:
         """Return ``True`` if the test finished with a failure result."""
-        # change back to finished and return_code != 0 once patch is removed
-        return self.finished and self.result is TestResult.Failed
+        return (
+            self.terminated or self.finished
+        ) and self.result == TestResult.Failed
 
     @property
     def stdin(self) -> str | None:
@@ -291,33 +343,25 @@ class Test(UIDMixin, TestBase):
     @property
     def stdout(self) -> str | None:
         """Return captured standard output once the test has finished."""
-        if self.finished:
-            return self._stdout
-        else:
-            return None
+        return self._stdout
 
     @property
     def stderr(self) -> str | None:
         """Return captured standard error once the test has finished."""
-        if self.finished:
-            return self._stderr
-        else:
-            return None
+        return self._stderr
 
     @property
-    def process(self) -> psutil.Process:
+    def process(self) -> psutil.Process | None:
         """Return a ``psutil.Process`` wrapper for the test's subprocess."""
-        if self.pid == -1:
-            return psutil.Process()
+        if self.pid == -1 or self._process is None:
+            return None
         else:
             return psutil.Process(self.pid)
 
     @property
     def returncode(self) -> int | None:
         """The return code from the test process or None if running or idle."""
-        if self._process is None or self._process.returncode is None:
-            return None
-        return self._process.returncode
+        return self._returncode
 
     @property
     def runtime_cfg(self) -> DynaBox:
@@ -348,72 +392,71 @@ class Test(UIDMixin, TestBase):
     @override
     async def start(self) -> None:
         """Start a test in a subprocess."""
-        if self.status not in (TestStatus.Idle, TestStatus.Pending):
+        if self.started:
             msg = "Cannot start a test when it is already running."
             exc = OSError(msg)
             logger.exception(msg, exc_info=exc, stack_info=True)
             raise exc
 
-        self._status = TestStatus.Pending
+        if self.idle:
+            self._status = TestStatus.Pending
+
+        self._status = TestStatus.Running
         self._process = await asyncio.create_subprocess_shell(
             cmd=self.command.line, stdin=None, stdout=PIPE, stderr=PIPE
         )
-        try:
-            stdout, stderr = await self._process.communicate()
-            self._status = TestStatus.Running
-            self._started_time = time.time()
-
-            while self.returncode is None:
-                await asyncio.sleep(0)
-
-            self._finished_time = time.time()
-            self._stdout = stdout.decode()
-            self._stderr = stderr.decode()
-            self._status = TestStatus.Finished
-        except Exception:
-            self.terminate()
-            self._status = TestStatus.Terminated
-            self._result = TestResult.Failed
-            raise
-
-        if self.returncode == 0:
-            self._result = self._parse_result()
-        else:
-            self._result = TestResult.Failed
+        self._started_time = time.time()
+        while self._process.returncode is None:
+            await asyncio.sleep(0)
+        self._returncode = await self._process.wait()
+        self._finished_time = time.time()
+        stdout, stderr = await self._process.communicate()
+        self._stdout = stdout.decode()
+        self._stderr = stderr.decode()
+        self._status = TestStatus.Finished
+        self._result = self._parse_result()
 
     @override
     def suspend(self) -> None:
         """Send a SIGSTOP signal to suspend the test's running process."""
-        if self.running:
+        if self.running and self.process:
             self.process.suspend()
+            self._status = TestStatus.Stopped
 
     @override
     def resume(self) -> None:
         """Resume the process if it is paused (sends a SIGCONT signal)."""
-        if self.suspended:
+        if self.suspended and self.process:
             self.process.resume()
+            self._status = TestStatus.Running
 
     @override
     def wait(self, timeout: float | None = None) -> None:
         """Wait for a test to terminate if it is running."""
-        if self.running:
+        if self.running and self.process:
             self.process.wait()
 
     @override
     def terminate(self) -> None:
         """Terminate the process with SIGTERM."""
-        if self.running:
+        if self.running and self.process:
             self.process.terminate()
+            self._status = TestStatus.Terminated
 
     @override
     def kill(self) -> None:
         """Kill the process with SIGKILL as a last resort."""
-        if self.running:
+        if self.running and self.process:
             self.process.kill()
+            self._status = TestStatus.Terminated
 
     def _parse_result(self) -> TestResult:
         """Map the subprocess return code to a ``TestResult`` enum."""
-        return TestResult.Failed if self.returncode != 0 else TestResult.Passed
+        return (
+            TestResult.Failed
+            if self.returncode != 0 or self.status != TestStatus.Finished
+            else TestResult.Passed
+        )
 
     def __hash__(self) -> int:
         return hash(self.command)
@@ -424,60 +467,3 @@ class Test(UIDMixin, TestBase):
         exc = ValueError(err)
         logger.exception(err, exc_info=exc)
         raise exc
-
-
-class TestResult(IntEnum):
-    """
-    Represents the result of a test that had finished and exited normally.
-
-    Members
-    -------
-    NA: TestResult
-        Test has not yet finished running and therefore result is
-        non-applicable.
-
-    Passed: TestResult
-        Test had finished and terminated normally with no errors and a 0 exit
-        code.
-
-    Failed: TestResult
-        Test had finished either normally or abnormally with a non-zero exit
-        code.
-    """
-
-    NA = auto()
-    Passed = auto()
-    Failed = auto()
-
-
-class TestStatus(IntEnum):
-    """
-    TestStatus representation of a test process as an `IntEnum`.
-
-    Members
-    -------
-    Idle: IntEnum
-        Idle, waiting to be scheduled for execution.
-
-    Pending: IntEnum
-        Test is scheduled for execution in an active session.
-
-    Running: IntEnum
-        Test is currently running.
-
-    Stopped: IntEnum
-        Test has been stopped intentionally.
-
-    Finished: IntEnum
-        Test had finished running normally with an exit code 0.
-
-    Terminated: IntEnum
-        Test was intentionally terminated by a signal.
-    """
-
-    Idle = 0
-    Pending = auto()
-    Running = auto()
-    Stopped = auto()
-    Finished = auto()
-    Terminated = auto()

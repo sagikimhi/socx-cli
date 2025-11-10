@@ -1,37 +1,12 @@
 site_dir: "site"
 site_name: "socx-cli"
-site_url: "https://sagikimhi.github.io/socx-cli"
+site_url: "https://sagikimhi.dev/socx-cli/"
 site_description: "System on chip verification and tooling infrastructure."
 
 repo_name: "sagikimhi/socx-cli"
 repo_url: "https://github.com/sagikimhi/socx-cli"
 edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2025 Sagi Kimhi
-
-validation:
-  omitted_files: warn
-  absolute_links: warn
-  unrecognized_links: warn
-
-nav:
-  - Home:
-      - Overview: index.md
-      - Quickstart: quickstart.md
-      - Changelog: changelog.md
-      - Credits: credits.md
-      - License: license.md
-  - User Guide:
-      - CLI Tour: user-guide/cli.md
-      - Configuration: user-guide/configuration.md
-      - Regression Automation: user-guide/regression.md
-      - Plugin Development: user-guide/plugins.md
-  - Core Conepts:
-      - Plugins: concepts/plugins.md
-  - API reference: reference/api.md
-  - Development:
-      - Contributing: contributing.md
-      - Code of Conduct: code_of_conduct.md
-      - Coverage report: coverage.md
 
 watch:
   - mkdocs.yml
@@ -42,80 +17,137 @@ watch:
   - src/socx_tui
   - src/socx_plugins
 
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+  - Home:
+      - Overview: index.md
+      - Quickstart: home/quickstart.md
+      - Changelog: home/changelog.md
+      - Credits: home/credits.md
+      - License: home/license.md
+  - User Guide:
+      - CLI Tour: user-guide/cli.md
+      - Configuration: user-guide/configuration.md
+      - Regression Automation: user-guide/regression.md
+      - Plugin Development: user-guide/plugins.md
+  - Reference:
+      - API Reference: reference/api.md
+  - Conepts:
+      - Plugins: concepts/plugins.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Code of Conduct: development/code_of_conduct.md
+
 theme:
   name: material
-  custom_dir: docs/.overrides
+  highlightjs: true
+  hljs_languages:
+    - sh
+    - zsh
+    - bash
+    - tcsh
+    - yaml
+    - python
+    - verilog
+    - systemverilog
   features:
+    - toc.follow
+    - search.suggest
+    - search.highlight
     - announce.dismiss
     - content.action.edit
     - content.action.view
-    - content.code.annotate
-    - content.code.copy
     - content.tooltips
-    - navigation.footer
-    - navigation.instant.preview
-    - navigation.path
-    - navigation.sections
-    - navigation.tabs
-    - navigation.tabs.sticky
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
     - navigation.top
-    - search.highlight
-    - search.suggest
-    - toc.follow
+    - navigation.tabs
+    - navigation.path
+    - navigation.header
+    - navigation.footer
+    - navigation.sections
+    - navigation.tabs.sticky
+    - navigation.instant.preview
+  custom_dir: docs/.overrides
+  extra_css:
+    - css/material.css
+    - css/mkdocstrings.css
+  extra_javascript:
+    - js/feedback.js
   palette:
+    # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
         name: Switch to light mode
+    # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: teal
-      accent: purple
       toggle:
         icon: material/weather-sunny
         name: Switch to dark mode
+    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: black
-      accent: lime
+      primary: teal
       toggle:
         icon: material/weather-night
         name: Switch to system preference
 
-extra_css:
-  - css/material.css
-  - css/mkdocstrings.css
-
-extra_javascript:
-  - js/feedback.js
-
 markdown_extensions:
-  - attr_list
-  - admonition
-  - callouts
-  - footnotes
-  - pymdownx.magiclink
-  - pymdownx.emoji
-  - pymdownx.snippets
-  - pymdownx.superfences
-  - pymdownx.tabbed
-  - pymdownx.tasklist:
-      custom_checkbox: true
+  # Python Markdown
   - toc:
       permalink: true
+  - abbr
+  - tables
+  - admonition
+  - def_list
+  - attr_list
+  - footnotes
+  - md_in_html
+  # Python Markdown Extensions
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.caret
+  - pymdownx.tilde
+  - pymdownx.emoji
+  - pymdownx.details
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.highlight
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.magiclink
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.smartsymbols
 
 plugins:
+  - tags
+  - offline
   - search
-  - coverage
+  - social
+  - macros
   - autorefs
   - section-index
   - markdown-exec
+  - mike:
+      alias_type: copy
   - git-revision-date-localized:
       type: date
       strict: false
       fallback_to_build_date: true
-  - mike:
-      alias_type: copy
   - llmstxt:
       full_output: llms-full.txt
       sections:
@@ -127,16 +159,16 @@ plugins:
       handlers:
         python:
           paths:
-            - src
+            - src/socx-cli
           options:
             summary: true
             backlinks: tree
             filters: ["!^_"]
             heading_level: 1
-            show_bases: false
+            show_bases: true
             show_source: true
             show_root_heading: true
-            show_root_full_path: false
+            show_root_full_path: true
             signature_crossrefs: true
             show_symbol_type_toc: true
             show_if_no_docstring: true
@@ -157,8 +189,9 @@ extra:
       link: https://github.com/sagikimhi
     - icon: fontawesome/brands/gitter
       link: https://gitter.im/socx-cli/community
-    - icon: fontawesome/brands/python
-      link: https://pypi.org/project/socx-cli/
+    # - icon: fontawesome/brands/python
+    #   link: https://pypi.org/project/socx-cli/
+
   analytics:
     feedback:
       title: Was this page helpful?

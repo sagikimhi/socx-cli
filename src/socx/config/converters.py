@@ -10,11 +10,11 @@ from types import CodeType
 from types import ModuleType
 from types import MethodType
 from types import FunctionType
-from typing import Any, overload
-from typing import override
+from typing import Any, overload, override, TypeVar
 from importlib import import_module
-from collections.abc import Iterable
+from collections.abc import Iterable, Callable
 
+from pydantic import validate_call, ConfigDict
 from rich_click.patch import patch
 from rich_click.rich_click_theme import RichClickTheme
 from upath import UPath as Path
@@ -31,8 +31,12 @@ from rich_click import (
 
 from socx.config._settings import Settings
 
+AnyCallableT = TypeVar("AnyCallableT", bound=Callable[..., Any])
 
 logger = logging.getLogger(__name__)
+
+
+_validate = validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 
 
 class Converter(abc.ABC):
@@ -68,6 +72,7 @@ class PathConverter(Converter):
     def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
+    @_validate
     def __call__(self, value: str | Path | Lazy) -> Lazy | Path:
         """Return a resolved ``Path`` or preserve deferred conversion."""
         if isinstance(value, Lazy):
@@ -87,6 +92,7 @@ class CompileConverter(Converter):
     """Compile python source files referenced in configuration values."""
 
     @override
+    @_validate
     def __call__(self, value: str | Path | Lazy) -> CodeType | Lazy | None:
         """Return compiled code objects or propagate lazy evaluation."""
         if isinstance(value, Lazy):
@@ -113,6 +119,7 @@ class ImportConverter(Converter):
     """Import modules referenced in configuration entries."""
 
     @override
+    @_validate
     def __call__(self, value: str | Lazy) -> ModuleType | Lazy | None:
         """Import a module referenced by dotted string or handle laziness."""
         if isinstance(value, Lazy):
@@ -133,6 +140,7 @@ class EvalConverter(Converter):
         self.compiler = CompileConverter()
 
     @override
+    @_validate
     def __call__(self, value: str | Path | CodeType | Lazy) -> Any:
         """Provide an execution namespace for compiled configuration code."""
         if isinstance(value, Lazy):
@@ -168,6 +176,7 @@ class SymbolConverter(Converter):
     def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
+    @_validate
     def __call__(self, value: str | Lazy) -> Any:
         """Resolve a symbol from a module or python file path."""
         logger.debug(f"Symbol converter called with value: {value}")
@@ -220,6 +229,7 @@ class CommandConverter(Converter):
     def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
+    @_validate
     def __call__(
         self, value: str | Command | Lazy | None
     ) -> Command | Lazy | None:
@@ -301,6 +311,7 @@ class IncludeConverter(Converter):
     """Load configuration files referenced within other settings."""
 
     @override
+    @_validate
     def __call__(self, value: str | Path | Lazy) -> Settings | Lazy | None:
         """Return a new ``Settings`` instance for the provided include path."""
         if isinstance(value, Lazy):

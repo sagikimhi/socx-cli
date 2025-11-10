@@ -6,17 +6,17 @@ import asyncio
 from pathlib import Path
 
 import rich_click as click
-from dynaconf.utils.boxing import DynaBox
 
 from socx import (
     Regression,
+    TestStatus,
     Decorator,
     AnyCallable,
+    SymbolConverter,
     settings,
     add_options,
 )
 
-from socx_plugins.rgr.pixie_test import PixieTest
 from socx_plugins.rgr.callbacks import input_cb, output_cb
 
 
@@ -72,85 +72,108 @@ def _correct_path_in(input_path: str | Path | None = None) -> Path:
         input_cfg = settings.regression.run.input
         dir_in = input_cfg.directory
         file_in = input_cfg.filename
-        input_path = dir_in / file_in
+        input_path = Path(f"{dir_in}/{file_in}")
 
     if isinstance(input_path, str):
         input_path = Path(input_path)
 
-    return input_path.resolve().absolute()
+    return input_path.resolve()
 
 
 def _correct_paths_out(
+    regression: Regression,
     output_path: str | Path | None = None,
-) -> tuple[Path, Path]:
+) -> Path:
     """Return timestamped output paths for passed and failed results."""
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
-    if output_path is None:
-        cfg: DynaBox = settings.regression.run.output  # pyright: ignore
-        dir_out: Path = Path(cfg.directory) / today  # pyright: ignore
-        fail_out: Path = Path(dir_out) / f"{now}_failed.log"
-        pass_out: Path = Path(dir_out) / f"{now}_passed.log"
-    else:
-        fail_out = Path(output_path) / f"{now}_failed.log"
-        pass_out = Path(output_path) / f"{now}_passed.log"
-    fail_out.parent.mkdir(parents=True, exist_ok=True)
-    pass_out.parent.mkdir(parents=True, exist_ok=True)
-    return pass_out, fail_out
+    dir_out = output_path or settings.regression.run.output.directory  # pyright: ignore
+    if isinstance(dir_out, str):
+        dir_out = Path(dir_out)
+    dir_out = dir_out / regression.name / today / now
+    return dir_out
 
 
-def _write_results(
-    pass_out: str | Path,
-    fail_out: str | Path,
-    regression: Regression,
-) -> None:
+async def write_results(regression: Regression, output_dir: Path) -> None:
     """Write the regression command results to their respective files."""
-    if isinstance(fail_out, str):
-        fail_out = Path(fail_out)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    if isinstance(pass_out, str):
-        pass_out = Path(pass_out)
+    while True:
+        if regression.status > TestStatus.Running:
+            break
 
+        if regression.status <= TestStatus.Stopped:
+            await asyncio.sleep(0)
+            continue
+
+        if regression.done.empty():
+            await asyncio.sleep(0)
+            continue
+
+        try:
+            test = await regression.done.get()
+            if test.stdout:
+                test_out_log = output_dir / test.name / "stdout.log"
+                test_out_log.parent.mkdir(parents=True, exist_ok=True)
+                test_out_log.write_text(test.stdout)
+                del test._stdout
+            if test.stderr:
+                test_err_log = output_dir / test.name / "stderr.log"
+                test_err_log.parent.mkdir(parents=True, exist_ok=True)
+                test_err_log.write_text(test.stderr)
+                del test._stderr
+        finally:
+            regression.done.task_done()
+
+
+def _write_results(regression: Regression, output_dir: Path) -> None:
+    """Write the regression command results to their respective files."""
+    fail_out = output_dir / "failed.log"
+    pass_out = output_dir / "passed.log"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    logger.info("writing regression pass/fail results disk...")
     with (
         click.open_file(fail_out, "w", "utf-8", atomic=True) as fail_fd,
         click.open_file(pass_out, "w", "utf-8", atomic=True) as pass_fd,
     ):
-        logger.info(f"writing regression results to: {fail_out.parent}...")
-
         for test in regression:
             f = pass_fd if test.passed else fail_fd
-            f.write(f"{test.command.line}")
+            f.write(test.command.line)
 
-        logger.info(f"passed commands were written to path: {pass_out}")
-        logger.info(f"failed commands were written to path: {fail_out}")
-        logger.info("regression results successfuly written to disk.")
+    logger.info(f"regression results written to: {output_dir}")
+    logger.info("regression results successfuly written to disk.")
 
 
 def _populate_regression(filepath: Path) -> Regression:
     """Construct a ``Regression`` model from the recorded commands file."""
+    converter = SymbolConverter()
+    test_cls = converter(settings.regression.test_cls)
     logger.info(f"reading input from file path: {filepath}")
-    with click.open_file(filepath, mode="r", encoding="utf-8") as file:
-        return Regression.from_lines(
-            "rgr", tuple(line for line in file), test_cls=PixieTest
-        )
+    return Regression.from_lines(
+        name=filepath.name,
+        lines=filepath.read_text().splitlines(keepends=True),
+        test_cls=test_cls,
+    )
 
 
 async def _run_from_file(
     input: str | Path | None = None,  # noqa: A002
     output: str | Path | None = None,
-) -> None:
+) -> Regression:
     """Run a regression using file inputs and persist the results."""
     path_in = _correct_path_in(input)
     regression = _populate_regression(path_in)
-    pass_out, fail_out = _correct_paths_out(output)
-    regression_task = asyncio.create_task(
-        regression.start(), name=regression.name
-    )
+    output_dir = _correct_paths_out(regression, output)
 
     try:
-        await regression_task
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(regression.start())
+            tg.create_task(write_results(regression, output_dir))
     except asyncio.CancelledError:
         err = "Task has been cancelled, cleaning up..."
         logger.exception(err)
     finally:
-        _write_results(pass_out, fail_out, regression)
+        _write_results(regression, output_dir)
+
+    return regression

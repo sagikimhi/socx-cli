@@ -6,8 +6,8 @@
 
 !.github/**/*
 
+!bin/run
 !bin/version
-!bin/socrun
 
 !src/*.py
 !src/socx/**/*.py
@@ -23,9 +23,8 @@
 
 !scripts/*.py
 
-!assets/svg/**/*
-!assets/lst/inputs/**/*.in
-!assets/rgr/inputs/**/*.in
+!assets/rgr/inputs/*
+!assets/lst/inputs/*.in
 
 # Unexclude common files
 

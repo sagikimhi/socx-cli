@@ -1,18 +1,15 @@
 ---
 regression:
   path: "@path @format {this.paths.APP_ROOT_DIR}/assets/rgr"
-
-  opts:
-    max_runs_in_parallel: 10
+  test_cls: "socx.regression.test:Test"
+  max_runs_in_parallel: 10
 
   run:
-    logs:
-      directory: "@path workrun/regression/logs"
     input:
       filename: failed_tests_history.log
       directory: "@path @format {this.regression.path}/inputs"
     output:
-      directory: "@path workrun/regression/reports"
+      directory: "@path workrun/regression"
 
   runtime:
     path: "@path @format {this.regression.path}/nightly"

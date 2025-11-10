@@ -52,23 +52,20 @@ class PathValidator:
     @classmethod
     def _extract_includes(
         cls,
-        src: Path,
-        includes: Iterable[str],
-        excludes: Iterable[str],
+        src: str | Path,
+        includes: Iterable[str | Path],
+        excludes: Iterable[str | Path],
     ) -> set[Path]:
         """Resolve include/exclude patterns into a concrete set of paths."""
-        paths = set()
-        globpaths = set()
         if isinstance(src, str):
             src = Path(src)
+
+        paths = set()
+
         for include in includes:
-            if "*" not in include:
-                paths.add(src / include)
-            else:
-                globpaths = globpaths.union(set(src.glob(str(include))))
+            paths |= set(src.glob(str(include)))
+
         for exclude in excludes:
-            if "*" not in exclude:
-                paths.discard(Path(src / exclude))
-            else:
-                globpaths.difference_update(set(src.glob(str(exclude))))
-        return paths.union(globpaths)
+            paths -= set(src.glob(str(exclude)))
+
+        return paths
