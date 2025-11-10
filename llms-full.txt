@@ -4,6 +4,8 @@
 
 # Usage
 
+# SoCX CLI
+
 SoCX is a command-line toolbox for EDA development teams.
 
 SoCX can also be used in your own python project/library/script and provides an extensive API with many useful features targeted at EDA development.
