@@ -13,105 +13,29 @@ extensive API with many useful features targeted at EDA development.
 
 Requirements: Python 3.12 or newer.
 
-### Install with uv
+### Install with `pipx`
 
-=== "Install as tool"
+```bash
+pip install socx-cli
+```
 
-    ```bash
-    uv tool install socx-cli
-    ```
+### Install with `uv`
 
-=== "Execute without installing"
+```bash
+uv tool install socx-cli
+```
 
-    ```bash
-    uvx socx-cli
-    ```
+Upgrade to the latest release at any time with `pip install --upgrade` or
+`uv tool install --upgrade`.
 
-=== "Add to your project"
-
-    ```bash
-    uv add socx-cli
-    ```
-
-=== "Add to your script"
-
-    ```bash
-    uv add --script socx-cli
-    ```
-
-### Install with pip
-
-=== "Install as tool"
-
-    ```bash
-    pipx install socx-cli
-    ```
-
-=== "Execute without installing"
-
-    ```bash
-    pipx run socx-cli
-    ```
-
-### Verify the installation
+## Verify the Installation
 
 ```bash
 socx --help
 socx version
 ```
 
-## License
-
-Dual-licensed under Apache-2.0 or MIT.
-
-See [LICENSE](home/license.md) for details.
-
-## Development
-
-Contributions are welcome—check `CONTRIBUTING.md` for workflow details.
-
-Typical checks:
-
-=== "run checks"
-
-    ```bash
-    make check
-    ```
-
-=== "build project"
-
-    ```bash
-    make build
-    ```
-
-=== "sync dependencies"
-
-    ```bash
-    make sync
-    ```
-
-=== "build documentation"
-
-    ```bash
-    make docs
-    ```
-
-=== "deploy documentation"
-
-    ```bash
-    make docs_deploy
-    ```
-
-## Where to go from here
-
-- Proceed to the [Quick Start](home/quickstart.md) guide to get up and
-  running quickly.
-- Read the [User Guide](user-guide/cli.md) for detailed usage instructions
-  and examples.
-- Explore the [API Reference](reference/api.md) for advanced integration and
-  customization.
-- Visit the [Contributing Guide](development/contributing.md) if you’d like to help
-  improve the project.
+If you see the top-level help and the current version, the CLI is ready to use.
 
 ## Documentation & Community
 
@@ -119,3 +43,9 @@ Typical checks:
 - Community Discussions: <https://gitter.im/socx-cli/community>
 - Code of Conduct: `CODE_OF_CONDUCT.md`
 - Changelog: `CHANGELOG.md`
+
+## License
+
+Dual-licensed under Apache-2.0 or MIT.
+
+See [LICENSE](home/license.md) for details.
