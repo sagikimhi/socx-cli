@@ -719,8 +719,8 @@ Methods:
 
 Attributes:
 
-- **`cfg`** (`DynaBox`) – Return the regression configuration namespace.
 - **`command`** (`TestCommand`) – Test execution command representation as an object.
+- **`done`** (`Queue`) –
 - **`finished_time`** (`str`) – Return the formatted timestamp captured when the test finished.
 - **`messages`** (`Queue`) –
 - **`name`** (`str`) – Return the test's human readable name.
@@ -741,12 +741,14 @@ def __init__(
 ) -> None:
     TestBase.__init__(self, name, *args, **kwargs)
     tests = set(tests)
+    self.done: aio.Queue = aio.Queue()
+    self.pending: aio.Queue = aio.Queue(self.run_limit)
+    self.messages: aio.Queue = aio.Queue()
     self._lock = RLock()
     self._tests = deque(tests)
     self._runner_tid = None
     self._scheduler_tid = None
     self._regression_tid = None
-    self._num_tests = len(self._tests)
     self._progress: Progress = Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -762,17 +764,7 @@ def __init__(
         transient=False,
         expand=True,
     )
-    self.messages: aio.Queue = aio.Queue()
-    self.pending: aio.Queue = aio.Queue(self.run_limit)
 ```
-
-### cfg
-
-```
-cfg: DynaBox
-```
-
-Return the regression configuration namespace.
 
 ### command
 
@@ -781,6 +773,12 @@ command: TestCommand
 ```
 
 Test execution command representation as an object.
+
+### done
+
+```
+done: Queue = Queue()
+```
 
 ### finished_time
 
