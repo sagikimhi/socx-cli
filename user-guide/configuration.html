@@ -6,30 +6,32 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="System on chip verification and tooling infrastructure.">
+        <meta name="description" content="Understand how Dynaconf settings drive socx-cli and how to override them.">
       
       
       
-        <link rel="canonical" href="https://sagikimhi.dev/socx-cli/index.html">
+        <link rel="canonical" href="https://sagikimhi.dev/socx-cli/user-guide/configuration.html">
       
       
+        <link rel="prev" href="cli.html">
       
-        <link rel="next" href="home/quickstart.html">
+      
+        <link rel="next" href="regression.html">
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>Overview - socx-cli</title>
+        <title>Configuration - socx-cli</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -50,11 +52,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_markdown_exec_pyodide.css">
+      <link rel="stylesheet" href="../assets/_markdown_exec_pyodide.css">
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
@@ -65,11 +67,11 @@
       
         <meta  property="og:type"  content="website" >
       
-        <meta  property="og:title"  content="Overview - socx-cli" >
+        <meta  property="og:title"  content="Configuration - socx-cli" >
       
-        <meta  property="og:description"  content="System on chip verification and tooling infrastructure." >
+        <meta  property="og:description"  content="Understand how Dynaconf settings drive socx-cli and how to override them." >
       
-        <meta  property="og:image"  content="https://sagikimhi.dev/socx-cli/assets/images/social/index.png" >
+        <meta  property="og:image"  content="https://sagikimhi.dev/socx-cli/assets/images/social/user-guide/configuration.png" >
       
         <meta  property="og:image:type"  content="image/png" >
       
@@ -77,15 +79,15 @@
       
         <meta  property="og:image:height"  content="630" >
       
-        <meta  property="og:url"  content="https://sagikimhi.dev/socx-cli/index.html" >
+        <meta  property="og:url"  content="https://sagikimhi.dev/socx-cli/user-guide/configuration.html" >
       
         <meta  name="twitter:card"  content="summary_large_image" >
       
-        <meta  name="twitter:title"  content="Overview - socx-cli" >
+        <meta  name="twitter:title"  content="Configuration - socx-cli" >
       
-        <meta  name="twitter:description"  content="System on chip verification and tooling infrastructure." >
+        <meta  name="twitter:description"  content="Understand how Dynaconf settings drive socx-cli and how to override them." >
       
-        <meta  name="twitter:image"  content="https://sagikimhi.dev/socx-cli/assets/images/social/index.png" >
+        <meta  name="twitter:image"  content="https://sagikimhi.dev/socx-cli/assets/images/social/user-guide/configuration.png" >
       
     
     
@@ -108,7 +110,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#socx-cli" class="md-skip">
+        <a href="#configuration-sources" class="md-skip">
           Skip to content
         </a>
       
@@ -124,7 +126,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="socx-cli" class="md-header__button md-logo" aria-label="socx-cli" data-md-component="logo">
+    <a href=".." title="socx-cli" class="md-header__button md-logo" aria-label="socx-cli" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -144,7 +146,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Configuration
             
           </span>
         </div>
@@ -259,13 +261,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="index.html" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../index.html" class="md-tabs__link">
           
   
   
@@ -281,11 +281,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="user-guide/cli.html" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="cli.html" class="md-tabs__link">
           
   
   
@@ -305,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="reference/api.html" class="md-tabs__link">
+        <a href="../reference/api.html" class="md-tabs__link">
           
   
   
@@ -325,7 +327,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="concepts/plugins.html" class="md-tabs__link">
+        <a href="../concepts/plugins.html" class="md-tabs__link">
           
   
   
@@ -345,7 +347,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="development/contributing.html" class="md-tabs__link">
+        <a href="../development/contributing.html" class="md-tabs__link">
           
   
   
@@ -374,8 +376,6 @@
           
             
               
-                
-              
               <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -387,7 +387,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="socx-cli" class="md-nav__button md-logo" aria-label="socx-cli" data-md-component="logo">
+    <a href=".." title="socx-cli" class="md-nav__button md-logo" aria-label="socx-cli" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -414,31 +414,26 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
             
   
   
@@ -451,7 +446,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Home
@@ -462,32 +457,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Overview
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="index.html" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
         
   
   
@@ -498,104 +471,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Installation
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Installation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#install-with-uv" class="md-nav__link">
-    <span class="md-ellipsis">
-      Install with uv
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#install-with-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      Install with pip
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verify-the-installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Verify the installation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      License
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
-    <span class="md-ellipsis">
-      Development
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-to-go-from-here" class="md-nav__link">
-    <span class="md-ellipsis">
-      Where to go from here
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-community" class="md-nav__link">
-    <span class="md-ellipsis">
-      Documentation &amp; Community
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -608,7 +483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="home/quickstart.html" class="md-nav__link">
+      <a href="../home/quickstart.html" class="md-nav__link">
         
   
   
@@ -631,7 +506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="home/changelog.html" class="md-nav__link">
+      <a href="../home/changelog.html" class="md-nav__link">
         
   
   
@@ -654,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="home/credits.html" class="md-nav__link">
+      <a href="../home/credits.html" class="md-nav__link">
         
   
   
@@ -677,7 +552,7 @@
   
   
     <li class="md-nav__item">
-      <a href="home/license.html" class="md-nav__link">
+      <a href="../home/license.html" class="md-nav__link">
         
   
   
@@ -704,26 +579,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -736,7 +616,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             User Guide
@@ -750,7 +630,7 @@
   
   
     <li class="md-nav__item">
-      <a href="user-guide/cli.html" class="md-nav__link">
+      <a href="cli.html" class="md-nav__link">
         
   
   
@@ -770,10 +650,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="user-guide/configuration.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Configuration
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="configuration.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -784,6 +684,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Sources
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inspecting-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inspecting Settings
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editing-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Settings
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variable-cheatsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variable Cheatsheet
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-for-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration for Plugins
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -796,7 +759,7 @@
   
   
     <li class="md-nav__item">
-      <a href="user-guide/regression.html" class="md-nav__link">
+      <a href="regression.html" class="md-nav__link">
         
   
   
@@ -819,7 +782,7 @@
   
   
     <li class="md-nav__item">
-      <a href="user-guide/plugins.html" class="md-nav__link">
+      <a href="plugins.html" class="md-nav__link">
         
   
   
@@ -892,7 +855,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/api.html" class="md-nav__link">
+      <a href="../reference/api.html" class="md-nav__link">
         
   
   
@@ -965,7 +928,7 @@
   
   
     <li class="md-nav__item">
-      <a href="concepts/plugins.html" class="md-nav__link">
+      <a href="../concepts/plugins.html" class="md-nav__link">
         
   
   
@@ -1038,7 +1001,7 @@
   
   
     <li class="md-nav__item">
-      <a href="development/contributing.html" class="md-nav__link">
+      <a href="../development/contributing.html" class="md-nav__link">
         
   
   
@@ -1061,7 +1024,7 @@
   
   
     <li class="md-nav__item">
-      <a href="development/code_of_conduct.html" class="md-nav__link">
+      <a href="../development/code_of_conduct.html" class="md-nav__link">
         
   
   
@@ -1092,8 +1055,6 @@
             
             
               
-                
-              
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
@@ -1103,8 +1064,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1113,78 +1072,45 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#configuration-sources" class="md-nav__link">
     <span class="md-ellipsis">
-      Installation
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Installation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#install-with-uv" class="md-nav__link">
-    <span class="md-ellipsis">
-      Install with uv
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#install-with-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      Install with pip
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verify-the-installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Verify the installation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      License
+      Configuration Sources
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#development" class="md-nav__link">
+  <a href="#inspecting-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      Development
+      Inspecting Settings
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-to-go-from-here" class="md-nav__link">
+  <a href="#editing-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      Where to go from here
+      Editing Settings
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#documentation-community" class="md-nav__link">
+  <a href="#environment-variable-cheatsheet" class="md-nav__link">
     <span class="md-ellipsis">
-      Documentation &amp; Community
+      Environment Variable Cheatsheet
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-for-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration for Plugins
     </span>
   </a>
   
@@ -1203,12 +1129,10 @@
               <article class="md-content__inner md-typeset">
                 
                   
-  
-
 
 
   
-    <a href="https://github.com/sagikimhi/socx-cli/edit/main/docs/index.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/sagikimhi/socx-cli/edit/main/docs/user-guide/configuration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -1217,108 +1141,111 @@
     
       
     
-    <a href="https://github.com/sagikimhi/socx-cli/raw/main/docs/index.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/sagikimhi/socx-cli/raw/main/docs/user-guide/configuration.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
     </a>
   
 
 
-<h1 id="socx-cli">SoCX CLI<a class="headerlink" href="#socx-cli" title="Permanent link">&para;</a></h1>
-<p><a href="https://github.com/pypa/hatch"><img alt="Hatch" src="https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg" /></a>
-<a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" /></a>
-<a href="https://spdx.org/licenses/"><img alt="License" src="https://img.shields.io/badge/license-MIT-9400d3.svg" /></a></p>
-<p>SoCX is a command-line toolbox for EDA development teams.</p>
-<p>SoCX can also be used in your own python project/library/script and provides an
-extensive API with many useful features targeted at EDA development.</p>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>Requirements: Python 3.12 or newer.</p>
-<h3 id="install-with-uv">Install with uv<a class="headerlink" href="#install-with-uv" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Install as tool</label><label for="__tabbed_1_2">Execute without installing</label><label for="__tabbed_1_3">Add to your project</label><label for="__tabbed_1_4">Add to your script</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>socx-cli
+  <h1>Configuration</h1>
+
+<p>SoCX layers configuration with <a href="https://www.dynaconf.com/">Dynaconf</a>. Every
+command reads from the merged settings object which combines defaults, user
+preferences, repository overrides, and environment variables.</p>
+<h2 id="configuration-sources">Configuration Sources<a class="headerlink" href="#configuration-sources" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Package defaults</strong> live under <code>src/socx/static/settings/</code> and ship with the
+   wheel. These cover core plugin registrations and sensible regression paths.</li>
+<li><strong>User configuration</strong> resides at <code>~/.config/socx/socx.yaml</code>. SoCX creates the
+   file lazily when you save changes via <code>socx config edit</code>.</li>
+<li><strong>Repository overrides</strong> are discovered by walking up from the current
+   working directory until a <code>.socx.yaml</code> file is found.</li>
+<li><strong>Environment variables</strong> prefixed with <code>SOCX_</code> take the highest precedence
+   (e.g. <code>SOCX_REGRESSION__RUN__INPUT__FILENAME</code> overrides the input file).</li>
+</ol>
+<p><code>${ENVVAR}</code> style substitutions are also supported inside YAML files because
+Dynaconf performs environment interpolation before values reach the CLI.</p>
+<h2 id="inspecting-settings">Inspecting Settings<a class="headerlink" href="#inspecting-settings" title="Permanent link">&para;</a></h2>
+<p>Use the configuration plugin to understand what the CLI will use at runtime:</p>
+<div class="highlight"><pre><span></span><code>socx<span class="w"> </span>config<span class="w"> </span>tree<span class="w">     </span><span class="c1"># pretty Rich tree of the merged settings</span>
+socx<span class="w"> </span>config<span class="w"> </span>list<span class="w">     </span><span class="c1"># plain key/value list for scripting</span>
+socx<span class="w"> </span>config<span class="w"> </span>get<span class="w"> </span>log<span class="w">  </span><span class="c1"># focus on a single branch</span>
+socx<span class="w"> </span>config<span class="w"> </span>debug<span class="w">    </span><span class="c1"># show loader diagnostics and override order</span>
 </code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>uvx<span class="w"> </span>socx-cli
+<p>Add <code>--no-config</code> to any command to temporarily ignore user and repo overrides
+if you need to troubleshoot default behaviour.</p>
+<h2 id="editing-settings">Editing Settings<a class="headerlink" href="#editing-settings" title="Permanent link">&para;</a></h2>
+<p><code>socx config edit</code> opens the user configuration file in your <code>$EDITOR</code> (falls
+back to <code>nano</code>, <code>vim</code>, or <code>gvim</code>). Save an empty file to keep the defaults but
+retain the path for later edits.</p>
+<p>To provide repository-specific values, place a <code>.socx.yaml</code> file at the root of
+your project:</p>
+<div class="highlight"><span class="filename">.socx.yaml</span><pre><span></span><code><span class="nt">regression</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">run</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">input</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${PROJECT_ROOT}/ci/failures</span>
+<span class="w">      </span><span class="nt">filename</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">last-run.log</span>
+<span class="w">    </span><span class="nt">output</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${PROJECT_ROOT}/ci/results</span>
+<span class="w">    </span><span class="nt">filters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">tags</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">smoke</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nightly</span>
 </code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>socx-cli
+<p>The example uses environment substitution so you can export <code>PROJECT_ROOT</code>
+before running the CLI:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PROJECT_ROOT</span><span class="o">=</span><span class="nv">$PWD</span>
+socx<span class="w"> </span>rgr<span class="w"> </span>run
 </code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>add<span class="w"> </span>--script<span class="w"> </span>socx-cli
+<h2 id="environment-variable-cheatsheet">Environment Variable Cheatsheet<a class="headerlink" href="#environment-variable-cheatsheet" title="Permanent link">&para;</a></h2>
+<p>Dynaconf converts nested keys to uppercase names separated with double
+underscores. Some useful overrides:</p>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Environment variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Toggle debug logging</td>
+<td><code>SOCX_DEBUG=1</code></td>
+</tr>
+<tr>
+<td>Set logging verbosity</td>
+<td><code>SOCX_VERBOSITY=DEBUG</code></td>
+</tr>
+<tr>
+<td>Change regression input filename</td>
+<td><code>SOCX_REGRESSION__RUN__INPUT__FILENAME=failed.log</code></td>
+</tr>
+<tr>
+<td>Redirect regression output directory</td>
+<td><code>SOCX_REGRESSION__RUN__OUTPUT__DIRECTORY=/tmp/socx</code></td>
+</tr>
+<tr>
+<td>Swap the LST converter implementation</td>
+<td><code>SOCX_CONVERT__LST__CLS=my_pkg.tools:CustomConverter</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration-for-plugins">Configuration for Plugins<a class="headerlink" href="#configuration-for-plugins" title="Permanent link">&para;</a></h2>
+<p>Plugin metadata lives under the <code>plugins</code> key. Each plugin entry contains the
+name exposed on the CLI, the <code>command</code> import path, and optional help text or
+aliases. Disable a plugin by setting <code>enabled: false</code>.</p>
+<div class="highlight"><span class="filename">~/.config/socx/socx.yaml</span><pre><span></span><code><span class="nt">plugins</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rgr</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.rgr:cli&quot;</span>
+<span class="w">    </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Regression</span><span class="nv"> </span><span class="s">tooling&quot;</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dashboards</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_project.dashboards:cli&quot;</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${ENABLE_DASHBOARDS:true}</span>
 </code></pre></div>
-</div>
-</div>
-</div>
-<h3 id="install-with-pip">Install with pip<a class="headerlink" href="#install-with-pip" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Install as tool</label><label for="__tabbed_2_2">Execute without installing</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>pipx<span class="w"> </span>install<span class="w"> </span>socx-cli
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>pipx<span class="w"> </span>run<span class="w"> </span>socx-cli
-</code></pre></div>
-</div>
-</div>
-</div>
-<h3 id="verify-the-installation">Verify the installation<a class="headerlink" href="#verify-the-installation" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>socx<span class="w"> </span>--help
-socx<span class="w"> </span>version
-</code></pre></div>
-<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
-<p>Dual-licensed under Apache-2.0 or MIT.</p>
-<p>See <a href="home/license.html">LICENSE</a> for details.</p>
-<h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h2>
-<p>Contributions are welcome—check <code>CONTRIBUTING.md</code> for workflow details.</p>
-<p>Typical checks:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:5"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><input id="__tabbed_3_4" name="__tabbed_3" type="radio" /><input id="__tabbed_3_5" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">run checks</label><label for="__tabbed_3_2">build project</label><label for="__tabbed_3_3">sync dependencies</label><label for="__tabbed_3_4">build documentation</label><label for="__tabbed_3_5">deploy documentation</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>check
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>build
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>sync
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs_deploy
-</code></pre></div>
-</div>
-</div>
-</div>
-<h2 id="where-to-go-from-here">Where to go from here<a class="headerlink" href="#where-to-go-from-here" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Proceed to the <a href="home/quickstart.html">Quick Start</a> guide to get up and
-  running quickly.</li>
-<li>Read the <a href="user-guide/cli.html">User Guide</a> for detailed usage instructions
-  and examples.</li>
-<li>Explore the <a href="reference/api.html">API Reference</a> for advanced integration and
-  customization.</li>
-<li>Visit the <a href="development/contributing.html">Contributing Guide</a> if you’d like to help
-  improve the project.</li>
-</ul>
-<h2 id="documentation-community">Documentation &amp; Community<a class="headerlink" href="#documentation-community" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Project Documentation: <a href="https://sagikimhi.dev/socx-cli">https://sagikimhi.dev/socx-cli</a></li>
-<li>Community Discussions: <a href="https://gitter.im/socx-cli/community">https://gitter.im/socx-cli/community</a></li>
-<li>Code of Conduct: <code>CODE_OF_CONDUCT.md</code></li>
-<li>Changelog: <code>CHANGELOG.md</code></li>
-</ul>
+<p>Changes take effect the next time you run the CLI—there is no background daemon
+to restart.</p>
 
 
 
@@ -1339,7 +1266,7 @@ socx<span class="w"> </span>version
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 21, 2025 03:26:06 UTC">September 21, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 24, 2025 08:26:31 UTC">September 24, 2025</span>
   </span>
 
     
@@ -1352,10 +1279,56 @@ socx<span class="w"> </span>version
   
 
 
-  
-    
-  
 
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Let us know how we can improve this page.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
 
 <!-- Giscus -->
 <!-- https://squidfunk.github.io/mkdocs-material/setup/adding-a-comment-system/#giscus-integration -->
@@ -1434,19 +1407,33 @@ socx<span class="w"> </span>version
   
     
       
-        
-      
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="cli.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: CLI Tour">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                CLI Tour
+              </div>
+            </div>
+          </a>
         
         
           
-          <a href="home/quickstart.html" class="md-footer__link md-footer__link--next" aria-label="Next: Quickstart">
+          <a href="regression.html" class="md-footer__link md-footer__link--next" aria-label="Next: Regression Automation">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Quickstart
+                Regression Automation
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1513,12 +1500,12 @@ socx<span class="w"> </span>version
     
     
       
-      <script id="__config" type="application/json">{"base": ".", "features": ["toc.follow", "search.suggest", "search.highlight", "announce.dismiss", "content.action.edit", "content.action.view", "content.tooltips", "content.code.copy", "content.code.select", "content.code.annotate", "navigation.top", "navigation.tabs", "navigation.path", "navigation.header", "navigation.footer", "navigation.sections", "navigation.tabs.sticky", "navigation.instant.preview"], "search": "assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["toc.follow", "search.suggest", "search.highlight", "announce.dismiss", "content.action.edit", "content.action.view", "content.tooltips", "content.code.copy", "content.code.select", "content.code.annotate", "navigation.top", "navigation.tabs", "navigation.path", "navigation.header", "navigation.footer", "navigation.sections", "navigation.tabs.sticky", "navigation.instant.preview"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
-        <script src="assets/_markdown_exec_pyodide.js"></script>
+        <script src="../assets/_markdown_exec_pyodide.js"></script>
       
     
   </body>

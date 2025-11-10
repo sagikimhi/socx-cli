@@ -6,26 +6,32 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="System on chip verification and tooling infrastructure.">
+        <meta name="description" content="Explore the top-level socx commands, global options, and plugin discovery model.">
       
       
       
+        <link rel="canonical" href="https://sagikimhi.dev/socx-cli/user-guide/cli.html">
       
       
+        <link rel="prev" href="../home/license.html">
       
-      <link rel="icon" href="/socx-cli/assets/images/favicon.png">
+      
+        <link rel="next" href="configuration.html">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.23">
     
     
       
-        <title>socx-cli</title>
+        <title>CLI Tour - socx-cli</title>
       
     
     
-      <link rel="stylesheet" href="/socx-cli/assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
       
         
-        <link rel="stylesheet" href="/socx-cli/assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,17 +52,43 @@
       
     
     
-      <link rel="stylesheet" href="/socx-cli/assets/_markdown_exec_pyodide.css">
+      <link rel="stylesheet" href="../assets/_markdown_exec_pyodide.css">
     
-      <link rel="stylesheet" href="/socx-cli/assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("/socx-cli/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
   
 
 
     
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="CLI Tour - socx-cli" >
+      
+        <meta  property="og:description"  content="Explore the top-level socx commands, global options, and plugin discovery model." >
+      
+        <meta  property="og:image"  content="https://sagikimhi.dev/socx-cli/assets/images/social/user-guide/cli.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://sagikimhi.dev/socx-cli/user-guide/cli.html" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="CLI Tour - socx-cli" >
+      
+        <meta  name="twitter:description"  content="Explore the top-level socx commands, global options, and plugin discovery model." >
+      
+        <meta  name="twitter:image"  content="https://sagikimhi.dev/socx-cli/assets/images/social/user-guide/cli.png" >
+      
     
     
   </head>
@@ -77,6 +109,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#global-options" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -89,7 +126,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/socx-cli/." title="socx-cli" class="md-header__button md-logo" aria-label="socx-cli" data-md-component="logo">
+    <a href=".." title="socx-cli" class="md-header__button md-logo" aria-label="socx-cli" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -109,7 +146,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              CLI Tour
             
           </span>
         </div>
@@ -228,7 +265,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/socx-cli/index.html" class="md-tabs__link">
+        <a href="../index.html" class="md-tabs__link">
           
   
   
@@ -244,11 +281,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/socx-cli/user-guide/cli.html" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="cli.html" class="md-tabs__link">
           
   
   
@@ -268,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/socx-cli/reference/api.html" class="md-tabs__link">
+        <a href="../reference/api.html" class="md-tabs__link">
           
   
   
@@ -288,7 +327,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/socx-cli/concepts/plugins.html" class="md-tabs__link">
+        <a href="../concepts/plugins.html" class="md-tabs__link">
           
   
   
@@ -308,7 +347,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/socx-cli/development/contributing.html" class="md-tabs__link">
+        <a href="../development/contributing.html" class="md-tabs__link">
           
   
   
@@ -348,7 +387,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/socx-cli/." title="socx-cli" class="md-nav__button md-logo" aria-label="socx-cli" data-md-component="logo">
+    <a href=".." title="socx-cli" class="md-nav__button md-logo" aria-label="socx-cli" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -421,7 +460,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/index.html" class="md-nav__link">
+      <a href="../index.html" class="md-nav__link">
         
   
   
@@ -444,7 +483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/home/quickstart.html" class="md-nav__link">
+      <a href="../home/quickstart.html" class="md-nav__link">
         
   
   
@@ -467,7 +506,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/home/changelog.html" class="md-nav__link">
+      <a href="../home/changelog.html" class="md-nav__link">
         
   
   
@@ -490,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/home/credits.html" class="md-nav__link">
+      <a href="../home/credits.html" class="md-nav__link">
         
   
   
@@ -513,7 +552,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/home/license.html" class="md-nav__link">
+      <a href="../home/license.html" class="md-nav__link">
         
   
   
@@ -540,26 +579,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -572,7 +616,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             User Guide
@@ -583,10 +627,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/socx-cli/user-guide/cli.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    CLI Tour
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="cli.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -597,6 +661,51 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#built-in-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Built-in Plugins
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovering-additional-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Discovering Additional Plugins
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -609,7 +718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/user-guide/configuration.html" class="md-nav__link">
+      <a href="configuration.html" class="md-nav__link">
         
   
   
@@ -632,7 +741,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/user-guide/regression.html" class="md-nav__link">
+      <a href="regression.html" class="md-nav__link">
         
   
   
@@ -655,7 +764,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/user-guide/plugins.html" class="md-nav__link">
+      <a href="plugins.html" class="md-nav__link">
         
   
   
@@ -728,7 +837,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/reference/api.html" class="md-nav__link">
+      <a href="../reference/api.html" class="md-nav__link">
         
   
   
@@ -801,7 +910,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/concepts/plugins.html" class="md-nav__link">
+      <a href="../concepts/plugins.html" class="md-nav__link">
         
   
   
@@ -874,7 +983,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/development/contributing.html" class="md-nav__link">
+      <a href="../development/contributing.html" class="md-nav__link">
         
   
   
@@ -897,7 +1006,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/socx-cli/development/code_of_conduct.html" class="md-nav__link">
+      <a href="../development/code_of_conduct.html" class="md-nav__link">
         
   
   
@@ -938,6 +1047,41 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global Options
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#built-in-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Built-in Plugins
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovering-additional-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      Discovering Additional Plugins
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -948,8 +1092,270 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+    <a href="https://github.com/sagikimhi/socx-cli/edit/main/docs/user-guide/cli.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/sagikimhi/socx-cli/raw/main/docs/user-guide/cli.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+  <h1>CLI Tour</h1>
+
+<p>SoCX is built on <a href="https://github.com/ewels/rich-click"><code>rich-click</code></a> and
+discovers commands from the plugin metadata listed under
+<code>settings.plugins</code>. The root command is always <code>socx</code>, and every subcommand you
+see originates from a plugin.</p>
+<div class="highlight"><pre><span></span><code>socx<span class="w"> </span>--help
+</code></pre></div>
+<p>The coloured help output includes:</p>
+<ul>
+<li><strong>Commands</strong> – static commands shipped with the package and any plugins
+  declared in configuration.</li>
+<li><strong>Global Options</strong> – cross-cutting flags that apply to every subcommand.</li>
+</ul>
+<h2 id="global-options">Global Options<a class="headerlink" href="#global-options" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Purpose</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--debug / -d</code></td>
+<td>Enables debug logging and early configuration loading.</td>
+<td>Also toggled by <code>SOCX_DEBUG=1</code>.</td>
+</tr>
+<tr>
+<td><code>--verbosity LEVEL</code></td>
+<td>Sets the Python logging level.</td>
+<td>Accepts any standard logging level name, case-insensitive.</td>
+</tr>
+<tr>
+<td><code>--config / --no-config</code></td>
+<td>Controls whether user configuration sources are loaded.</td>
+<td>Useful when debugging unexpected overrides.</td>
+</tr>
+</tbody>
+</table>
+<p>All commands inherit these options because the CLI registers them as decorators.</p>
+<h2 id="built-in-plugins">Built-in Plugins<a class="headerlink" href="#built-in-plugins" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>Command</th>
+<th>Highlights</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Configuration</td>
+<td><code>socx config ...</code></td>
+<td>Inspect merged settings, open config files, or dump Dynaconf debug info.</td>
+</tr>
+<tr>
+<td>Git manifest</td>
+<td><code>socx git mfest</code></td>
+<td>Walk a path and emit a manifest as a table, JSON, or list of <code>path@ref</code> strings.</td>
+</tr>
+<tr>
+<td>Regression</td>
+<td><code>socx rgr run</code> / <code>socx rgr tui</code></td>
+<td>Re-run failed command files asynchronously or manage them via the TUI dashboard.</td>
+</tr>
+<tr>
+<td>Conversion</td>
+<td><code>socx convert lst</code></td>
+<td>Load an LST symbol table and generate SystemVerilog covergroups.</td>
+</tr>
+<tr>
+<td>Plugin helper</td>
+<td><code>socx plugin example</code></td>
+<td>View a quickstart Markdown document that explains how to add your own command.</td>
+</tr>
+<tr>
+<td>Version</td>
+<td><code>socx version</code></td>
+<td>Display the installed package metadata using <code>uv</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>socx &lt;plugin&gt; --help</code> to drill into the options exposed by each group. For
+example:</p>
+<div class="highlight"><pre><span></span><code>socx<span class="w"> </span>rgr<span class="w"> </span>run<span class="w"> </span>--help
+</code></pre></div>
+<p>The regression plugin adds <code>--input</code> and <code>--output</code> options, both of which are
+optional because SoCX resolves sensible defaults from your Dynaconf settings.</p>
+<h2 id="discovering-additional-plugins">Discovering Additional Plugins<a class="headerlink" href="#discovering-additional-plugins" title="Permanent link">&para;</a></h2>
+<p>Add a dotted import path to the <code>plugins</code> list in your configuration to register
+additional commands. The CLI dynamically imports the target at runtime and
+attaches it as a subcommand.</p>
+<div class="highlight"><span class="filename">.socx.yaml</span><pre><span></span><code><span class="nt">plugins</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dashboards</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_project.tools.dashboards:cli&quot;</span>
+<span class="w">    </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Domain-specific</span><span class="nv"> </span><span class="s">dashboards</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">IP</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">SoC</span><span class="nv"> </span><span class="s">regressions.&quot;</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<p>Disabled plugins remain in the configuration but are hidden from the help
+output.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 24, 2025 08:26:31 UTC">September 24, 2025</span>
+  </span>
+
+    
+    
+    
+    
+  </aside>
+
+
+  
+
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"/></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"/></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Let us know how we can improve this page.
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+<!-- Giscus -->
+<!-- https://squidfunk.github.io/mkdocs-material/setup/adding-a-comment-system/#giscus-integration -->
+<div id="feedback" style="display: none;">
+    <h2 id="__comments">Feedback</h2>
+    <script src="https://giscus.app/client.js"
+        data-repo="sagikimhi/socx-cli"
+        data-repo-id="R_kgDONxYppg"
+        data-category="Documentation"
+        data-category-id="REPLACE WITH DISCUSSION CATEGORY ID"
+        data-mapping="pathname"
+        data-strict="1"
+        data-reactions-enabled="0"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        data-loading="lazy"
+        crossorigin="anonymous"
+        async>
+    </script>
+
+    <!-- Synchronize Giscus theme with palette -->
+    <script>
+        var giscus = document.querySelector("script[src*=giscus]")
+
+        // Set palette on initial load
+        var palette = __md_get("__palette")
+        if (palette && typeof palette.color === "object") {
+            var theme = palette.color.scheme === "slate"
+                ? "transparent_dark"
+                : "light"
+
+            // Instruct Giscus to set theme
+            giscus.setAttribute("data-theme", theme)
+        }
+
+        // Register event handlers after documented loaded
+        document.addEventListener("DOMContentLoaded", function() {
+            var ref = document.querySelector("[data-md-component=palette]")
+            ref.addEventListener("change", function() {
+                var palette = __md_get("__palette")
+                if (palette && typeof palette.color === "object") {
+                    var theme = palette.color.scheme === "slate"
+                        ? "transparent_dark"
+                        : "light"
+
+                    // Instruct Giscus to change theme
+                    var frame = document.querySelector(".giscus-frame")
+                    frame.contentWindow.postMessage(
+                        { giscus: { setConfig: { theme } } },
+                        "https://giscus.app"
+                    )
+                }
+            })
+        })
+    </script>
+</div>
+                
               </article>
             </div>
           
@@ -967,6 +1373,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../home/license.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: License">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                License
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="configuration.html" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Configuration
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1024,12 +1468,12 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "/socx-cli/", "features": ["toc.follow", "search.suggest", "search.highlight", "announce.dismiss", "content.action.edit", "content.action.view", "content.tooltips", "content.code.copy", "content.code.select", "content.code.annotate", "navigation.top", "navigation.tabs", "navigation.path", "navigation.header", "navigation.footer", "navigation.sections", "navigation.tabs.sticky", "navigation.instant.preview"], "search": "/socx-cli/assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["toc.follow", "search.suggest", "search.highlight", "announce.dismiss", "content.action.edit", "content.action.view", "content.tooltips", "content.code.copy", "content.code.select", "content.code.annotate", "navigation.top", "navigation.tabs", "navigation.path", "navigation.header", "navigation.footer", "navigation.sections", "navigation.tabs.sticky", "navigation.instant.preview"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="/socx-cli/assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
-        <script src="/socx-cli/assets/_markdown_exec_pyodide.js"></script>
+        <script src="../assets/_markdown_exec_pyodide.js"></script>
       
     
   </body>

@@ -4,9 +4,9 @@
 
 ## Usage
 
-- [Overview](https://sagikimhi.github.io/socx-cli/index.md)
+- [Overview](https://sagikimhi.dev/socx-cli/index.md)
 
 ## API
 
-- [API reference](https://sagikimhi.github.io/socx-cli/reference/api/index.md)
+- [API Reference](https://sagikimhi.dev/socx-cli/reference/api.md)
 
