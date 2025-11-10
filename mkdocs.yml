@@ -25,17 +25,17 @@ validation:
 nav:
   - Home:
       - Overview: index.md
-      - Quickstart: home/quickstart.md
       - Changelog: home/changelog.md
       - Credits: home/credits.md
       - License: home/license.md
+  - Quick Start: home/quickstart.md
   - User Guide:
       - CLI Tour: user-guide/cli.md
       - Configuration: user-guide/configuration.md
       - Regression Automation: user-guide/regression.md
       - Plugin Development: user-guide/plugins.md
   - Reference:
-      - API Reference: reference/api.md
+      - API: reference/api.md
   - Conepts:
       - Plugins: concepts/plugins.md
   - Development:
@@ -56,6 +56,16 @@ theme:
     - systemverilog
   features:
     - toc.follow
+    - navigation.top
+    - navigation.path
+    - navigation.prune
+    - navigation.header
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.instant.preview
+    - navigation.instant.prefetch
+    - navigation.instant.progress
     - search.suggest
     - search.highlight
     - announce.dismiss
@@ -65,20 +75,14 @@ theme:
     - content.code.copy
     - content.code.select
     - content.code.annotate
-    - navigation.top
-    - navigation.tabs
-    - navigation.path
-    - navigation.header
-    - navigation.footer
-    - navigation.sections
-    - navigation.tabs.sticky
-    - navigation.instant.preview
   custom_dir: docs/.overrides
   extra_css:
     - css/material.css
     - css/mkdocstrings.css
   extra_javascript:
+    - js/mathjax.js
     - js/feedback.js
+    - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
   palette:
     # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
@@ -102,36 +106,49 @@ theme:
 
 markdown_extensions:
   # Python Markdown
-  - toc:
-      permalink: true
   - abbr
   - tables
   - admonition
-  - def_list
   - attr_list
+  - def_list
   - footnotes
   - md_in_html
+  - toc:
+      title: On this page
+      permalink: true
   # Python Markdown Extensions
   - pymdownx.keys
-  - pymdownx.mark
   - pymdownx.caret
+  - pymdownx.mark
   - pymdownx.tilde
-  - pymdownx.emoji
+  - pymdownx.emoji:
+      emoji_index: !!python/name:zensical.extensions.emoji.twemoji
+      emoji_generator: !!python/name:zensical.extensions.emoji.to_svg
   - pymdownx.details
   - pymdownx.snippets
   - pymdownx.tabbed:
       alternate_style: true
+      combine_header_slug: true
   - pymdownx.tasklist:
       custom_checkbox: true
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      auto_title: false
+      line_spans: __span
+      anchor_linenums: true
+      pygments_lang_class: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.magiclink
   - pymdownx.arithmatex:
       generic: true
-  - pymdownx.superfences
   - pymdownx.inlinehilite
   - pymdownx.smartsymbols
+  - pymdownx.blocks.caption
 
 plugins:
   - tags
@@ -158,8 +175,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths:
-            - src/socx-cli
+          paths: [src]
           options:
             summary: true
             backlinks: tree
@@ -177,9 +193,9 @@ plugins:
             inherited_members: true
             separate_signature: true
             merge_init_into_class: true
+            docstring_section_style: list
             docstring_options:
               ignore_init_summary: true
-            docstring_section_style: list
           inventories:
             - https://docs.python.org/3/objects.inv
 
@@ -189,8 +205,8 @@ extra:
       link: https://github.com/sagikimhi
     - icon: fontawesome/brands/gitter
       link: https://gitter.im/socx-cli/community
-    # - icon: fontawesome/brands/python
-    #   link: https://pypi.org/project/socx-cli/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/socx-cli/
 
   analytics:
     feedback:

@@ -102,6 +102,7 @@ dev = [
 docs = [
     "mike",
     "mkdocs",
+    "zensical",
     "pygments",
     "markdown-exec",
     "markdown-callouts",
@@ -109,8 +110,8 @@ docs = [
     "mkdocs-macros-plugin",
     "mkdocs-llmstxt>=0.4.0",
     "mkdocs-coverage",
+    "mkdocstrings-python",
     "mkdocs-material[imaging]",
-    "mkdocstrings[python]",
     "mkdocs-section-index",
     "mkdocs-material-extensions",
     "mkdocs-git-revision-date-localized-plugin",
