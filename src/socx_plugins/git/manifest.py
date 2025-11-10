@@ -54,11 +54,12 @@ class Manifest:
     @classmethod
     def get_header(cls, column: DynaBox, style: DynaBox) -> str:
         """Build a styled header string for a manifest column."""
-        header = str(column.name or "")
-        if style.get("headers") is not None:
-            header = f"[{style.headers or ''}]{header}"
-        if column.get("style") is not None:
-            header = f"[{column.style or ''}]{header}"
+        header = column.get("name", "")
+        header_style = " ".join(
+            [column.get("style") or "", style.get("headers") or ""]
+        ).strip()
+        if header and header_style:
+            header = f"[{header_style}]{header}"
         return header
 
     @classmethod
@@ -72,9 +73,9 @@ class Manifest:
         if isinstance(func, Lazy):
             func = func(func.value)
 
-        style = column.style
+        style = (column.get("style") or "") and f"[{column.style}]"
         content = func(repo)
-        content = f"[{style}]{content}[/]"
+        content = f"{style}{content}[/]" if style else f"{content}"
         return content
 
     @classmethod
