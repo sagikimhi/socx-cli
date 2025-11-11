@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import rich_click as click
-from socx import console
-from socx import global_options
-from upath import UPath as Path
+from socx import global_options, settings, console
 
-from socx import settings
-
-from socx_plugins.git.manifest import Manifest
+from socx_plugins.git.summary import Summary
 from socx_plugins.git.arguments import format_
 from socx_plugins.git.arguments import root_path
 
@@ -24,14 +22,15 @@ def cli() -> None:
 @format_()
 @root_path()
 @global_options()
-def mfest(format_: str, root_path: Path):
+def summary(format_: str, root_path: Path):
     """Output a manifest of all git repositories found under a given path."""
-    table = Manifest(root_path)
+    manifest = Summary(root_path)
     match format_:
         case "ref":
-            for ref in table.as_references():
-                console.print(ref)
+            console.print(manifest.as_short_refs())
         case "json":
-            console.print_json(data=table.as_json(), indent=4, sort_keys=True)
+            console.print_json(
+                data=manifest.as_json(), indent=4, sort_keys=True
+            )
         case "table":
-            console.print(table)
+            console.print(manifest.as_rich_table())

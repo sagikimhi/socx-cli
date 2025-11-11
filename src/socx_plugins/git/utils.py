@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+from typing import NamedTuple
 from pathlib import Path
 from collections.abc import Generator
-from typing import NamedTuple
 
 import git
-from rich.text import Text
 
 
 class AheadBehind(NamedTuple):
@@ -18,8 +17,7 @@ class AheadBehind(NamedTuple):
 
     def __str__(self) -> str:
         """Return a compact formatted representation for console output."""
-        text = Text(f"[green]{self.ahead}󱦲[/] [red]{self.behind}󱦳[/]")
-        return text.plain
+        return f"[green]{self.ahead}󱦲[/][red]{self.behind}󱦳[/]"
 
 
 def get_repo(path: str | Path) -> git.Repo | None:
@@ -33,7 +31,8 @@ def get_repo(path: str | Path) -> git.Repo | None:
 
 def get_repo_name(repo: git.Repo) -> str:
     """Return the leaf directory name for the repository's working tree."""
-    return Path(repo.working_dir).name
+    with repo:
+        return Path(repo.working_dir).name
 
 
 def get_ref_name(repo: git.Repo) -> str:
@@ -50,6 +49,17 @@ def get_ref_type(repo: git.Repo) -> str:
     """Identify if the current ref resolves to a branch or detached tag."""
     with repo:
         return "Branch" if is_branch(repo.head) else "Tag"
+
+
+def get_short_ref(repo: git.Repo) -> str:
+    ref = get_commit_hash(repo)
+    args = (
+        "-s",
+        "--date=short",
+        f"--pretty=format:[red]%<( 10 ){ref}[/] (%s, [cyan]%ad[/])",
+    )
+    with repo:
+        return str(repo.git.show(*args))
 
 
 def get_author_date(repo: git.Repo) -> str:
@@ -72,22 +82,18 @@ def get_commit_message(repo: git.Repo) -> str:
 
 def get_ahead_behind(repo: git.Repo) -> AheadBehind:
     """Compare the active branch against its upstream to find divergence."""
+    rv = AheadBehind(0, 0)
     with repo:
-        if not is_branch(repo.head):
-            return AheadBehind(0, 0)
-
         local_branch = repo.active_branch
         tracking_branch = local_branch.tracking_branch()
-
-        if not tracking_branch:
-            return AheadBehind(0, 0)
-
-        ahead_behind = repo.git.rev_list(
-            "--left-right",
-            "--count",
-            f"{local_branch.name}...{tracking_branch.name}",
-        )
-        return AheadBehind(*ahead_behind.split()[:2])
+        if is_branch(repo.head) and tracking_branch:
+            ahead_behind = repo.git.rev_list(
+                "--left-right",
+                "--count",
+                f"{local_branch.name}...{tracking_branch.name}",
+            ).split()[:2]
+            rv = AheadBehind(*[int(v) for v in ahead_behind])
+    return rv
 
 
 def is_branch(head: git.HEAD | git.Head) -> bool:

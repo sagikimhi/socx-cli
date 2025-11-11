@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from dataclasses import dataclass
 from collections.abc import Iterable
 
 from dynaconf.base import Lazy
 from git import Repo
-from socx import settings
-from upath import UPath as Path
+from socx import AnyCallable, settings
 from rich import get_console
 from rich.box import Box, ROUNDED
 from rich.text import Text
@@ -19,19 +19,21 @@ from pydantic.config import JsonDict
 from dynaconf.utils.boxing import DynaBox
 from dynaconf.utils.parse_conf import apply_converter
 
-from socx_plugins.git.utils import get_repo_name
-from socx_plugins.git.utils import get_commit_hash
-from socx_plugins.git.utils import find_repositories
+from socx_plugins.git.utils import (
+    get_repo_name,
+    find_repositories,
+)
+from socx_plugins.git.renderables import ShortRefs
 
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass(init=False)
-class Manifest:
-    """Compute and present a multi-repository manifest view."""
+class Summary:
+    """Compute and present a multi-repository summary view."""
 
-    root: Path
+    root: str | Path
     repos: list[Repo]
     style: DynaBox
     console: Console
@@ -45,15 +47,15 @@ class Manifest:
             root = Path(root)
         self.root = root
         self.repos = list(find_repositories(root))
-        self.style = settings.git.manifest.style
+        self.style = settings.git.summary.style
         self.console = get_console()
-        self.columns = settings.git.manifest.columns
-        self.headers = Manifest.get_headers(self.columns, self.style)
-        self.records = Manifest.get_records(self.columns, self.repos)
+        self.columns = settings.git.summary.columns
+        self.headers = Summary.get_headers(self.columns, self.style)
+        self.records = Summary.get_records(self.columns, self.repos)
 
     @classmethod
     def get_header(cls, column: DynaBox, style: DynaBox) -> str:
-        """Build a styled header string for a manifest column."""
+        """Build a styled header string for a summary column."""
         header = column.get("name", "")
         header_style = " ".join(
             [column.get("style") or "", style.get("headers") or ""]
@@ -63,29 +65,33 @@ class Manifest:
         return header
 
     @classmethod
-    def get_content(cls, column: DynaBox, repo: Repo) -> str:
-        """Render the column content for a single repository."""
-        if not isinstance(column.func, str):
-            func = column.func
-        else:
-            func = apply_converter("@symbol", column.func, settings)
+    def get_column_func(cls, column: DynaBox) -> AnyCallable:
+        func = column.func
+
+        if isinstance(func, str):
+            func = apply_converter("@symbol", column.func, None)
 
         if isinstance(func, Lazy):
             func = func(func.value)
 
-        style = (column.get("style") or "") and f"[{column.style}]"
-        content = func(repo)
-        content = f"{style}{content}[/]" if style else f"{content}"
-        return content
+        return func
+
+    @classmethod
+    def get_column_value(cls, column: DynaBox, repo: Repo) -> str:
+        """Render the column content for a single repository."""
+        text = str(cls.get_column_func(column)(repo))
+        style = column.get("style") or ""
+        content = Text.from_markup(text=text, style=style)
+        return content.markup
 
     @classmethod
     def get_record(cls, columns: Iterable[DynaBox], repo: Repo) -> list[str]:
         """Return all column values for ``repo``."""
-        return [cls.get_content(c, repo) for c in columns]
+        return [cls.get_column_value(c, repo) for c in columns]
 
     @classmethod
     def get_headers(cls, columns: list[DynaBox], style: DynaBox) -> list[str]:
-        """Return the manifest headers with style applied."""
+        """Return the summary headers with style applied."""
         return [cls.get_header(c, style) for c in columns]
 
     @classmethod
@@ -96,36 +102,28 @@ class Manifest:
         return [cls.get_record(columns, repo) for repo in repos]
 
     def print(self, console: Console | None = None) -> None:
-        """Print the manifest to the provided or default console."""
+        """Print the summary to the provided or default console."""
         console = console or self.console
         console.print(self)
 
     def as_json(self) -> JsonDict:
-        """Serialize the manifest into a JSON-compatible mapping."""
+        """Serialize the summary into a JSON-compatible mapping."""
 
         def value(repo: Repo) -> JsonDict:
-            rv = {}
-            for column in self.columns:
-                func = apply_converter("@symbol", column.func, None)
-                rv[column.name] = func(repo)
-            return rv
+            return {
+                Text.from_markup(column.name).plain: Text.from_markup(
+                    self.get_column_value(column, repo)
+                ).plain
+                for column in self.columns
+            }
 
         return {"columns": [value(repo) for repo in self.repos]}
 
-    def as_references(self) -> list[str]:
+    def as_short_refs(self) -> ShortRefs:
         """Return references including commit metadata suitable for logging."""
-
-        def reference(repo):
-            ref = get_commit_hash(repo)
-            name = get_repo_name(repo)
-            args = (
-                "-s",
-                "--date=short",
-                f"--pretty=format:[red]%<( 10 ){ref}[/] (%s, [cyan]%ad[/])",
-            )
-            return f"{repo.git.show(args)} <[green]{name}[/]>"
-
-        return [reference(repo) for repo in self.repos]
+        return ShortRefs(
+            repos={get_repo_name(repo): repo for repo in self.repos}
+        )
 
     def as_rich_table(
         self,
@@ -136,7 +134,7 @@ class Manifest:
         show_header: bool = True,
         show_footer: bool = False,
     ) -> Table:
-        """Create a Rich ``Table`` representing the manifest."""
+        """Create a Rich ``Table`` representing the summary."""
         rv = Table(
             box=box,
             title=title or "Manifest",
@@ -152,7 +150,7 @@ class Manifest:
         return rv
 
     def export_json(self, path: str | Path) -> None:
-        """Write the manifest JSON representation to ``path``."""
+        """Write the summary JSON representation to ``path``."""
         if isinstance(path, str):
             path = Path(path)
         with self.console.capture() as cap:

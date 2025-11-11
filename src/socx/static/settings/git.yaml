@@ -1,6 +1,6 @@
 ---
 git:
-  manifest:
+  summary:
     format: table
     style:
       headers: underline
@@ -9,7 +9,7 @@ git:
         func: socx_plugins.git.utils:get_repo_name
         style: white
 
-      - name: "[green]Ahead󱦲[red] Behind󱦳"
+      - name: "[green]Ahead󱦲[/][red]Behind󱦳[/]"
         func: socx_plugins.git.utils:get_ahead_behind
         style: ~
 
