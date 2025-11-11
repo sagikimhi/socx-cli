@@ -12,7 +12,6 @@ def format_():
     format_choices = click.Choice(
         ["ref", "json", "table"], case_sensitive=False
     )
-    default_format = socx.settings.get("git.manifest.format", "table")
     return click.option(
         "--format",
         "-f",
@@ -21,7 +20,7 @@ def format_():
         type=format_choices,
         help=format_.__doc__,
         is_flag=False,
-        default=default_format,
+        default=socx.settings.git.summary.format,
         show_choices=True,
         show_default=True,
         expose_value=True,

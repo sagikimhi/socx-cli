@@ -2,29 +2,45 @@
 git:
   summary:
     format: table
+
     style:
-      headers: underline
+      headers: ~
+
+    table:
+      box: ROUNDED
+      title: ~
+      caption: ~
+      expand: true
+      highlight: true
+      show_lines: true
+      show_header: true
+      show_footer: false
+
     columns:
       - name: Repository
         func: socx_plugins.git.utils:get_repo_name
-        style: white
+        style: bright_blue
 
-      - name: "[green]Ahead󱦲[/][red]Behind󱦳[/]"
+      - name: "[green]Ahead󱦲[/] [red]Behind󱦳[/]"
         func: socx_plugins.git.utils:get_ahead_behind
         style: ~
 
-      - name: Branch/Tag
+      - name: Branch / Tag
         func: socx_plugins.git.utils:get_ref_name
         style: yellow
 
-      - name: Commit-Message
+      - name: Commit Hash
+        func: socx_plugins.git.utils:get_commit_hash
+        style: red
+
+      - name: Commit Message
         func: socx_plugins.git.utils:get_commit_message
         style: white
 
-      - name: Author-Date
-        func: socx_plugins.git.utils:get_author_date
+      - name: Author Name
+        func: socx_plugins.git.utils:get_author_name
         style: cyan
 
-      - name: Commit-Hash
-        func: socx_plugins.git.utils:get_commit_hash
-        style: red
+      - name: Author Date
+        func: socx_plugins.git.utils:get_author_date
+        style: cyan

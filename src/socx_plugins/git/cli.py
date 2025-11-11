@@ -24,13 +24,5 @@ def cli() -> None:
 @global_options()
 def summary(format_: str, root_path: Path):
     """Output a manifest of all git repositories found under a given path."""
-    manifest = Summary(root_path)
-    match format_:
-        case "ref":
-            console.print(manifest.as_short_refs())
-        case "json":
-            console.print_json(
-                data=manifest.as_json(), indent=4, sort_keys=True
-            )
-        case "table":
-            console.print(manifest.as_rich_table())
+    settings.git.summary.format = format_
+    console.print(Summary(root_path))

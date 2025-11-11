@@ -2,22 +2,11 @@
 
 from __future__ import annotations
 
-from typing import NamedTuple
 from pathlib import Path
 from collections.abc import Generator
 
 import git
-
-
-class AheadBehind(NamedTuple):
-    """Tuple reporting how far a branch differs from its upstream."""
-
-    ahead: int
-    behind: int
-
-    def __str__(self) -> str:
-        """Return a compact formatted representation for console output."""
-        return f"[green]{self.ahead}󱦲[/][red]{self.behind}󱦳[/]"
+from rich.text import Text
 
 
 def get_repo(path: str | Path) -> git.Repo | None:
@@ -68,6 +57,12 @@ def get_author_date(repo: git.Repo) -> str:
         return repo.git.show("-s", "--date=short", "--pretty=%ad")
 
 
+def get_author_name(repo: git.Repo) -> str:
+    """Return the author date of the current commit (short format)."""
+    with repo:
+        return repo.git.show("-s", "--date=short", "--pretty=%an")
+
+
 def get_commit_hash(repo: git.Repo) -> str:
     """Return the short hash for the repository's HEAD commit."""
     with repo:
@@ -80,20 +75,24 @@ def get_commit_message(repo: git.Repo) -> str:
         return repo.git.show("-s", "--pretty=%s")
 
 
-def get_ahead_behind(repo: git.Repo) -> AheadBehind:
+def get_ahead_behind(repo: git.Repo) -> str:
     """Compare the active branch against its upstream to find divergence."""
-    rv = AheadBehind(0, 0)
+    ahead, behind = 0, 0
     with repo:
         local_branch = repo.active_branch
         tracking_branch = local_branch.tracking_branch()
         if is_branch(repo.head) and tracking_branch:
-            ahead_behind = repo.git.rev_list(
-                "--left-right",
+            args = (
                 "--count",
+                "--left-right",
                 f"{local_branch.name}...{tracking_branch.name}",
-            ).split()[:2]
-            rv = AheadBehind(*[int(v) for v in ahead_behind])
-    return rv
+            )
+            ahead, behind = repo.git.rev_list(*args).split()
+    ahead, behind = (
+        Text(text=f"{ahead}󱦲", style="green"),
+        Text(text=f"{behind}󱦳", style="red"),
+    )
+    return Text(" ").join([ahead, behind]).markup
 
 
 def is_branch(head: git.HEAD | git.Head) -> bool:
