@@ -18,6 +18,11 @@ def get_repo(path: str | Path) -> git.Repo | None:
     return rv
 
 
+def get_repo_dir(repo: git.Repo) -> Path:
+    with repo:
+        return Path(repo.working_dir)
+
+
 def get_repo_name(repo: git.Repo) -> str:
     """Return the leaf directory name for the repository's working tree."""
     with repo:
@@ -105,14 +110,29 @@ def is_git_dir(path: str | Path) -> bool:
     return bool(get_repo(path))
 
 
-def find_repositories(directory: str | Path) -> Generator[git.Repo]:
+def find_repositories(
+    directory: Path,
+    includes: list[Path] | None = None,
+    excludes: list[str | Path] | None = None,
+) -> Generator[git.Repo]:
     """Yield repositories discovered directly underneath ``directory``."""
-    if isinstance(directory, str):
-        directory = Path(directory)
+    excludes_set = set()
 
-    if directory.exists() and directory.is_dir():
-        subdirs = list(filter(is_git_dir, directory.iterdir()))
-        subdirs.sort(key=lambda x: Path(x).name)
-        for subdir in subdirs:
-            if repo := get_repo(subdir):
-                yield repo
+    for i in range(len(excludes)):
+        if isinstance(excludes[i], str):
+            excludes_set.update(directory.glob(excludes[i]))
+        elif excludes[i].exists():
+            excludes_set.add(excludes[i])
+
+    subdirs = list(
+        {
+            *filter(is_git_dir, includes or []),
+            *filter(is_git_dir, directory.iterdir()),
+        }.difference(excludes_set)
+    )
+    subdirs.sort(key=lambda x: Path(x).name.casefold())
+    subdirs.sort(key=lambda x: len(Path(x).name))
+
+    for subdir in subdirs:
+        if repo := get_repo(subdir):
+            yield repo

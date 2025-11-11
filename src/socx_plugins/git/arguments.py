@@ -3,6 +3,9 @@
 from pathlib import Path
 
 import rich_click as click
+from socx import settings
+
+from socx_plugins.git.callbacks import summary_cb, manifest_cb
 
 
 def format_():
@@ -21,22 +24,29 @@ def format_():
         help=format_.__doc__,
         is_flag=False,
         default=socx.settings.git.summary.format,
+        callback=summary_cb,
         show_choices=True,
         show_default=True,
         expose_value=True,
     )
 
 
-def root_path():
+def root():
     """Path to be searched for git repos in sub-directories."""
-    type_ = click.Path(
-        file_okay=False, dir_okay=True, path_type=Path, resolve_path=True
-    )
     return click.argument(
-        "root_path",
-        type=type_,
-        envvar="CWD",
-        default=Path.cwd(),
+        "root",
+        help="The root directory of the project.",
+        type=click.Path(
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            path_type=Path,
+            resolve_path=True,
+        ),
+        nargs=1,
+        envvar="SOCX_ROOT",
         required=False,
+        callback=manifest_cb,
+        default=settings.git.manifest.root or Path.cwd(),
         expose_value=True,
     )

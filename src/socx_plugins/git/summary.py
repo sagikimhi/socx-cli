@@ -22,7 +22,6 @@ from dynaconf.utils.parse_conf import apply_converter
 from socx_plugins.git.utils import (
     get_repo_name,
     get_short_ref,
-    find_repositories,
 )
 
 
@@ -35,7 +34,6 @@ logger = logging.getLogger(__name__)
 class Summary:
     """Compute and present a multi-repository summary view."""
 
-    root: str | Path
     repos: list[Repo]
     style: DynaBox
     console: Console
@@ -43,15 +41,8 @@ class Summary:
     headers: list[Text]
     records: list[list[Text]]
 
-    def __init__(self, root: str | Path) -> None:
-        """Discover repositories beneath ``root`` and prime render data."""
-        if isinstance(root, str):
-            root = Path(root)
-        repos = list(find_repositories(root))
-        repos.sort(key=lambda x: get_repo_name(x).casefold())
-        repos.sort(key=lambda x: len(get_repo_name(x)))
-        self.root = root
-        self.repos = repos
+    def __init__(self, repos: Iterable[Repo]) -> None:
+        self.repos = list(repos)
         self.style = settings.git.summary.style
         self.format = settings.git.summary.format
         self.columns = settings.git.summary.columns

@@ -1,5 +1,39 @@
 ---
 git:
+  manifest:
+    root: ~
+    includes: ~
+    excludes: ~
+
+  log:
+    flags:
+      - --abbrev-commit
+      - --branches
+      - --graph
+      - --date=iso
+      - --decorate=full
+      - >-
+        --pretty='format: %C(red)%h%C(reset) %C(cyan)%ad%C(reset)
+        %s %C(bold blue)[%an]%C(reset)%C(yellow)%d%C(reset) %n'
+
+  diff:
+    flags:
+      - -M
+      - -C
+      - -B
+      - --minimal
+      - --patch-with-stat
+      - --color-words=.
+      - --ignore-blank-lines
+      - --default-prefix
+
+  status:
+    flags:
+      - --branch
+      - --renames
+      - --short
+      - --ahead-behind
+
   summary:
     format: table
 
