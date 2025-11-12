@@ -60,7 +60,7 @@ def pager():
         "-p/-np",
         help="Whether or not to write output to system pager.",
         is_flag=True,
-        default=True,
+        default=False,
         required=False,
         expose_value=True,
     )
