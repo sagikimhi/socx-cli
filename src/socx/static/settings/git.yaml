@@ -7,22 +7,28 @@ git:
 
   log:
     flags:
+      - >-
+        --pretty=format: %C(red)%h%C(reset) %<(72,trunc)%s %C(bold blue)[%an]%C(reset) %C(yellow)%d%C(reset)%n
+      - --graph
       - --abbrev-commit
       - --branches
-      - --graph
-      - --date=iso
+      - --date=short
       - --decorate=full
-      - >-
-        --pretty='format: %C(red)%h%C(reset) %C(cyan)%ad%C(reset)
-        %s %C(bold blue)[%an]%C(reset)%C(yellow)%d%C(reset) %n'
+      - --max-count=12
 
+  pull:
+    flags:
+      - --tags
+      - --stat
+      - --rebase
+      - --ff-only
+      - --autostash
   diff:
     flags:
       - -M
       - -C
       - -B
       - --minimal
-      - --patch-with-stat
       - --color-words=.
       - --ignore-blank-lines
       - --default-prefix

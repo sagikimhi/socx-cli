@@ -18,16 +18,17 @@ def format_():
     return click.option(
         "--format",
         "-f",
-        "format_",
         nargs=1,
         type=format_choices,
         help=format_.__doc__,
         is_flag=False,
         default=socx.settings.git.summary.format,
+        is_eager=True,
         callback=summary_cb,
         show_choices=True,
+        show_envvar=False,
         show_default=True,
-        expose_value=True,
+        expose_value=False,
     )
 
 
@@ -48,5 +49,18 @@ def root():
         required=False,
         callback=manifest_cb,
         default=settings.git.manifest.root or Path.cwd(),
+        expose_value=True,
+    )
+
+
+def pager():
+    """Path to be searched for git repos in sub-directories."""
+    return click.option(
+        "--pager/--no-pager",
+        "-p/-np",
+        help="Whether or not to write output to system pager.",
+        is_flag=True,
+        default=True,
+        required=False,
         expose_value=True,
     )
