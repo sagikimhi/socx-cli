@@ -4,22 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from collections.abc import Generator
-from typing import NamedTuple
 
 import git
 from rich.text import Text
-
-
-class AheadBehind(NamedTuple):
-    """Tuple reporting how far a branch differs from its upstream."""
-
-    ahead: int
-    behind: int
-
-    def __str__(self) -> str:
-        """Return a compact formatted representation for console output."""
-        text = Text(f"[green]{self.ahead}󱦲[/] [red]{self.behind}󱦳[/]")
-        return text.plain
 
 
 def get_repo(path: str | Path) -> git.Repo | None:
@@ -31,9 +18,15 @@ def get_repo(path: str | Path) -> git.Repo | None:
     return rv
 
 
+def get_repo_dir(repo: git.Repo) -> Path:
+    with repo:
+        return Path(repo.working_dir)
+
+
 def get_repo_name(repo: git.Repo) -> str:
     """Return the leaf directory name for the repository's working tree."""
-    return Path(repo.working_dir).name
+    with repo:
+        return Path(repo.working_dir).name
 
 
 def get_ref_name(repo: git.Repo) -> str:
@@ -52,10 +45,27 @@ def get_ref_type(repo: git.Repo) -> str:
         return "Branch" if is_branch(repo.head) else "Tag"
 
 
+def get_short_ref(repo: git.Repo) -> str:
+    ref = get_commit_hash(repo)
+    args = (
+        "-s",
+        "--date=short",
+        f"--pretty=format:[red]%<( 10 ){ref}[/] (%s, [cyan]%ad[/])",
+    )
+    with repo:
+        return str(repo.git.show(*args))
+
+
 def get_author_date(repo: git.Repo) -> str:
     """Return the author date of the current commit (short format)."""
     with repo:
         return repo.git.show("-s", "--date=short", "--pretty=%ad")
+
+
+def get_author_name(repo: git.Repo) -> str:
+    """Return the author date of the current commit (short format)."""
+    with repo:
+        return repo.git.show("-s", "--date=short", "--pretty=%an")
 
 
 def get_commit_hash(repo: git.Repo) -> str:
@@ -70,24 +80,24 @@ def get_commit_message(repo: git.Repo) -> str:
         return repo.git.show("-s", "--pretty=%s")
 
 
-def get_ahead_behind(repo: git.Repo) -> AheadBehind:
+def get_ahead_behind(repo: git.Repo) -> str:
     """Compare the active branch against its upstream to find divergence."""
+    ahead, behind = 0, 0
     with repo:
-        if not is_branch(repo.head):
-            return AheadBehind(0, 0)
-
         local_branch = repo.active_branch
         tracking_branch = local_branch.tracking_branch()
-
-        if not tracking_branch:
-            return AheadBehind(0, 0)
-
-        ahead_behind = repo.git.rev_list(
-            "--left-right",
-            "--count",
-            f"{local_branch.name}...{tracking_branch.name}",
-        )
-        return AheadBehind(*ahead_behind.split()[:2])
+        if is_branch(repo.head) and tracking_branch:
+            args = (
+                "--count",
+                "--left-right",
+                f"{local_branch.name}...{tracking_branch.name}",
+            )
+            ahead, behind = repo.git.rev_list(*args).split()
+    ahead, behind = (
+        Text(text=f"{ahead}󱦲", style="green"),
+        Text(text=f"{behind}󱦳", style="red"),
+    )
+    return Text(" ").join([ahead, behind]).markup
 
 
 def is_branch(head: git.HEAD | git.Head) -> bool:
@@ -100,14 +110,29 @@ def is_git_dir(path: str | Path) -> bool:
     return bool(get_repo(path))
 
 
-def find_repositories(directory: str | Path) -> Generator[git.Repo]:
+def find_repositories(
+    directory: Path,
+    includes: list[Path] | None = None,
+    excludes: list[str | Path] | None = None,
+) -> Generator[git.Repo]:
     """Yield repositories discovered directly underneath ``directory``."""
-    if isinstance(directory, str):
-        directory = Path(directory)
+    excludes_set = set()
 
-    if directory.exists() and directory.is_dir():
-        subdirs = list(filter(is_git_dir, directory.iterdir()))
-        subdirs.sort(key=lambda x: Path(x).name)
-        for subdir in subdirs:
-            if repo := get_repo(subdir):
-                yield repo
+    for i in range(len(excludes)):
+        if isinstance(excludes[i], str):
+            excludes_set.update(directory.glob(excludes[i]))
+        elif excludes[i].exists():
+            excludes_set.add(excludes[i])
+
+    subdirs = list(
+        {
+            *filter(is_git_dir, includes or []),
+            *filter(is_git_dir, directory.iterdir()),
+        }.difference(excludes_set)
+    )
+    subdirs.sort(key=lambda x: Path(x).name.casefold())
+    subdirs.sort(key=lambda x: len(Path(x).name))
+
+    for subdir in subdirs:
+        if repo := get_repo(subdir):
+            yield repo

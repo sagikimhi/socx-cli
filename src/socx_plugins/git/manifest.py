@@ -1,169 +1,74 @@
-"""Render manifests describing multiple git repositories."""
-
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
-from collections.abc import Iterable
+from pathlib import Path
+from functools import cached_property
+from collections.abc import Iterable, Iterator
+import concurrent.futures as futures
 
-from dynaconf.base import Lazy
 from git import Repo
 from socx import settings
-from upath import UPath as Path
-from rich import get_console
-from rich.box import Box, ROUNDED
-from rich.text import Text
-from rich.table import Table
-from rich.console import Console, ConsoleOptions, RenderResult
-from pydantic.config import JsonDict
-from dynaconf.utils.boxing import DynaBox
-from dynaconf.utils.parse_conf import apply_converter
+from pydantic import BaseModel, ConfigDict, computed_field
 
-from socx_plugins.git.utils import get_repo_name
-from socx_plugins.git.utils import get_commit_hash
-from socx_plugins.git.utils import find_repositories
+from socx_plugins.git.utils import (
+    get_repo_name,
+    find_repositories,
+)
 
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass(init=False)
-class Manifest:
-    """Compute and present a multi-repository manifest view."""
-
+class Manifest(BaseModel):
     root: Path
-    repos: list[Repo]
-    style: DynaBox
-    console: Console
-    columns: list[DynaBox]
-    headers: list[str]
-    records: list[list[str]]
+    includes: list[Path] = settings.git.manifest.includes or []
+    excludes: list[str | Path] = settings.git.manifest.excludes or []
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def __init__(self, root: str | Path) -> None:
-        """Discover repositories beneath ``root`` and prime render data."""
-        if isinstance(root, str):
-            root = Path(root)
-        self.root = root
-        self.repos = list(find_repositories(root))
-        self.style = settings.git.manifest.style
-        self.console = get_console()
-        self.columns = settings.git.manifest.columns
-        self.headers = Manifest.get_headers(self.columns, self.style)
-        self.records = Manifest.get_records(self.columns, self.repos)
+    def __len__(self) -> int:
+        return len(self.repos)
 
-    @classmethod
-    def get_header(cls, column: DynaBox, style: DynaBox) -> str:
-        """Build a styled header string for a manifest column."""
-        header = column.get("name", "")
-        header_style = " ".join(
-            [column.get("style") or "", style.get("headers") or ""]
-        ).strip()
-        if header and header_style:
-            header = f"[{header_style}]{header}"
-        return header
+    def __contains__(self, item: str | Repo) -> bool:
+        if isinstance(item, str):
+            return item in self.repos
 
-    @classmethod
-    def get_content(cls, column: DynaBox, repo: Repo) -> str:
-        """Render the column content for a single repository."""
-        if not isinstance(column.func, str):
-            func = column.func
-        else:
-            func = apply_converter("@symbol", column.func, settings)
+        return get_repo_name(item) in self
 
-        if isinstance(func, Lazy):
-            func = func(func.value)
-
-        style = (column.get("style") or "") and f"[{column.style}]"
-        content = func(repo)
-        content = f"{style}{content}[/]" if style else f"{content}"
-        return content
-
-    @classmethod
-    def get_record(cls, columns: Iterable[DynaBox], repo: Repo) -> list[str]:
-        """Return all column values for ``repo``."""
-        return [cls.get_content(c, repo) for c in columns]
-
-    @classmethod
-    def get_headers(cls, columns: list[DynaBox], style: DynaBox) -> list[str]:
-        """Return the manifest headers with style applied."""
-        return [cls.get_header(c, style) for c in columns]
-
-    @classmethod
-    def get_records(
-        cls, columns: Iterable[DynaBox], repos: Iterable[Repo]
-    ) -> list[list[str]]:
-        """Convert repository metadata into row-wise records."""
-        return [cls.get_record(columns, repo) for repo in repos]
-
-    def print(self, console: Console | None = None) -> None:
-        """Print the manifest to the provided or default console."""
-        console = console or self.console
-        console.print(self)
-
-    def as_json(self) -> JsonDict:
-        """Serialize the manifest into a JSON-compatible mapping."""
-
-        def value(repo: Repo) -> JsonDict:
-            rv = {}
-            for column in self.columns:
-                func = apply_converter("@symbol", column.func, None)
-                rv[column.name] = func(repo)
-            return rv
-
-        return {"columns": [value(repo) for repo in self.repos]}
-
-    def as_references(self) -> list[str]:
-        """Return references including commit metadata suitable for logging."""
-
-        def reference(repo):
-            ref = get_commit_hash(repo)
-            name = get_repo_name(repo)
-            args = (
-                "-s",
-                "--date=short",
-                f"--pretty=format:[red]%<( 10 ){ref}[/] (%s, [cyan]%ad[/])",
+    @computed_field
+    @cached_property
+    def repos(self) -> dict[str, Repo]:
+        rv = {
+            get_repo_name(repo): repo
+            for repo in find_repositories(
+                self.root, self.includes, self.excludes
             )
-            return f"{repo.git.show(args)} <[green]{name}[/]>"
-
-        return [reference(repo) for repo in self.repos]
-
-    def as_rich_table(
-        self,
-        box: Box = ROUNDED,
-        title: str | Text | None = None,
-        expand: bool = True,
-        show_lines: bool = True,
-        show_header: bool = True,
-        show_footer: bool = False,
-    ) -> Table:
-        """Create a Rich ``Table`` representing the manifest."""
-        rv = Table(
-            box=box,
-            title=title or "Manifest",
-            expand=expand,
-            show_lines=show_lines,
-            show_header=show_header,
-            show_footer=show_footer,
-        )
-        for header in self.headers:
-            rv.add_column(header)
-        for record in self.records:
-            rv.add_row(*record)
+        }
         return rv
 
-    def export_json(self, path: str | Path) -> None:
-        """Write the manifest JSON representation to ``path``."""
-        if isinstance(path, str):
-            path = Path(path)
-        with self.console.capture() as cap:
-            self.console.print_json(
-                data=self.as_json(), indent=4, sort_keys=True
-            )
-        path.write_text(cap.get(), encoding="utf-8")
-        logger.info(f"Manifest written to: '{path}'.")
+    def iter_items(self) -> Iterator[tuple[str, Repo]]:
+        return iter(self.repos.items())
 
-    def __rich_console__(
-        self, console: Console, options: ConsoleOptions
-    ) -> RenderResult:
-        """Allow ``Manifest`` to act as a Rich renderable."""
-        yield from self.as_rich_table().__rich_console__(console, options)
+    def iter_repos(self) -> Iterator[Repo]:
+        return iter(self.repos.values())
+
+    def iter_names(self) -> Iterator[str]:
+        return iter(self.repos)
+
+    def git(self, cmd: str, *args: Iterable[str]) -> dict[str, futures.Future]:
+        fs: dict[str, futures.Future] = {}
+        with futures.ProcessPoolExecutor() as executor:
+            for name, repo in self.repos.items():
+                fs[name] = executor.submit(
+                    self._repo_cmd, repo, cmd, *tuple(args)
+                )
+        return fs
+
+    def _repo_cmd(self, repo: Repo, cmd: str, *args: Iterable[str]):
+        with repo:
+            if not hasattr(repo.git, cmd):
+                return ""
+
+            git_cmd = getattr(repo.git, cmd)
+
+            if git_cmd and callable(git_cmd):
+                return git_cmd(*args)

@@ -14,6 +14,7 @@ __all__ = (
     "log_it",
     "logger",
     "console",
+    "get_console",
     "get_level",
     "set_level",
     "get_logger",
@@ -47,5 +48,6 @@ from socx.io.log import remove_handler as remove_handler
 from socx.io.log import get_handler_names as get_handler_names
 
 from socx.io.console import console as console
+from socx.io.console import get_console as get_console
 
 from socx.io.decorators import log_it as log_it

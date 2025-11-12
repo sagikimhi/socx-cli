@@ -14,6 +14,7 @@ __all__ = (
     "get_level",
     "set_level",
     "get_logger",
+    "get_console",
     "add_filter",
     "remove_filter",
     "add_handler",
@@ -95,6 +96,7 @@ from socx.io import console as console
 from socx.io import get_level as get_level
 from socx.io import set_level as set_level
 from socx.io import get_logger as get_logger
+from socx.io import get_console as get_console
 from socx.io import add_filter as add_filter
 from socx.io import remove_filter as remove_filter
 from socx.io import add_handler as add_handler
