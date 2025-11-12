@@ -5,6 +5,7 @@ from pathlib import Path
 from collections.abc import Iterable
 
 from git import Repo
+from socx import settings
 from pydantic import BaseModel, ConfigDict, computed_field
 
 from socx_plugins.git.utils import (
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 class Manifest(BaseModel):
     root: Path
-    includes: list[Path]
-    excludes: list[str | Path]
+    includes: list[Path] = settings.git.manifest.includes or []
+    excludes: list[str | Path] = settings.git.manifest.excludes or []
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @computed_field

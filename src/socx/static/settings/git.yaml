@@ -16,13 +16,19 @@ git:
         --pretty='format: %C(red)%h%C(reset) %C(cyan)%ad%C(reset)
         %s %C(bold blue)[%an]%C(reset)%C(yellow)%d%C(reset) %n'
 
+  pull:
+    flags:
+      - --tags
+      - --stat
+      - --rebase
+      - --ff-only
+      - --autostash
   diff:
     flags:
       - -M
       - -C
       - -B
       - --minimal
-      - --patch-with-stat
       - --color-words=.
       - --ignore-blank-lines
       - --default-prefix
