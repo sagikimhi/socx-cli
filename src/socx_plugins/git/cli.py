@@ -42,33 +42,19 @@ def cli() -> None:
     """Various common git command utilities to manage your environment."""
 
 
-@cli.command()
-@global_options()
-@arguments.root()
-@arguments.format_()
-def summary(root: Path, format_: str):
-    """Output a manifest of all git repositories found under a given path."""
-    manifest = Manifest(
-        root=root,
-        includes=settings.git.manifest.includes or [],
-        excludes=settings.git.manifest.excludes or [],
-    )
-    console.print(Summary(manifest.repos.values()))
-
-
 @git_cmd()
 @arguments.root()
 @click.argument(
     "args",
-    help="Arguments to pass to git status",
+    help="Arguments to pass to git log",
     nargs=-1,
     type=click.UNPROCESSED,
 )
-def status(root: Path, args: list[Any]):
-    """Run git status on all repositories found under ROOT."""
+def log(root: Path, args: list[Any]) -> None:
+    """Run git log on all repositories found under ROOT."""
     manifest = Manifest(root=root)
-    outputs = manifest.git("status", *settings.git.status.flags, *args)
-    console.print(output_tree(root, "Git Status", outputs))
+    outputs = manifest.git("log", *settings.git.log.flags, *args)
+    console.print(output_tree(root, "Git Log", outputs))
 
 
 @git_cmd()
@@ -90,6 +76,21 @@ def pull(root: Path, args: list[Any]) -> None:
 @arguments.root()
 @click.argument(
     "args",
+    help="Arguments to pass to git diff",
+    nargs=-1,
+    type=click.UNPROCESSED,
+)
+def diff(root: Path, args: list[Any]) -> None:
+    """Run git diff on all repositories found under ROOT."""
+    manifest = Manifest(root=root)
+    outputs = manifest.git("diff", *settings.git.diff.flags, *args)
+    console.print(output_tree(root, "Git Diff", outputs))
+
+
+@git_cmd()
+@arguments.root()
+@click.argument(
+    "args",
     help="Arguments to pass to git fetch",
     nargs=-1,
     type=click.UNPROCESSED,
@@ -105,12 +106,22 @@ def fetch(root: Path, args: list[Any]) -> None:
 @arguments.root()
 @click.argument(
     "args",
-    help="Arguments to pass to git diff",
+    help="Arguments to pass to git status",
     nargs=-1,
     type=click.UNPROCESSED,
 )
-def diff(root: Path, args: list[Any]) -> None:
-    """Run git diff on all repositories found under ROOT."""
+def status(root: Path, args: list[Any]):
+    """Run git status on all repositories found under ROOT."""
     manifest = Manifest(root=root)
-    outputs = manifest.git("diff", *settings.git.diff.flags, *args)
-    console.print(output_tree(root, "Git Diff", outputs))
+    outputs = manifest.git("status", *settings.git.status.flags, *args)
+    console.print(output_tree(root, "Git Status", outputs))
+
+
+@cli.command()
+@global_options()
+@arguments.root()
+@arguments.format_()
+def summary(root: Path, format_: str):
+    """Output a manifest of all git repositories found under a given path."""
+    manifest = Manifest(root=root)
+    console.print(Summary(manifest.repos.values()))
