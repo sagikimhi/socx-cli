@@ -67,13 +67,8 @@ def summary(root: Path, format_: str):
 def status(root: Path, args: list[Any]):
     """Run git status on all repositories found under ROOT."""
     manifest = Manifest(root=root)
-    statuses = manifest.git("status", *settings.git.status.flags, *args)
-    tree = Tree(Panel.fit(f"{root}"), guide_style="red")
-    for name in statuses:
-        node = Tree(Text(name, style="i"), guide_style="red")
-        node.add(Panel.fit(Text.from_ansi(statuses[name])))
-        tree.add(node)
-    console.print(output_tree(root, "Git Status", statuses))
+    outputs = manifest.git("status", *settings.git.status.flags, *args)
+    console.print(output_tree(root, "Git Status", outputs))
 
 
 @git_cmd()
