@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from concurrent.futures import Future, ProcessPoolExecutor
 import logging
 from pathlib import Path
 from functools import cached_property
 from collections.abc import Iterable, Iterator
+import concurrent.futures as futures
 
 from git import Repo
 from socx import settings
@@ -54,15 +54,16 @@ class Manifest(BaseModel):
     def iter_names(self) -> Iterator[str]:
         return iter(self.repos)
 
-    def git(self, cmd: str, *args: Iterable[str]) -> dict[str, str]:
-        rv: dict[str, Future] = {}
-        with ProcessPoolExecutor() as executor:
+    def git(self, cmd: str, *args: Iterable[str]) -> dict[str, futures.Future]:
+        fs: dict[str, futures.Future] = {}
+        with futures.ProcessPoolExecutor() as executor:
             for name, repo in self.repos.items():
-                rv[name] = executor.submit(self._git, repo, cmd, *tuple(args))
+                fs[name] = executor.submit(
+                    self._repo_cmd, repo, cmd, *tuple(args)
+                )
+        return fs
 
-        return {name: rv[name].result() for name in rv}
-
-    def _git(self, repo: Repo, cmd: str, *args: Iterable[str]):
+    def _repo_cmd(self, repo: Repo, cmd: str, *args: Iterable[str]):
         with repo:
             if not hasattr(repo.git, cmd):
                 return ""
