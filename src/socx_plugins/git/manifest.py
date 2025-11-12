@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from collections.abc import Iterable
 
 from git import Repo
 from pydantic import BaseModel, ConfigDict, computed_field
@@ -30,4 +31,18 @@ class Manifest(BaseModel):
                 self.root, self.includes, self.excludes
             )
         }
+        return rv
+
+    def git(self, cmd: str, *args: Iterable[str]) -> dict[str, str]:
+        rv = {}
+        for name, repo in self.repos.items():
+            with repo:
+                if not hasattr(repo.git, cmd):
+                    continue
+
+                git_cmd = getattr(repo.git, cmd)
+
+                if git_cmd and callable(git_cmd):
+                    rv[name] = git_cmd(*args)
+
         return rv

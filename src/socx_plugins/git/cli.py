@@ -38,21 +38,17 @@ def summary(root: Path, format_: str):
 @cli.command()
 @arguments.root()
 def status(root: Path):
-    statuses = {}
     manifest = Manifest(
         root=root,
         includes=settings.git.manifest.includes or [],
         excludes=settings.git.manifest.excludes or [],
     )
-    tree = Tree(
-        Panel.fit("Git Status", style="bright_blue"), guide_style="red"
-    )
-    for name, repo in manifest.repos.items():
-        with repo:
-            statuses[name] = Text(repo.git.status(*settings.git.status.flags))
+    statuses = manifest.git("status", *settings.git.status.flags)
 
+    tree = Tree(Panel.fit(f"{root}"), guide_style="red")
     for name in statuses:
-        node = Tree(name, guide_style="magenta")
-        node.add(statuses[name])
+        node = Tree(Text(name, style="i"), guide_style="red")
+        node.add(Panel.fit(Text.from_ansi(statuses[name])))
         tree.add(node)
-    console.print(tree)
+
+    console.print(Panel.fit(tree, title="Git Status"))
