@@ -7,14 +7,14 @@ git:
 
   log:
     flags:
-      - >-
-        --pretty=format: %C(red)%h%C(reset) %<(72,trunc)%s %C(bold blue)[%an]%C(reset) %C(yellow)%d%C(reset)%n
       - --graph
       - --abbrev-commit
       - --branches
-      - --date=short
+      - --date=relative
       - --decorate=full
       - --max-count=12
+      - >-
+        --pretty=format: %C(red)%h%C(reset) %<(50,trunc)%s %C(bold blue)[%an]%C(reset) %C(yellow)%d%C(reset)%n
 
   pull:
     flags:

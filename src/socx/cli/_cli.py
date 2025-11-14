@@ -31,20 +31,26 @@ class _CmdLine(click.RichGroup):
         return self._plugins
 
     def get_command(
-        self, ctx: click.Context, cmd_name: str
+        self, ctx: click.RichContext, cmd_name: str
     ) -> click.Command | None:
         """Resolve commands from core registrations or configured plugins."""
         if cmd_name not in self.commands and cmd_name in self.plugins:
             plugin = self.plugins[cmd_name]
-            cmd = self._converter(plugin.command)
-            if cmd is None:
-                return None
-            self.commands[cmd_name] = cmd
+
+            if plugin.command:
+                cmd = self._converter(plugin.command)
+            elif plugin.script:
+                cmd = self._converter(plugin.script)
+            else:
+                cmd = None
+
+            if cmd is not None:
+                self.commands[cmd_name] = cmd
+
             if isinstance(cmd, click.Command):
                 cmd.help = plugin.help or cmd.help or inspect.getdoc(cmd)
-        if cmd_name in self.commands:
-            return self.commands[cmd_name]
-        return None
+
+        return super().get_command(ctx, cmd_name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
         """List command names including dynamically loaded plugins."""

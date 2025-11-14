@@ -6,28 +6,20 @@ import sys
 import abc
 import runpy
 import logging
-from types import CodeType
-from types import ModuleType
-from types import MethodType
-from types import FunctionType
-from typing import Any, overload, override, TypeVar
+import shlex
+from pathlib import Path
+from types import CodeType, ModuleType, MethodType, FunctionType
+from typing import Any, cast, overload, override, TypeVar
 from importlib import import_module
 from collections.abc import Iterable, Callable
 
+import sh
+import rich_click as click
+import rich_click.patch as click_patch
+import rich_click.rich_click_theme as click_theme
 from pydantic import validate_call, ConfigDict
-from rich_click.patch import patch
-from rich_click.rich_click_theme import RichClickTheme
-from upath import UPath as Path
 from dynaconf import add_converter
 from dynaconf.utils.parse_conf import Lazy
-from rich_click import (
-    RichHelpConfiguration,
-    rich_click,
-    command,
-    argument,
-    UNPROCESSED,
-    Command,
-)
 
 from socx.config._settings import Settings
 
@@ -220,19 +212,23 @@ class CommandConverter(Converter):
         )
 
     @overload
-    def __call__(self, value: str | None) -> Command | None: ...
+    def __call__(self, value: str) -> click.Command: ...
 
     @overload
-    def __call__(self, value: Command) -> Command: ...
+    def __call__(self, value: None) -> None: ...
+
+    @overload
+    def __call__(self, value: sh.Command) -> click.Command: ...
+
+    @overload
+    def __call__(self, value: click.Command) -> click.Command: ...
 
     @overload
     def __call__(self, value: Lazy) -> Lazy: ...
 
     @override
     @_validate
-    def __call__(
-        self, value: str | Command | Lazy | None
-    ) -> Command | Lazy | None:
+    def __call__(self, value: Any) -> Lazy | click.Command | None:
         """Build a Click command from dotted paths or reuse existing ones."""
         if value is None:
             return None
@@ -240,70 +236,115 @@ class CommandConverter(Converter):
         if isinstance(value, Lazy):
             return value.set_casting(self)
 
-        if isinstance(value, Command):
-            return value
+        if self.is_click_command(value):
+            return cast(click.Command, value)
 
-        path, _, symbol = value.partition(":")
-        run = runpy.run_path if self.is_script_path(path) else runpy.run_module
-
-        @command(context_settings=self.context_settings)
-        @argument("args", nargs=-1, type=UNPROCESSED)
+        @click.command(context_settings=self.context_settings)
+        @click.argument("args", nargs=-1, type=click.UNPROCESSED)
         def cli(args):
-            theme = (
-                rich_click.THEME.name
-                if isinstance(rich_click.THEME, RichClickTheme)
-                else rich_click.THEME
-            )
-            cfg = RichHelpConfiguration.load_from_globals(theme=theme)
-            patch(cfg, patch_rich_click=True, patch_typer=True)
+            nonlocal value
 
             rv = 0
-            argv = sys.argv[1:].copy()
-            syspath = sys.path.copy()
+            theme = (
+                click.rich_click.THEME.name
+                if isinstance(
+                    click.rich_click.THEME, click_theme.RichClickTheme
+                )
+                else click.rich_click.THEME
+            )
+            cfg = click.RichHelpConfiguration.load_from_globals(theme=theme)
+            click_patch.patch(cfg, patch_rich_click=True, patch_typer=True)
 
-            if self.is_script_path(path):
-                sys.path.insert(0, str(Path(path).parent))
-            elif self.is_package_path(path):
-                sys.path.insert(0, path)
+            if self.is_shell_cmd(value):
+                cmd = value.bake(*args)
+                proc = cmd(
+                    _bg=True,
+                    _in=sys.stdin,
+                    _out=sys.stdout,
+                    _err=sys.stderr,
+                )
+                return proc.wait()
 
-            sys.argv[1:] = args
+            if self.is_pathspec(value):
+                if not isinstance(value, str):
+                    value = str(value)
 
-            try:
-                if not self.is_filesystem_path(path) and symbol:
-                    mod = self.importer(path)
-                    rv = getattr(mod, symbol, lambda: None)()
-                elif symbol:
-                    rv = run(path).get(symbol, lambda: None)()
-                else:
-                    rv = run(path, run_name="__main__")
-            finally:
-                sys.path = syspath
-                sys.argv[1:] = argv
+                path, _, symbol = value.partition(":")
+                run = (
+                    runpy.run_path
+                    if self.is_script_path(path)
+                    else runpy.run_module
+                )
+                argv = sys.argv[1:].copy()
+                syspath = sys.path.copy()
+
+                if self.is_script_path(path):
+                    sys.path.insert(0, str(Path(path).parent))
+                elif self.is_package_path(path):
+                    sys.path.insert(0, path)
+
+                sys.argv[1:] = args
+
+                try:
+                    if not self.is_pathspec(path) and symbol:
+                        mod = self.importer(path)
+                        rv = getattr(mod, symbol, lambda: None)()
+                    elif symbol:
+                        rv = run(path).get(symbol, lambda: None)()
+                    else:
+                        rv = run(path, run_name="__main__")
+                finally:
+                    sys.path = syspath
+                    sys.argv[1:] = argv
 
             return rv
 
         return cli
 
-    def is_filesystem_path(self, path: str) -> bool:
-        """Return ``True`` if ``path`` is either a script or package path."""
-        return self.is_script_path(path) or self.is_package_path(path)
+    def is_click_command(self, value: Any) -> bool:
+        return isinstance(value, click.Command)
 
-    def is_script_path(self, path: str) -> bool:
-        """Return ``True`` if ``path`` points to a python script file."""
-        filepath = Path(path)
+    def is_shell_cmd(self, value: Any) -> bool:
+        return isinstance(value, sh.Command)
+
+    def is_module_path(self, path: Any) -> bool:
+        if not isinstance(path, str):
+            return False
+
+        module, _, symbol = path.partition(":")
         return (
-            filepath.exists()
-            and filepath.is_file()
-            and filepath.suffix == ".py"
+            all(part.isidentifier() for part in module.split("."))
+            and symbol.isidentifier()
         )
 
-    def is_package_path(self, path: str) -> bool:
-        """Return ``True`` if ``path`` points to a python package directory."""
-        filepath = Path(path)
+    def is_script_path(self, value: Any) -> bool:
+        """Return ``True`` if ``path`` points to a python script file."""
+        if isinstance(value, str):
+            value = Path(value)
         return (
-            filepath.exists()
-            and filepath.is_dir()
-            and (filepath / "__init__.py").exists()
+            isinstance(value, Path)
+            and value.exists()
+            and value.is_file()
+            and value.suffix == ".py"
+        )
+
+    def is_package_path(self, value: Any) -> bool:
+        """Return ``True`` if ``path`` points to a python package directory."""
+        if isinstance(value, str):
+            value = Path(value)
+        return (
+            isinstance(value, Path)
+            and value.exists()
+            and value.is_dir()
+            and (value / "__init__.py").exists()
+        )
+
+    def is_pathspec(self, path: Any) -> bool:
+        """Return ``True`` if ``path`` is either a script or package path."""
+        return (
+            self.is_module_path(path)
+            or self.is_script_path(path)
+            or self.is_package_path(path)
         )
 
 
@@ -367,9 +408,24 @@ def get_converters() -> Iterable[tuple[str, Converter]]:
     return rv
 
 
-def _init() -> None:
+class ShConverter(Converter):
+    def __call__(self, value: str) -> sh.Command:
+        args = [arg.strip() for arg in value.split()]
+        try:
+            cmd = sh.Command(args[0])
+        except sh.CommandNotFound:
+            self.error(f"Command {shlex.quote(args[0])}")
+            raise
+        else:
+            cmd = cmd.bake(*args[1:])
+
+        return cmd
+
+
+def init() -> None:
     """Register the default set of converters used by SoCX."""
     converters = [
+        ShConverter(),
         PathConverter(),
         ImportConverter(),
         CompileConverter(),

@@ -102,7 +102,7 @@ def get_settings(path: str | Path | None = None, *args, **kwargs) -> Settings:
     if USER_CONFIG_FILE.exists():
         settings_files.append(str(USER_CONFIG_FILE))
 
-    converters._init()
+    converters.init()
     settings = Settings(
         *args,
         env="default",
