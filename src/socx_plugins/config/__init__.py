@@ -38,7 +38,7 @@ def edit(user: bool):
 def tree():
     """Print a tree of all loaded configurations."""
     formatter = TreeFormatter()
-    console.print(formatter(settings))
+    console.print(formatter(settings.as_dict(), "Settings"))
 
 
 @cli.command("list")
