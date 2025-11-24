@@ -35,20 +35,29 @@ class _CmdLine(click.RichGroup):
     ) -> click.Command | None:
         """Resolve commands from core registrations or configured plugins."""
         if cmd_name not in self.commands and cmd_name in self.plugins:
+            cmd = None
             plugin = self.plugins[cmd_name]
 
-            if plugin.command:
-                cmd = self._converter(plugin.command)
-            elif plugin.script:
+            if plugin.script:
                 cmd = self._converter(plugin.script)
-            else:
-                cmd = None
+            elif plugin.command:
+                cmd = self._converter(plugin.command)
 
             if cmd is not None:
-                self.commands[cmd_name] = cmd
+                self.add_command(
+                    cmd=cmd,
+                    name=plugin.name,
+                    panel=plugin.panel,
+                    aliases=plugin.aliases or None,
+                )
+                if plugin.aliases:
+                    cmd.aliases = [*cmd.aliases, *plugin.aliases]
 
             if isinstance(cmd, click.Command):
-                cmd.help = plugin.help or cmd.help or inspect.getdoc(cmd)
+                cmd.short_help = (
+                    plugin.help or cmd.short_help or inspect.getdoc(cmd)
+                )
+                cmd.help = inspect.getdoc(cmd) or cmd.help or plugin.help
 
         return super().get_command(ctx, cmd_name)
 
