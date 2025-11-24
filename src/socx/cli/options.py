@@ -6,8 +6,9 @@ import logging
 from typing import Any
 from collections.abc import Callable
 
-from rich_click import option, Choice
+import rich_click as click
 
+from socx.config import settings
 from socx.cli.types import Decorator
 from socx.cli.types import AnyCallable
 from socx.cli.callbacks import debug_cb
@@ -15,7 +16,7 @@ from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb
 
 
-debug: Decorator[AnyCallable] = option(
+debug: Decorator[AnyCallable] = click.option(
     "--debug",
     "-d",
     "debug",
@@ -31,7 +32,7 @@ debug: Decorator[AnyCallable] = option(
 )
 
 
-verbosity: Decorator[AnyCallable] = option(
+verbosity: Decorator[AnyCallable] = click.option(
     "--verbosity",
     "-v",
     "verbosity",
@@ -44,14 +45,14 @@ verbosity: Decorator[AnyCallable] = option(
     show_choices=True,
     show_default=True,
     expose_value=False,
-    type=Choice(
+    type=click.Choice(
         choices=tuple(logging.getLevelNamesMapping()),
         case_sensitive=False,
     ),
     callback=verbosity_cb,
 )
 
-configure: Decorator[AnyCallable] = option(
+configure: Decorator[AnyCallable] = click.option(
     "--config/--no-config",
     "configure",
     help="specifies whether or not user configurations should be loaded.",
@@ -65,17 +66,44 @@ configure: Decorator[AnyCallable] = option(
 )
 
 
-def add_options(*options: Any) -> Decorator[AnyCallable]:
+def join_decorators(*args: Any) -> Decorator[AnyCallable]:
     """Compose multiple option decorators into a single decorator."""
 
-    def _add_options(func):
-        for opt in reversed(options):
-            func = opt(func)
+    def _join_decorators(func):
+        for arg in reversed(args):
+            func = arg(func)
         return func
 
-    return _add_options
+    return _join_decorators
 
 
 def global_options() -> Callable[..., Decorator[AnyCallable]]:
     """Apply the standard set of global SoCX CLI options."""
-    return add_options(debug, configure, verbosity)
+    return join_decorators(debug, configure, verbosity)
+
+
+def option_panels():
+    panels = [
+        click.option_panel(
+            name=panel.name,
+            options=panel.options,
+        )
+        for panel in settings.cli.option_panels
+    ]
+    return join_decorators(*panels)
+
+
+def command_panels():
+    panel_commands = {}
+
+    for plugin in settings.plugins:
+        panel_commands[plugin.panel] = [
+            *panel_commands.get(plugin.panel, []),
+            plugin.name,
+        ]
+
+    panels = [
+        click.command_panel(name=name, commands=commands)
+        for name, commands in panel_commands.items()
+    ]
+    return join_decorators(*panels)

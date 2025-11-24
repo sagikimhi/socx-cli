@@ -15,7 +15,7 @@ from socx import (
     AnyCallable,
     SymbolConverter,
     settings,
-    add_options,
+    join_decorators,
 )
 
 from socx_plugins.rgr.callbacks import input_cb, output_cb
@@ -64,7 +64,7 @@ def _output() -> Decorator[AnyCallable]:
 
 def options() -> Decorator[AnyCallable]:
     """Compose the reusable input/output options."""
-    return add_options(_input(), _output())
+    return join_decorators(_input(), _output())
 
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:

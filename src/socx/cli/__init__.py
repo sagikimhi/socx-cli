@@ -6,7 +6,7 @@ __all__ = (
     "debug",
     "configure",
     "verbosity",
-    "add_options",
+    "join_decorators",
     "global_options",
     "debug_cb",
     "configure_cb",
@@ -29,7 +29,7 @@ from socx.cli.plugin import PluginModel as PluginModel
 from socx.cli.options import debug as debug
 from socx.cli.options import configure as configure
 from socx.cli.options import verbosity as verbosity
-from socx.cli.options import add_options as add_options
+from socx.cli.options import join_decorators as join_decorators
 from socx.cli.options import global_options as global_options
 
 from socx.cli.callbacks import debug_cb as debug_cb
