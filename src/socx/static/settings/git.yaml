@@ -2,42 +2,39 @@
 git:
   manifest:
     root: ~
-    includes: ~
-    excludes: ~
+    includes: []
+    excludes: []
+    references: {}
 
   log:
     flags:
       - --graph
-      - --abbrev-commit
       - --branches
+      - --abbrev-commit
       - --date=relative
       - --decorate=full
       - --max-count=12
       - >-
-        --pretty=format: %C(red)%h%C(reset) %<(50,trunc)%s %C(bold blue)[%an]%C(reset) %C(yellow)%d%C(reset)%n
+        --pretty=format: %C(red)%h%C(reset) %<(72,trunc)%s %C(bold blue)[%an]%C(reset) %C(yellow)%d%C(reset)%n
 
   pull:
     flags:
       - --tags
-      - --stat
-      - --rebase
-      - --ff-only
+      - --no-edit
       - --autostash
   diff:
     flags:
       - -M
       - -C
       - -B
-      - --minimal
-      - --color-words=.
       - --ignore-blank-lines
       - --default-prefix
 
   status:
     flags:
+      - --short
       - --branch
       - --renames
-      - --short
       - --ahead-behind
 
   summary:
@@ -61,7 +58,7 @@ git:
         func: socx_plugins.git.utils:get_repo_name
         style: bright_blue
 
-      - name: "[green]Ahead󱦲[/] [red]Behind󱦳[/]"
+      - name: "[green]Ahead[/] [red]Behind[/]"
         func: socx_plugins.git.utils:get_ahead_behind
         style: ~
 

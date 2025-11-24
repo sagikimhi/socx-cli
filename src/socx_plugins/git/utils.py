@@ -84,19 +84,23 @@ def get_ahead_behind(repo: git.Repo) -> str:
     """Compare the active branch against its upstream to find divergence."""
     ahead, behind = 0, 0
     with repo:
-        local_branch = repo.active_branch
-        tracking_branch = local_branch.tracking_branch()
-        if is_branch(repo.head) and tracking_branch:
-            args = (
-                "--count",
-                "--left-right",
-                f"{local_branch.name}...{tracking_branch.name}",
-            )
-            ahead, behind = repo.git.rev_list(*args).split()
-    ahead, behind = (
-        Text(text=f"{ahead}󱦲", style="green"),
-        Text(text=f"{behind}󱦳", style="red"),
-    )
+        if is_branch(repo.head):
+            local_branch = repo.active_branch
+            tracking_branch = local_branch.tracking_branch()
+
+            if tracking_branch:
+                args = (
+                    "--count",
+                    "--left-right",
+                    f"{local_branch.name}...{tracking_branch.name}",
+                )
+                ahead, behind = repo.git.rev_list(*args).split()
+
+        ahead, behind = (
+            Text(text=f"{ahead}", style="green"),
+            Text(text=f"{behind}", style="red"),
+        )
+
     return Text(" ").join([ahead, behind]).markup
 
 

@@ -4,21 +4,27 @@ from __future__ import annotations
 
 from typing import Any
 from pathlib import Path
-import concurrent.futures as futures
 
-from rich.panel import Panel
-from rich.text import Text
-from rich.tree import Tree
-from rich.live import Live
 import rich_click as click
-from socx import Decorator, global_options, settings, console
+from sh import RunningCommand
+from socx import global_options, TreeFormatter, get_console, settings
+from rich.console import RenderableType
 
+from socx_plugins.git import arguments
 from socx_plugins.git.summary import Summary
 from socx_plugins.git.manifest import Manifest
-from socx_plugins.git import arguments
 
 
-def git_cmd() -> Decorator:
+console = get_console()
+
+
+@click.group(context_settings=settings.cli.context_settings)
+@global_options()
+def cli() -> None:
+    """Various common git command utilities to manage your environment."""
+
+
+def command():
     return cli.command(
         context_settings=dict(
             ignore_unknown_options=True,
@@ -28,77 +34,29 @@ def git_cmd() -> Decorator:
     )
 
 
-def print_futures(
-    fs_map: dict[str, futures.Future],
+def print_command_outputs(
+    outputs: dict[str, RunningCommand],
     pager: bool = True,
     title: str | None = None,
-    timeout: float | None = None,
-):
+) -> None:
     title = title or ""
-    tree = Tree(
-        Panel.fit(f"{settings.git.manifest.root}"),
-        guide_style="red",
-    )
-    names = {future: name for name, future in fs_map.items()}
-    nodes = {
-        name: tree.add(
-            Panel.fit(Text(name, style="i")),
-            guide_style="red",
-        )
-        for name in fs_map
+    formatter = TreeFormatter()
+    outputs = {
+        name: output.stdout.decode() for name, output in outputs.items()
     }
-
-    def add_output(future: futures.Future):
-        nonlocal live
-        nonlocal tree
-        nonlocal nodes
-        nonlocal names
-
-        name = names[future]
-
-        try:
-            output = future.result()
-        except Exception as e:
-            output = str(e)
-
-        node = nodes.get(name)
-        if node:
-            del nodes[name]
-            if output:
-                node.add(Panel.fit(Text.from_ansi(output)))
-
-    with Live(tree, console=console) as live:
-        for future in fs_map.values():
-            future.add_done_callback(add_output)
-
-        futures.wait(
-            fs_map.values(),
-            timeout=timeout,
-            return_when=futures.ALL_COMPLETED,
-        )
-
-    if pager:
-        with console.pager(styles=True, links=True):
-            console.print(tree)
+    text = formatter(outputs, title)
+    if not pager:
+        console.print(text)
+    else:
+        print_with_pager(text)
 
 
-def output_tree(root: Path, title: str, outputs: dict[str, str]) -> Panel:
-    tree = Tree(Panel.fit(f"{root}"), guide_style="red")
-    for name in outputs:
-        node = Tree(Text(name, style="i"), guide_style="red")
-        if outputs[name]:
-            node.add(Panel.fit(Text.from_ansi(outputs[name])))
-        tree.add(node)
-    return Panel.fit(tree, title=title)
+def print_with_pager(text: RenderableType) -> None:
+    with console.pager(styles=True, links=True):
+        console.print(text)
 
 
-@click.group(context_settings=settings.cli.context_settings)
-@global_options()
-def cli() -> None:
-    """Various common git command utilities to manage your environment."""
-
-
-@git_cmd()
+@command()
 @arguments.root()
 @arguments.pager()
 @click.argument(
@@ -111,10 +69,10 @@ def log(root: Path, pager: bool, args: list[Any]) -> None:
     """Run git log on all repositories found under ROOT."""
     manifest = Manifest(root=root)
     outputs = manifest.git("log", *settings.git.log.flags, *args)
-    print_futures(outputs, pager=pager, title="Git Log")
+    print_command_outputs(outputs, pager=pager, title="Git Log")
 
 
-@git_cmd()
+@command()
 @arguments.root()
 @arguments.pager()
 @click.argument(
@@ -127,10 +85,10 @@ def pull(root: Path, pager: bool, args: list[Any]) -> None:
     """Run git pull on all repositories found under ROOT."""
     manifest = Manifest(root=root)
     outputs = manifest.git("pull", *settings.git.pull.flags, *args)
-    print_futures(outputs, pager=pager, title="Git Pull")
+    print_command_outputs(outputs, pager=pager, title="Git Pull")
 
 
-@git_cmd()
+@command()
 @arguments.root()
 @arguments.pager()
 @click.argument(
@@ -143,10 +101,10 @@ def diff(root: Path, pager: bool, args: list[Any]) -> None:
     """Run git diff on all repositories found under ROOT."""
     manifest = Manifest(root=root)
     outputs = manifest.git("diff", *settings.git.diff.flags, *args)
-    print_futures(outputs, pager=pager, title="Git Diff")
+    print_command_outputs(outputs, pager=pager, title="Git Diff")
 
 
-@git_cmd()
+@command()
 @arguments.root()
 @arguments.pager()
 @click.argument(
@@ -159,10 +117,10 @@ def fetch(root: Path, pager: bool, args: list[Any]) -> None:
     """Run git fetch on all repositories found under ROOT."""
     manifest = Manifest(root=root)
     outputs = manifest.git("fetch", *args)
-    print_futures(outputs, pager=pager, title="Git Fetch")
+    print_command_outputs(outputs, pager=pager, title="Git Fetch")
 
 
-@git_cmd()
+@command()
 @arguments.root()
 @arguments.pager()
 @click.argument(
@@ -175,7 +133,7 @@ def status(root: Path, pager: bool, args: list[Any]):
     """Run git status on all repositories found under ROOT."""
     manifest = Manifest(root=root)
     outputs = manifest.git("status", *settings.git.status.flags, *args)
-    print_futures(outputs, pager=pager, title="Git Status")
+    print_command_outputs(outputs, pager=pager, title="Git Status")
 
 
 @cli.command()

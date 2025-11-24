@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from functools import cached_property
 from collections.abc import Iterable, Iterator
-import concurrent.futures as futures
 
+from sh import RunningCommand
+from sh.contrib import git  # pyright: ignore[reportMissingImports]
 from git import Repo
 from socx import settings
 from pydantic import BaseModel, ConfigDict, computed_field
 
 from socx_plugins.git.utils import (
+    get_repo_dir,
     get_repo_name,
     find_repositories,
 )
@@ -35,7 +36,7 @@ class Manifest(BaseModel):
         return get_repo_name(item) in self
 
     @computed_field
-    @cached_property
+    @property
     def repos(self) -> dict[str, Repo]:
         rv = {
             get_repo_name(repo): repo
@@ -43,6 +44,18 @@ class Manifest(BaseModel):
                 self.root, self.includes, self.excludes
             )
         }
+        return rv
+
+    def git(self, cmd: str, *args: Iterable[str]) -> dict[str, RunningCommand]:
+        rv = {}
+        procs = {}
+        repos = self.repos
+        for name, repo in repos.items():
+            procs[name] = git(
+                "-C", f"{get_repo_dir(repo)}", cmd, *args, _bg=True
+            )
+        for name in procs:
+            rv[name] = procs[name].wait()
         return rv
 
     def iter_items(self) -> Iterator[tuple[str, Repo]]:
@@ -53,22 +66,3 @@ class Manifest(BaseModel):
 
     def iter_names(self) -> Iterator[str]:
         return iter(self.repos)
-
-    def git(self, cmd: str, *args: Iterable[str]) -> dict[str, futures.Future]:
-        fs: dict[str, futures.Future] = {}
-        with futures.ProcessPoolExecutor() as executor:
-            for name, repo in self.repos.items():
-                fs[name] = executor.submit(
-                    self._repo_cmd, repo, cmd, *tuple(args)
-                )
-        return fs
-
-    def _repo_cmd(self, repo: Repo, cmd: str, *args: Iterable[str]):
-        with repo:
-            if not hasattr(repo.git, cmd):
-                return ""
-
-            git_cmd = getattr(repo.git, cmd)
-
-            if git_cmd and callable(git_cmd):
-                return git_cmd(*args)
