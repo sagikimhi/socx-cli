@@ -15,7 +15,7 @@ from socx import (
     AnyCallable,
     SymbolConverter,
     settings,
-    add_options,
+    join_decorators,
 )
 
 from socx_plugins.rgr.callbacks import input_cb, output_cb
@@ -26,15 +26,10 @@ logger = logging.getLogger(__name__)
 
 def _input() -> Decorator[AnyCallable]:
     """Click option configuring the regression input file path."""
-    return click.option(
-        "--input",
-        "-i",
+    return click.argument(
         "input",
-        nargs=1,
-        metavar="FILE",
-        required=False,
         expose_value=True,
-        help="Input file of failed commands to rerun",
+        help="A file containing a list of test commands to be ran.",
         type=click.Path(
             exists=True,
             file_okay=True,
@@ -54,7 +49,13 @@ def _output() -> Decorator[AnyCallable]:
         "-o",
         "output",
         nargs=1,
-        metavar="DIRECTORY",
+        type=click.Path(
+            exists=False,
+            file_okay=False,
+            dir_okay=True,
+            resolve_path=True,
+            path_type=Path,
+        ),
         required=False,
         expose_value=True,
         help="Output directory for writing passed/failed run commands.",
@@ -64,7 +65,7 @@ def _output() -> Decorator[AnyCallable]:
 
 def options() -> Decorator[AnyCallable]:
     """Compose the reusable input/output options."""
-    return add_options(_input(), _output())
+    return join_decorators(_input(), _output())
 
 
 def _correct_path_in(input_path: str | Path | None = None) -> Path:

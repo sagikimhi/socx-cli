@@ -29,7 +29,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.6.0"
+version = "0.7.0"
 license = "Apache-2.0 OR MIT"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -121,7 +121,7 @@ docs = [
 
 
 # -----------------------------------------------------------------------------
-# Tool Configurations
+# Tool Configurations - UV
 # -----------------------------------------------------------------------------
 
 [tool.uv]
@@ -129,8 +129,16 @@ package = true
 managed = true
 default-groups = ["dev", "docs"]
 
+# -----------------------------------------------------------------------------
+# Tool Configurations - pytest
+# -----------------------------------------------------------------------------
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+# -----------------------------------------------------------------------------
+# Tool Configurations - Hatch
+# -----------------------------------------------------------------------------
 
 [tool.hatch.env]
 require = ["hatch-uvenv"]
@@ -146,4 +154,5 @@ packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
 packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
 
 [tool.hatch.build.targets.binary]
+scripts = ["socx"]
 packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]

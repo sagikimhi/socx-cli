@@ -26,7 +26,7 @@ __all__ = (
     # CLI
     "cli",
     "cli_cfg",
-    "add_options",
+    "join_decorators",
     "global_options",
     "Decorator",
     "AnyCallable",
@@ -108,7 +108,7 @@ from socx.io import get_handler_names as get_handler_names
 
 from socx.cli import cli as cli
 from socx.cli import cfg as cli_cfg
-from socx.cli import add_options as add_options
+from socx.cli import join_decorators as join_decorators
 from socx.cli import global_options as global_options
 from socx.cli import Decorator as Decorator
 from socx.cli import AnyCallable as AnyCallable

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 
 import rich_click as click
@@ -27,15 +28,26 @@ def tui() -> None:
 @options()
 @click.pass_context
 def run(ctx: click.Context, input: Path, output: Path):  # noqa: A002
-    """Run regression from a file of test commands.
+    r"""Run a regression of multiple tests defined in FILE.
 
-    The file can get passed via flag, or, if left unspecified,
-    will be searched according to configuration.
+    The FILE argument is a file containing a list of test commands to be ran.
 
-    For more info regarding configurations, check out `socx config` command.
+    Each line represents a command to a run a single test.
+
+    Comment lines are supported.
+
+    Multi-line commands are not supported (but will be in the future).
+
+    The test name is set by looking for a --test flag and setting the name
+    to the argument following that flag.
+
+    If your command does not contain such flag, you can simply append a
+    shell comment to the end of the command, e.g.
+
+    ```sh
+        make -C /foo/bar/bazz clean test  # --test bazz_test
+    ```
     """
-    import asyncio
-
     try:
         regression = asyncio.run(
             _run_from_file(input, output), debug=settings.cli.debug

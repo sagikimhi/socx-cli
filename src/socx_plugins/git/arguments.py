@@ -9,20 +9,14 @@ from socx_plugins.git.callbacks import summary_cb, manifest_cb
 
 
 def format_():
-    """Specify an output format for the printed manifest."""
-    import socx
-
-    format_choices = click.Choice(
-        ["ref", "json", "table"], case_sensitive=False
-    )
     return click.option(
         "--format",
         "-f",
         nargs=1,
-        type=format_choices,
-        help=format_.__doc__,
+        type=click.Choice(["ref", "json", "table"], case_sensitive=False),
+        help="Specify an output format for the printed manifest.",
         is_flag=False,
-        default=socx.settings.git.summary.format,
+        default=settings.git.summary.format,
         is_eager=True,
         callback=summary_cb,
         show_choices=True,
@@ -33,10 +27,12 @@ def format_():
 
 
 def root():
-    """Path to be searched for git repos in sub-directories."""
     return click.argument(
         "root",
-        help="The root directory of the project.",
+        help=(
+            "Path to a git directory, or to a directory with one or "
+            "more git directories."
+        ),
         type=click.Path(
             exists=True,
             file_okay=False,
@@ -45,10 +41,10 @@ def root():
             resolve_path=True,
         ),
         nargs=1,
-        envvar="SOCX_ROOT",
         required=False,
+        envvar="SOCX_GIT_ROOT",
         callback=manifest_cb,
-        default=settings.git.manifest.root or Path.cwd(),
+        default=Path.cwd(),
         expose_value=True,
     )
 
@@ -58,9 +54,11 @@ def pager():
     return click.option(
         "--pager/--no-pager",
         "-p/-np",
-        help="Whether or not to write output to system pager.",
+        help="Whether or not to display output in a pager.",
         is_flag=True,
         default=False,
         required=False,
+        show_envvar=True,
+        show_default=True,
         expose_value=True,
     )
