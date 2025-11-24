@@ -27,8 +27,8 @@ global_option_names = ["--help", "--debug", "--config", "--verbosity"]
 
 @socx()
 @global_options()
-@command_panels()
 @option_panels()
+@command_panels()
 @click.pass_context
 def cli(ctx: click.Context) -> int:
     """System on chip verification and tooling infrastructure."""
