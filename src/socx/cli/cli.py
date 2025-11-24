@@ -9,7 +9,7 @@ import rich_click as click
 
 from socx.cli._cli import socx
 from socx.cli.plugin import PluginModel
-from socx.cli.options import global_options
+from socx.cli.options import global_options, option_panels, command_panels
 from socx.config._config import settings
 
 
@@ -27,8 +27,8 @@ global_option_names = ["--help", "--debug", "--config", "--verbosity"]
 
 @socx()
 @global_options()
-@click.command_panel("Commands", commands=plugin_names)
-@click.option_panel("Global Options", options=global_option_names)
+@command_panels()
+@option_panels()
 @click.pass_context
 def cli(ctx: click.Context) -> int:
     """System on chip verification and tooling infrastructure."""

@@ -3,6 +3,13 @@ cli:
   debug: false
   configure: true
   verbosity: INFO
+  option-panels:
+    - name: Options
+      options:
+        - --help
+        - --configure/--no-configure
+        - --debug
+        - --verbosity
   context_settings:
     help_option_names:
       - -h
