@@ -5,6 +5,7 @@ git:
     includes: []
     excludes: []
     references: {}
+    cmd_timeout: 15
 
   log:
     flags:

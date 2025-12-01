@@ -24,6 +24,7 @@ class Manifest(BaseModel):
     root: Path
     includes: list[Path] = settings.git.manifest.includes or []
     excludes: list[str | Path] = settings.git.manifest.excludes or []
+    cmd_timeout: float | None = settings.git.manifest.cmd_timeout
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __len__(self) -> int:
@@ -47,15 +48,16 @@ class Manifest(BaseModel):
         return rv
 
     def git(self, cmd: str, *args: Iterable[str]) -> dict[str, RunningCommand]:
-        rv = {}
-        procs = {}
-        repos = self.repos
+        rv: dict[str, RunningCommand] = {}
+        procs: dict[str, RunningCommand] = {}
+        repos: dict[str, Repo] = self.repos
+
         for name, repo in repos.items():
             procs[name] = git(
                 "-C", f"{get_repo_dir(repo)}", cmd, *args, _bg=True
             )
         for name in procs:
-            rv[name] = procs[name].wait()
+            rv[name] = procs[name].wait(self.cmd_timeout)
         return rv
 
     def iter_items(self) -> Iterator[tuple[str, Repo]]:
