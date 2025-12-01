@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from collections.abc import Generator
+from collections.abc import Generator, Iterable
 
 import git
 from rich.text import Text
@@ -115,22 +115,28 @@ def is_git_dir(path: str | Path) -> bool:
 
 
 def find_repositories(
-    directory: Path,
-    includes: list[Path] | None = None,
-    excludes: list[str | Path] | None = None,
+    directory: Path | None,
+    includes: Iterable[str | Path] | None = None,
+    excludes: Iterable[str | Path] | None = None,
 ) -> Generator[git.Repo]:
     """Yield repositories discovered directly underneath ``directory``."""
+    directory = directory or Path.cwd()
+    includes = includes or []
+    excludes = excludes or []
     excludes_set = set()
 
-    for i in range(len(excludes)):
-        if isinstance(excludes[i], str):
-            excludes_set.update(directory.glob(excludes[i]))
-        elif excludes[i].exists():
-            excludes_set.add(excludes[i])
+    for path in excludes:
+        if isinstance(path, str):
+            if path == "." or path == "./":
+                excludes_set.add(directory)
+            else:
+                excludes_set.update(directory.glob(path))
+        elif path.is_dir():
+            excludes_set.add(path)
 
     subdirs = list(
         {
-            *filter(is_git_dir, includes or []),
+            *filter(is_git_dir, includes),
             *filter(is_git_dir, directory.iterdir()),
         }.difference(excludes_set)
     )
