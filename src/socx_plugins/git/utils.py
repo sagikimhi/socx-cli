@@ -136,6 +136,7 @@ def find_repositories(
 
     subdirs = list(
         {
+            directory,
             *filter(is_git_dir, includes),
             *filter(is_git_dir, directory.iterdir()),
         }.difference(excludes_set)
