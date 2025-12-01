@@ -18,6 +18,28 @@ from socx_plugins.git.manifest import Manifest
 console = get_console()
 
 
+def print_with_pager(text: RenderableType) -> None:
+    with console.pager(styles=True, links=True):
+        console.print(text)
+
+
+def print_command_outputs(
+    outputs: dict[str, RunningCommand],
+    pager: bool = True,
+    title: str | None = None,
+) -> None:
+    title = title or ""
+    formatter = TreeFormatter()
+    cmd_outputs = {
+        name: output.stdout.decode() for name, output in outputs.items()
+    }
+    text = formatter(cmd_outputs, title)
+    if not pager:
+        console.print(text)
+    else:
+        print_with_pager(text)
+
+
 @click.group(context_settings=settings.cli.context_settings)
 @global_options()
 def cli() -> None:
@@ -32,28 +54,6 @@ def command():
             **settings.cli.context_settings,
         )
     )
-
-
-def print_command_outputs(
-    outputs: dict[str, RunningCommand],
-    pager: bool = True,
-    title: str | None = None,
-) -> None:
-    title = title or ""
-    formatter = TreeFormatter()
-    outputs = {
-        name: output.stdout.decode() for name, output in outputs.items()
-    }
-    text = formatter(outputs, title)
-    if not pager:
-        console.print(text)
-    else:
-        print_with_pager(text)
-
-
-def print_with_pager(text: RenderableType) -> None:
-    with console.pager(styles=True, links=True):
-        console.print(text)
 
 
 @command()
