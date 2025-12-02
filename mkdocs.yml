@@ -35,8 +35,9 @@ nav:
       - Regression Automation: user-guide/regression.md
       - Plugin Development: user-guide/plugins.md
   - Reference:
+      - Configuration: reference/configuration.md
       - API: reference/api.md
-  - Conepts:
+  - Concepts:
       - Plugins: concepts/plugins.md
   - Development:
       - Contributing: development/contributing.md
