@@ -307,11 +307,11 @@ convert:
     
     # Source directory for input files
     # Supports @path and @jinja directives
-    source: "@path @jinja {{ this.paths.APP_ROOT_DIR / 'assets/lst/inputs' |abspath }}"
+    source: "@path @jinja <template expression>"
     
     # Target directory for output files
     # Supports @path and @jinja directives
-    target: "@path @jinja {{ this.paths.APP_ROOT_DIR / 'workrun/convert/lst/outputs' |abspath }}"
+    target: "@path @jinja <template expression>"
     
     # Base address map JSON file
     base_addr_map: "memLd.json"
@@ -408,32 +408,23 @@ lang:
         block:
           begin: "/*"
           end: "*/"
-    # Token processing rules (advanced)
+    # Token processing rules (advanced - see source for details)
     tokens:
       - name: "comment"
         starts_scope: false
-        expr: '([#])(?!([A-Z]{2,}))(?P<content>.*)'
-        subst: '{{ this.lang.systemverilog.syntax.comments.line }} \g<content>'
+        expr: '<regex pattern>'
+        subst: '<substitution template>'
       
-      - name: "group"
+      - name: "group"  
         starts_scope: true
-        expr: '([#])(?P<mem>NVM|ROM)(\W+)(?P<device>[A-Z]{2,})'
-        subst: |
-          covergroup cg__\g<device>_\g<mem>_access;
-          \tcp__\g<device>_\g<mem>_func:
-          \tcoverpoint vif.\g<device>_\g<mem>_addr {
-        scope_ender: |
-          \t\tbins NoFunc = default;
-          \t}
-          endgroup : cg__\g<device>_\g<mem>_access
+        expr: '<regex pattern>'
+        subst: '<substitution template>'
+        scope_ender: '<scope closing template>'
       
       - name: "statement"
         starts_scope: false
-        expr: '0x(?P<addr>[0-9a-fA-F]+)\W+(?P<func>\w+)\W+(?P<len>\d+)(?P<other>.*)'
-        subst: |
-          \t\tbins \g<func> = {[
-          \t\t\t(('h\g<addr> - 'h{{ base }})) : (('h\g<addr> - 'h{{ base }} + 'd\g<len>) - 1)
-          \t\t]};
+        expr: '<regex pattern>'
+        subst: '<substitution template>'
 ```
 
 ## Configuration Directives
@@ -448,7 +439,7 @@ SoCX uses special directives to process configuration values dynamically.
 | `@symbol` | Import Python symbol | `@symbol module.path:function` |
 | `@command` | Convert to Click command | `@command module:cli` |
 | `@compile` | Compile Python source | `@compile script.py` |
-| `@jinja` | Process Jinja2 template | `@jinja {{ var \| filter }}` |
+| `@jinja` | Process Jinja2 template | `@jinja {% raw %}{{ var | filter }}{% endraw %}` |
 | `@format` | Format string substitution | `@format ./path/{var}` |
 
 ### Jinja2 Templates
@@ -457,8 +448,8 @@ Some values support Jinja2 templating:
 
 ```yaml
 custom:
-  path: "@jinja {{ this.paths.APP_ROOT_DIR / 'custom' | abspath }}"
-  name: "@jinja {{ env.USER }}_workspace"
+  path: "@jinja {% raw %}{{ this.paths.APP_ROOT_DIR / 'custom' | abspath }}{% endraw %}"
+  name: "@jinja {% raw %}{{ env.USER }}{% endraw %}_workspace"
 ```
 
 Available variables:

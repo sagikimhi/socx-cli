@@ -261,8 +261,8 @@ Some configuration values support Jinja2 templating for dynamic content:
 ```yaml
 convert:
   lst:
-    source: "{{ this.paths.APP_ROOT_DIR / 'assets/inputs' | abspath }}"
-    target: "{{ this.paths.APP_ROOT_DIR / 'outputs' | abspath }}"
+    source: "{% raw %}{{ this.paths.APP_ROOT_DIR / 'assets/inputs' | abspath }}{% endraw %}"
+    target: "{% raw %}{{ this.paths.APP_ROOT_DIR / 'outputs' | abspath }}{% endraw %}"
 ```
 
 ### Custom Converters
