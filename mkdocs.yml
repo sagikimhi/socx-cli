@@ -37,7 +37,7 @@ nav:
   - Reference:
       - Configuration: reference/configuration.md
       - API: reference/api.md
-  - Conepts:
+  - Concepts:
       - Plugins: concepts/plugins.md
   - Development:
       - Contributing: development/contributing.md
