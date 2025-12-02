@@ -13,47 +13,34 @@ description: Install socx-cli, verify the setup, and run your first commands.
 To start using SoCX CLI, follow these steps to install, verify, and run your
 first commands.
 
-## Installing SoCX CLI
+## Prerequisites
 
-???+ warning "Requirements"
+Before installing SoCX CLI, ensure you have the following:
 
-    In order to be able to use SoCX, the following requirements must be met:
+- **Python 3.12 or newer** - SoCX requires modern Python features
+- **Package manager** - Either [`uv`](https://github.com/astral-sh/uv) (recommended) or `pip`/`pipx`
+- **(Optional) Git workspace** - Access to your SoC workspace enables Git manifest and regression features with real project data
+- **(Optional) Shell access** - Script plugins require executable permissions and shell access
 
-    - [ ] Python 3.12 or newer
-    - [ ] `pip` or [`uv`](https://github.com/astral-sh/uv) for managing environments
-    - [ ] (optional) access to your SoC workspace so Git manifests and regressions have
-      real data to operate on
+## Installation
 
-??? info "Verifying Your Installation"
+Choose your preferred installation method:
 
-    Run the below commands to verify `socx` was properly installed.
-
-    ```bash title=""
-    socx --help
-    socx version
-    ```
-
-    If you see the top-level help and the current version, the CLI is ready to use.
-
-??? info "Upgrading to the Latest Version"
-
-    === "uv"
-
-        ```bash title=""
-        uv tool update socx-cli
-        ```
-
-    === "pip"
-
-        ```bash title=""
-        pip install --upgrade socx-cli
-        ```
-
-===! "uv"
+===! "uv (recommended)"
 
     ```bash title=""
     uv tool install socx-cli
     ```
+
+    This installs `socx` in an isolated environment managed by `uv`.
+
+=== "pipx"
+
+    ```bash title=""
+    pipx install socx-cli
+    ```
+
+    Similar to `uv`, `pipx` installs `socx` in an isolated environment.
 
 === "pip"
 
@@ -61,82 +48,132 @@ first commands.
     pip install socx-cli
     ```
 
-## Using the CLI
+    !!! warning
+        Installing with `pip` may affect your global Python environment. Consider using `uv` or `pipx` instead.
 
-=== "Git"
+## Verify Installation
 
-    Manage multiple git repositories at once using `socx git`
+Run the following commands to verify that `socx` was installed correctly:
 
-    ```bash title=""
-    # Display a manifest table of all repositories under the current path
-    socx git mfest
+```bash
+socx --help
+socx version
+```
 
-    # Alternatively, display it in a one-liner format of 'ref - message, date'
-    socx git mfest -f ref
+If you see the top-level help menu and the current version number, the CLI is ready to use.
 
-    # Or in json format
-    socx git mfest -f json
+## Upgrade to Latest Version
 
-    # You can also pass a path as argument to run it from a different path
-    socx git mfest /project/users/foo/workspace
+Keep your installation up to date:
 
-    # Relative paths are also supported
-    socx git mfest ../../bar/bazz
+=== "uv"
+
+    ```bash
+    uv tool upgrade socx-cli
     ```
 
-=== "Config"
+=== "pipx"
 
-    Print, edit, debug or inspect python API of configurations
-
-    ```bash title=""
-    # Dump all configurations
-    socx config list
-
-    # Dump all configurations in a pretty tree format
-    socx config tree
-
-    # Dump a tree/value of a specific configuration
-    socx config get git.manifest.columns
-
-    # Modify existing configurations interactively
-    socx config edit # will run a friendly interactive prompt
-
-    # Debug configuration values or check the loading order
-    socx config debug
-
-    # Inspect settings methods and members (when using it as a python library)
-    socx config inspect
+    ```bash
+    pipx upgrade socx-cli
     ```
 
-=== "Regression"
+=== "pip"
 
-    Parse and execute commands in parallel (e.g. a file of test 'run'
-    commands)
-
-    ```bash title=""
-    socx rgr run -i ./sim/regressions/doa_commands.list # file can have any or no
-                                                        # extension
+    ```bash
+    pip install --upgrade socx-cli
     ```
 
-=== "Plugins"
+## Basic Commands
 
-    Add any python script as a subcommand of `socx` through the power of
-    plugins
+SoCX provides several built-in commands to help you get started. Here are the most commonly used commands:
 
-    ```bash title=""
-    # add a function from a script as a subcommand (a.k.a plugin):
-    socx plugin add ./scripts/dv/generate_rals.py:main
+### Git Management
 
-    # you can also specify only a path to run the file itself (run as __main__)
-    socx plugin add ./scripts/dv/generate_rals.py
+Manage multiple Git repositories at once using `socx git`:
 
-    # or specify a module path if it is installed on your system or on your active
-    # virtual environment
-    socx plugin add my.custom.package:run_test
+```bash
+# Display a manifest table of all repositories under the current path
+socx git mfest
 
-    # show an example for using 'socx' as a library to create new scripts/plugins
-    socx plugin example
-    ```
+# Display in a one-liner format showing 'ref - message, date'
+socx git mfest -f ref
+
+# Output in JSON format for scripting
+socx git mfest -f json
+
+# Scan a specific directory
+socx git mfest /project/users/foo/workspace
+
+# Relative paths are also supported
+socx git mfest ../../bar/bazz
+```
+
+### Configuration Management
+
+View, edit, and debug configuration settings:
+
+```bash
+# List all configuration values
+socx config list
+
+# Display configurations in a pretty tree format
+socx config tree
+
+# Get a specific configuration value
+socx config get git.manifest.columns
+
+# Edit configurations interactively in your editor
+socx config edit
+
+# Debug configuration loading and see override order
+socx config debug
+
+# Inspect settings API (when using socx as a Python library)
+socx config inspect
+```
+
+### Regression Testing
+
+Run test commands in parallel:
+
+```bash
+# Run regression tests from a command list file
+socx rgr run -i ./sim/regressions/commands.list
+
+# Specify custom output directory
+socx rgr run -i failed.log -o ./results
+
+# Launch the interactive terminal UI
+socx rgr tui
+```
+
+### Plugin Management
+
+View plugin examples and documentation:
+
+```bash
+# Display plugin quickstart guide
+socx plugin example
+```
+
+!!! tip
+    To add custom plugins, edit your configuration file. See the [Plugin Development](../user-guide/plugins.md) guide for details.
+
+### Global Options
+
+All commands support these global options:
+
+```bash
+# Enable debug logging
+socx --debug config list
+
+# Set logging verbosity (DEBUG, INFO, WARNING, ERROR)
+socx --verbosity DEBUG rgr run
+
+# Run without loading user/repo configuration
+socx --no-config config list
+```
 
 ## Next Steps
 
