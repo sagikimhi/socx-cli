@@ -12,8 +12,7 @@ def run_repl_command(commands: str) -> tuple[str, str, int]:
     Args:
         commands: Newline-separated string of commands to execute
 
-    Returns
-    -------
+    Returns:
         Tuple of (stdout, stderr, return_code)
     """
     repo_path = Path(__file__).parent.parent

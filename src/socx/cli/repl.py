@@ -161,7 +161,7 @@ def print_repl_help(repl_ctx: ReplContext) -> None:
                     if cmd:
                         help_text = ""
                         if hasattr(cmd, "get_short_help_str"):
-                            with contextlib.suppress(builtins.BaseException):
+                            with contextlib.suppress(Exception):
                                 help_text = cmd.get_short_help_str()
                         if not help_text and hasattr(cmd, "short_help"):
                             help_text = cmd.short_help or ""
