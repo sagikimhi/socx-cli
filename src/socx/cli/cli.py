@@ -33,12 +33,12 @@ global_option_names = ["--help", "--debug", "--config", "--verbosity"]
 def cli(ctx: click.Context, interactive: bool = False) -> int:
     """System on chip verification and tooling infrastructure."""
     ctx.ensure_object(DynaBox)
-    
+
     # If interactive mode is requested, start the REPL
     if interactive:
         from socx.cli.repl import start_repl
         return start_repl(ctx)
-    
+
     if ctx.invoked_subcommand is None:
         formatter = ctx.make_formatter()
         ctx.command.format_help(ctx, formatter)
