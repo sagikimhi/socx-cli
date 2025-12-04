@@ -38,6 +38,10 @@ git:
       - --renames
       - --ahead-behind
 
+  fetch:
+    flags:
+      - --no-write-fetch-head
+
   summary:
     format: table
 
