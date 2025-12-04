@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="terminal" baseProfile="full" viewBox="0 0 1264 682" width="1264" version="1.1">
+    <defs>
+        <termtosvg:template_settings xmlns:termtosvg="https://github.com/nbedos/termtosvg">
+            <termtosvg:screen_geometry columns="158" rows="40"/>
+            <termtosvg:animation type="css"/>
+        </termtosvg:template_settings>
+        <style type="text/css" id="generated-style"><![CDATA[#screen {
+                font-family: 'DejaVu Sans Mono', monospace;
+                font-style: normal;
+                font-size: 14px;
+            }
+
+        text {
+            dominant-baseline: text-before-edge;
+            white-space: pre;
+        }
+
+            :root {
+                --animation-duration: 3000ms;
+            }
+
+            @keyframes roll {
+                0.000%{transform:translateY(0px)}
+100.000%{transform:translateY(0px)}
+            }
+
+            #screen_view {
+                animation-duration: 3000ms;
+                animation-iteration-count:infinite;
+                animation-name:roll;
+                animation-timing-function: steps(1,end);
+                animation-fill-mode: forwards;
+            }
+        ]]></style>
+        <style type="text/css" id="user-style">
+            /* The colors defined below are the default 16 colors used for rendering text of the terminal. Adjust
+               them as needed.
+               base16-default-dark color theme (source: http://chriskempson.com/projects/base16/) */
+            .foreground {fill: #d8d8d8;}
+            .background {fill: #181818;}
+            .color0 {fill: #181818;}
+            .color1 {fill: #ab4642;}
+            .color2 {fill: #a1b56c;}
+            .color3 {fill: #f7ca88;}
+            .color4 {fill: #7cafc2;}
+            .color5 {fill: #ba8baf;}
+            .color6 {fill: #86c1b9;}
+            .color7 {fill: #d8d8d8;}
+            .color8 {fill: #585858;}
+            .color9 {fill: #ab4642;}
+            .color10 {fill: #a1b56C;}
+            .color11 {fill: #f7ca88;}
+            .color12 {fill: #7cafc2;}
+            .color13 {fill: #ba8baf;}
+            .color14 {fill: #86c1b9;}
+            .color15 {fill: #f8f8f8;}
+        </style>
+    </defs>
+    <svg id="screen" width="1264" height="680" viewBox="0 0 1264 680" preserveAspectRatio="xMidYMin slice">
+    <rect class="background" height="100%" width="100%" x="0" y="0"/><defs><g id="g1"><text x="0" textLength="1264" class="foreground">                                                                                                                                                              </text></g><g id="g2"><text x="0" textLength="16" class="foreground">  </text><text x="16" textLength="48" font-weight="bold" class="color10">Usage:</text><text x="64" textLength="8" class="foreground"> </text><text x="72" textLength="32" font-weight="bold" class="color14">socx</text><text x="104" textLength="8" class="foreground"> </text><text x="112" textLength="216" class="color6">[OPTIONS] COMMAND [ARGS]...</text><text x="328" textLength="936" class="foreground">                                                                                                                     </text></g><g id="g3"><text x="0" textLength="1264" class="foreground">  Perform various regression related actions.                                                                                                                 </text></g><g id="g4"><text x="0" textLength="16" class="color2">  </text><text x="16" textLength="56" font-weight="bold" class="color10">Options</text><text x="72" textLength="1192" class="color2">                                                                                                                                                     </text></g><g id="g5"><text x="0" textLength="1264" class="color2">  &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;  </text></g><g id="g6"><text x="0" textLength="16" class="color2">  </text><text x="16" textLength="16" font-weight="bold" class="color14">-h</text><text x="32" textLength="8" class="foreground"> </text><text x="40" textLength="8" class="color2"> </text><text x="48" textLength="8" class="foreground"> </text><text x="56" textLength="48" font-weight="bold" class="color14">--help</text><text x="104" textLength="8" class="foreground"> </text><text x="112" textLength="8" class="color2"> </text><text x="120" textLength="1128" class="foreground"> Show this message and exit.                                                                                                                 </text><text x="1248" textLength="16" class="color2">  </text></g><g id="g7"><text x="0" textLength="1264" class="color2">                                                                                                                                                              </text></g><g id="g8"><text x="0" textLength="16" class="color2">  </text><text x="16" textLength="64" font-weight="bold" class="color10">Commands</text><text x="80" textLength="1184" class="color2">                                                                                                                                                    </text></g><g id="g9"><text x="0" textLength="16" class="color2">  </text><text x="16" textLength="32" font-weight="bold" class="color14">run </text><text x="48" textLength="8" class="color2"> </text><text x="56" textLength="1192" class="foreground"> Run a regression of multiple tests defined in FILE.                                                                                                 </text><text x="1248" textLength="16" class="color2">  </text></g><g id="g10"><text x="0" textLength="16" class="color2">  </text><text x="16" textLength="32" font-weight="bold" class="color14">tui </text><text x="48" textLength="8" class="color2"> </text><text x="56" textLength="1192" class="foreground"> Open regression dashboard TUI (Terminal User Interface).                                                                                            </text><text x="1248" textLength="16" class="color2">  </text></g><g id="g11"><text x="0" textLength="256" class="foreground">  Documentation is available at </text><text x="256" textLength="288" text-decoration="underline" class="color4">https://sagikimhi.github.io/socx-cli</text><text x="544" textLength="720" class="foreground">                                                                                          </text></g><g id="g12"><text x="0" textLength="8" class="background"> </text></g></defs><g id="screen_view"><g><use xlink:href="#g1" y="0"/><use xlink:href="#g2" y="17"/><use xlink:href="#g1" y="34"/><use xlink:href="#g3" y="51"/><use xlink:href="#g1" y="68"/><use xlink:href="#g4" y="85"/><use xlink:href="#g5" y="102"/><use xlink:href="#g6" y="119"/><use xlink:href="#g7" y="136"/><use xlink:href="#g7" y="153"/><use xlink:href="#g8" y="170"/><use xlink:href="#g5" y="187"/><use xlink:href="#g9" y="204"/><use xlink:href="#g10" y="221"/><use xlink:href="#g7" y="238"/><use xlink:href="#g7" y="255"/><use xlink:href="#g11" y="272"/><use xlink:href="#g1" y="289"/><rect x="0" y="306" width="8" height="17" class="foreground"/><use xlink:href="#g12" y="306"/></g></g></svg>
+</svg>

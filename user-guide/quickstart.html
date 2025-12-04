@@ -10,9 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://sagikimhi.github.io/socx-cli/user-guide/plugins.html">
+        <link rel="canonical" href="https://sagikimhi.github.io/socx-cli/user-guide/quickstart.html">
       
       
+        <link rel="prev" href="../index.html">
+      
+      
+        <link rel="next" href="../reference/api.html">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>Plugin Development - socx-cli</title>
+        <title>Quickstart - socx-cli</title>
       
     
     
@@ -112,7 +116,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#anatomy-of-a-plugin-entry" class="md-skip">
+        <a href="#quickstart" class="md-skip">
           Skip to content
         </a>
       
@@ -147,7 +151,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Plugin Development
+              Quickstart
             
           </span>
         </div>
@@ -345,8 +349,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -363,11 +369,11 @@
     
       
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -388,7 +394,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -403,10 +409,39 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="quickstart.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="quickstart.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -424,6 +459,62 @@
   
 
       </a>
+      
+        
+
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installing-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing the CLI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the CLI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -774,6 +865,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -782,10 +875,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#anatomy-of-a-plugin-entry" class="md-nav__link">
+  <a href="#installing-the-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Anatomy of a Plugin Entry
+        Installing the CLI
       
     </span>
   </a>
@@ -793,10 +886,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#creating-a-plugin" class="md-nav__link">
+  <a href="#using-the-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Creating a Plugin
+        Using the CLI
       
     </span>
   </a>
@@ -804,21 +897,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#packaging-and-distribution" class="md-nav__link">
+  <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Packaging and Distribution
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#disabling-or-replacing-plugins" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Disabling or Replacing Plugins
+        Next Steps
       
     </span>
   </a>
@@ -846,7 +928,7 @@
                 
                   
   
-    <a href="https://github.com/sagikimhi/socx-cli/edit/main/docs/user-guide/plugins.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/sagikimhi/socx-cli/edit/main/docs/user-guide/quickstart.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>
     </a>
@@ -855,94 +937,204 @@
     
       
     
-    <a href="https://github.com/sagikimhi/socx-cli/raw/main/docs/user-guide/plugins.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/sagikimhi/socx-cli/raw/main/docs/user-guide/quickstart.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4M5 12l-3 3 3 3M9 18l3-3-3-3"/></svg>
     </a>
   
 
 
-  <h1>Plugin Development</h1>
-
-<p>Every subcommand that appears under <code>socx</code> comes from an entry in the
-<code>settings.plugins</code> list. Adding your own plugin is as simple as shipping a
-callable that returns a <a href="https://click.palletsprojects.com/"><code>click.Command</code></a> or
-<code>click.Group</code>, then referencing it in configuration.</p>
-<h2 id="anatomy-of-a-plugin-entry">Anatomy of a Plugin Entry<a class="headerlink" href="#anatomy-of-a-plugin-entry" title="Permanent link">&para;</a></h2>
-<div class="language-yaml highlight"><span class="filename">plugins.yaml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">plugins</span><span class="p">:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.git:cli&quot;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Various</span><span class="nv"> </span><span class="s">common</span><span class="nv"> </span><span class="s">git</span><span class="nv"> </span><span class="s">command</span><span class="nv"> </span><span class="s">utilities</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">manage</span><span class="nv"> </span><span class="s">your</span><span class="nv"> </span><span class="s">environment.&quot;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span></code></pre></div>
+<h1 id="quickstart">Quickstart<a class="headerlink" href="#quickstart" title="Permanent link">&para;</a></h1>
+<div class="grid cards">
 <ul>
-<li><code>name</code> – the word users type after <code>socx</code>.</li>
-<li><code>command</code> – dotted import path to the callable that returns a Click command or
-  group.</li>
-<li><code>help</code> – optional description shown in <code>socx --help</code>.</li>
-<li><code>enabled</code> – disable the plugin without deleting its metadata.</li>
-<li><code>aliases</code> – extra command names (see <code>plugins.yaml</code> in the sources for
-  examples).</li>
+<li>
+<h2 id="installing-the-cli"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-download" viewBox="0 0 24 24"><path d="M12 15V3M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></span> Installing the CLI<a class="headerlink" href="#installing-the-cli" title="Permanent link">&para;</a></h2>
+<hr />
+<p>Before performing the installation, make sure that you meet all the
+perquisites from the requirements list.</p>
+<p>Once all requirements are met, you may follow the below steps to install and
+start using <code>socx-cli</code> in your own projects.</p>
+<hr />
+<details class="warning" open="open">
+<summary>Requirements</summary>
+<p>In order to install and use <code>socx-cli</code>, the following requirements must be
+met:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> A working installation of <code>pip</code> or <a href="https://github.com/astral-sh/uv" title="Recommended"><code>uv</code></a>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> A working installation of Python 3.12 or newer version.</li>
 </ul>
-<h2 id="creating-a-plugin">Creating a Plugin<a class="headerlink" href="#creating-a-plugin" title="Permanent link">&para;</a></h2>
-<ol>
-<li>
-<p>Author a Click command or group. The example below prints "hello" and the
-   current user.</p>
-<div class="language-python highlight"><span class="filename">my_plugins/hello.py</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--name&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override the user name&quot;</span><span class="p">)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">cli</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Say hello from a plugin.&quot;&quot;&quot;</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">who</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hello </span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+</details>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Install as a tool</label><label for="__tabbed_1_2">Use in your python project</label><label for="__tabbed_1_3">Use in your python script</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>socx-cli
 </span></code></pre></div>
-</li>
-<li>
-<p>Expose it in your configuration:</p>
-<div class="language-yaml highlight"><span class="filename">~/.config/socx/socx.yaml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">plugins</span><span class="p">:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_plugins.hello:cli&quot;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Demo</span><span class="nv"> </span><span class="s">plugin</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">prints</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">friendly</span><span class="nv"> </span><span class="s">greeting.&quot;</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span></code></pre></div>
-</li>
-<li>
-<p>Run <code>socx --help</code> to confirm the new command appears, then execute <code>socx
-   hello</code>.</p>
-</li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The built-in <code>socx plugin example</code> command prints a Markdown guide inside the
-terminal. It expands on these steps and walks through distributing plugins as
-Python packages.</p>
 </div>
-<h2 id="packaging-and-distribution">Packaging and Distribution<a class="headerlink" href="#packaging-and-distribution" title="Permanent link">&para;</a></h2>
-<p>Teams often keep plugins in the same repository as their RTL or verification
-support packages. Because the <code>command</code> field accepts arbitrary import paths,
-you can point to:</p>
-<ul>
-<li>Local modules inside your working tree (when running inside that repository).</li>
-<li>Versioned Python packages installed alongside <code>socx-cli</code>.</li>
-<li>Entry points exposed by other teams that follow the same pattern.</li>
-</ul>
-<p>For broader distribution, publish your plugin as a package on an internal index.
-Consumers install it with <code>pip</code> or <code>uv</code> and add the dotted import path to their
-configuration—no changes to <code>socx-cli</code> are required.</p>
-<h2 id="disabling-or-replacing-plugins">Disabling or Replacing Plugins<a class="headerlink" href="#disabling-or-replacing-plugins" title="Permanent link">&para;</a></h2>
-<p>Because plugin metadata lives in Dynaconf settings, you can disable commands on
-CI machines or developer laptops without code changes:</p>
-<div class="language-yaml highlight"><span class="filename">YAML</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">plugins</span><span class="p">:</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convert</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.convert:cli&quot;</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${ENABLE_CONVERT:false}</span>
+<div class="tabbed-block">
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>add<span class="w"> </span>socx-cli
 </span></code></pre></div>
-<p>Mixing user and repository configuration lets you ship an opinionated default
-set while still allowing individuals to toggle experimental tooling.</p>
+</div>
+<div class="tabbed-block">
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uv<span class="w"> </span>add<span class="w"> </span>--script<span class="w"> </span>socx-cli
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details class="info">
+<summary>Verifying Your Installation</summary>
+<p>Run the below commands to verify <code>socx</code> was properly installed.</p>
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>socx<span class="w"> </span>--help
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>socx<span class="w"> </span>version
+</span></code></pre></div>
+<p>If you see the top-level help and the current version, the CLI is
+ready to use.</p>
+</details>
+<details class="info">
+<summary>Upgrading to the Latest Version</summary>
+<div class="language-bash highlight"><span class="filename">Bash</span><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>tool<span class="w"> </span>update<span class="w"> </span>socx-cli
+</span></code></pre></div>
+</details>
+</li>
+</ul>
+</div>
+<div class="grid cards">
+<ul>
+<li>
+<h2 id="using-the-cli"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-square-terminal" viewBox="0 0 24 24"><path d="m7 11 2-2-2-2M11 13h4"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> Using the CLI<a class="headerlink" href="#using-the-cli" title="Permanent link">&para;</a></h2>
+<hr />
+<p class="card"><strong><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></span> Git Commands</strong></p>
+<hr />
+<div class="tabbed-set tabbed-alternate" data-tabs="2:5"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><input id="__tabbed_2_5" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1"><code>socx git</code></label><label for="__tabbed_2_2"><code>socx git log</code></label><label for="__tabbed_2_3"><code>socx git diff</code></label><label for="__tabbed_2_4"><code>socx git status</code></label><label for="__tabbed_2_5"><code>socx git summary</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx git" loading="lazy" src="../assets/images/socx-git.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx git log" loading="lazy" src="../assets/images/socx-git-log.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx git diff" loading="lazy" src="../assets/images/socx-git-diff.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx git status" loading="lazy" src="../assets/images/socx-git-status.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx git summary" loading="lazy" src="../assets/images/socx-git-summary.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p class="card"><strong><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-cog" viewBox="0 0 24 24"><path d="M11 10.27 7 3.34M11 13.73l-4 6.93M12 22v-2M12 2v2M14 12h8M17 20.66l-1-1.73M17 3.34l-1 1.73M2 12h2M20.66 17l-1.73-1M20.66 7l-1.73 1M3.34 17l1.73-1M3.34 7l1.73 1"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="8"/></svg></span> Configuration Management</strong></p>
+<hr />
+<div class="tabbed-set tabbed-alternate" data-tabs="3:5"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><input id="__tabbed_3_4" name="__tabbed_3" type="radio" /><input id="__tabbed_3_5" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1"><code>socx config</code></label><label for="__tabbed_3_2"><code>socx config get</code></label><label for="__tabbed_3_3"><code>socx config list</code></label><label for="__tabbed_3_4"><code>socx config tree</code></label><label for="__tabbed_3_5"><code>socx config debug</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx config" loading="lazy" src="../assets/images/socx-config.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx config get" loading="lazy" src="../assets/images/socx-config-get.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx config list" loading="lazy" src="../assets/images/socx-config-list.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx config tree" loading="lazy" src="../assets/images/socx-config-tree.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx config debug" loading="lazy" src="../assets/images/socx-config-debug.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p class="card"><strong><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-flask-conical" viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2M6.453 15h11.094M8.5 2h7"/></svg></span> Regression Runner</strong></p>
+<hr />
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1"><code>socx rgr</code></label><label for="__tabbed_4_2"><code>socx rgr run</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx rgr" loading="lazy" src="../assets/images/socx-rgr.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx rgr run" loading="lazy" src="../assets/images/socx-rgr-run.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p class="card"><strong><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-blocks" viewBox="0 0 24 24"><path d="M10 22V7a1 1 0 0 0-1-1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a1 1 0 0 0-1-1H2"/><rect width="8" height="8" x="14" y="2" rx="1"/></svg></span> Plugin System</strong></p>
+<hr />
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1"><code>socx plugin</code></label><label for="__tabbed_5_2"><code>socx plugin example</code></label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx plugin" loading="lazy" src="../assets/images/socx-plugin.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+<div class="tabbed-block">
+<figure>
+<p><img alt="socx plugin example" loading="lazy" src="../assets/images/socx-plugin-example.svg" width="800" /></p>
+<figcaption></figcaption>
+</figure>
+</div>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="grid cards">
+<ul>
+<li>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<hr />
+<ul>
+<li>
+<p>Continue with the <a href="user-guide/cli.html">CLI tour</a> for a catalogue of built-in
+commands.</p>
+</li>
+<li>
+<p>Configure regression paths and environment overrides in the
+<a href="user-guide/configuration.html">Configuration guide</a>.</p>
+</li>
+<li>
+<p>Learn how to <a href="user-guide/regression.html">automate regression reruns</a> or
+<a href="user-guide/plugins.html">publish your own plugins</a>.</p>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 
 
 
@@ -1088,6 +1280,44 @@ set while still allowing individuals to toggle experimental tooling.</p>
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../index.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Overview
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../reference/api.html" class="md-footer__link md-footer__link--next" aria-label="Next: API Reference">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                API Reference
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
