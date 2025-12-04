@@ -8,7 +8,7 @@ from collections.abc import Callable
 
 import rich_click as click
 
-from socx.config import settings, CommandConverter
+from socx.config import settings, CommandConverter, SymbolConverter
 from socx.cli.types import AnyCallable
 from socx.cli.plugin import PluginModel
 
@@ -23,6 +23,7 @@ class _CmdLine(click.RichGroup):
         kwargs.setdefault("context_settings", settings.cli.context_settings)
         super().__init__(*args, **kwargs)
         self._converter = CommandConverter()
+        self._symbol_converter = SymbolConverter()
         self._plugins = {p.name: PluginModel(**p) for p in settings.plugins}  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
 
     @property
@@ -41,7 +42,15 @@ class _CmdLine(click.RichGroup):
             if plugin.script:
                 cmd = self._converter(plugin.script)
             elif plugin.command:
-                cmd = self._converter(plugin.command)
+                # Try to use SymbolConverter first to preserve Group types
+                try:
+                    cmd = self._symbol_converter(plugin.command)
+                    # If it's not a Click command, use CommandConverter wrapper
+                    if not isinstance(cmd, click.Command):
+                        cmd = self._converter(plugin.command)
+                except Exception:
+                    # Fall back to CommandConverter if SymbolConverter fails
+                    cmd = self._converter(plugin.command)
 
             if cmd is not None:
                 self.add_command(

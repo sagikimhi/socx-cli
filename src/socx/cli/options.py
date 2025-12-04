@@ -66,6 +66,19 @@ configure: Decorator[AnyCallable] = click.option(
 )
 
 
+interactive: Decorator[AnyCallable] = click.option(
+    "--interactive",
+    "-i",
+    "interactive",
+    help="Launch socx in interactive REPL mode.",
+    default=False,
+    is_flag=True,
+    is_eager=False,
+    show_default=True,
+    expose_value=True,
+)
+
+
 def join_decorators(*args: Any) -> Decorator[AnyCallable]:
     """Compose multiple option decorators into a single decorator."""
 
@@ -79,7 +92,7 @@ def join_decorators(*args: Any) -> Decorator[AnyCallable]:
 
 def global_options() -> Callable[..., Decorator[AnyCallable]]:
     """Apply the standard set of global SoCX CLI options."""
-    return join_decorators(debug, configure, verbosity)
+    return join_decorators(interactive, debug, configure, verbosity)
 
 
 def option_panels():
