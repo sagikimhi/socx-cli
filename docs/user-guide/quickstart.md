@@ -1,8 +1,6 @@
 ---
-title: Quickstart
 icon: lucide/rocket
 ---
-
 
 # Quickstart
 

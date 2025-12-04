@@ -12,13 +12,13 @@ docs_dir = "docs"
 site_dir = "site"
 edit_uri = "edit/main/docs/"
 dev_addr = "localhost:3000"
-repo_name = "sagikimhi/socx-cli"
+repo_name = "sagikimhi/orbis-ethica"
 use_directory_urls = true
 
 # The site_name is shown in the page header and the browser window title
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_name
-site_name = "socx-cli"
+site_name = "orbis-ethica"
 
 # The site_author attribute. This is used in the HTML head element.
 #
@@ -28,7 +28,7 @@ site_author = "Sagi Kimhi"
 # The site_url is the canonical URL for your site. When building online
 # documentation you should set this.
 # Read more: https://zensical.org/docs/setup/basics/#site_url
-site_url = "https://sagikimhi.github.io/socx-cli/"
+site_url = "https://sagikimhi.github.io/orbis-ethica/"
 
 # The site_description is included in the HTML head and should contain a
 # meaningful description of the site content for use by search engines.
@@ -53,10 +53,31 @@ Copyright &copy; 2025 Sagi Kimhi
 # can be defined using TOML syntax.
 #
 # Read more: https://zensical.org/docs/setup/navigation/
-# nav = [
-#   { "Get started" = "index.md" },
-#   { "Markdown in 5min" = "markdown.md" },
-# ]
+nav = [
+    { "Overview" = [
+        "index.md",
+    ]},
+    { "User Guide" = [
+        "user-guide/quickstart.md"
+        # "user-guide/cli.md",
+        # "user-guide/plugins.md",
+        # "user-guide/regression.md",
+        # "user-guide/configuration.md",
+    ] },
+    { "Reference" = [
+        "reference/api.md",
+    ] },
+    # { "Concepts" = [
+    #     "concepts/plugins.md",
+    # ] },
+    { "Development" = [
+        "development/credits.md",
+        "development/license.md",
+        "development/changelog.md",
+        "development/contributing.md",
+        "development/code_of_conduct.md",
+    ] },
+]
 
 # With the "extra_css" option you can add your own CSS styling to customize
 # your Zensical project according to your needs. You can add any number of
@@ -240,7 +261,7 @@ features = [
     # When sections are enabled, top-level sections are rendered as groups in
     # the sidebar for viewports above 1220px, but remain as-is on mobile.
     # https://zensical.org/docs/setup/navigation/#navigation-sections
-    # "navigation.sections",
+    "navigation.sections",
 
     # When instant navigation is enabled, clicks on all internal links will be
     # intercepted and dispatched via XHR without fully reloading the page.
@@ -315,7 +336,7 @@ code = "Jetbrains Mono"
 # - https://zensical.org/docs/setup/logo-and-icons
 # - https://zensical.org/docs/authoring/icons-emojis/#search
 # ----------------------------------------------------------------------------
-# [project.theme.icon]
+[project.theme.icon]
 # logo = "lucide/smile"
 # repo = "lucide/github"
 # view = "material/eye"
@@ -337,6 +358,7 @@ alternate = [
 # ----------------------------------------------------------------------------
 # Socials
 # ----------------------------------------------------------------------------
+
 
 [[project.extra.social]]
 icon = "fontawesome/solid/paper-plane"
@@ -405,7 +427,7 @@ clickable_checkbox = true
 smart_enable = "all"
 
 [project.markdown_extensions.pymdownx.highlight]
-linenums = true
+linenums = false
 auto_title = true
 line_spans = "__span"
 linenums_style = "pymdownx-inline"
@@ -447,30 +469,31 @@ sections = [{ usage = "index.md", API = "reference/api.md" }]
 [project.plugins.section-index]
 [project.plugins.markdown-exec]
 
-# [project.plugins.mkdocstrings]
-# [project.plugins.mkdocstrings.handlers.python]
-# paths = ["src"]
-# inventories = ["https://docs.python.org/3/objects.inv"]
-# options.summary = true
-# options.backlinks = "tree"
-# options.filters = ["!^_"]
-# options.heading_level = 1
-# options.show_bases = true
-# options.show_source = true
-# options.docstring_style = "numpy"
-# options.inherited_members = true
-# options.separate_signature = true
-# options.show_root_heading = true
-# options.show_root_full_path = true
-# options.signature_crossrefs = true
-# options.show_symbol_type_toc = true
-# options.show_if_no_docstring = true
-# options.merge_init_into_class = true
-# options.show_symbol_type_heading = true
-# options.show_signature_annotations = true
-# options.docstring_section_style = "list"
-# options.docstring_options.ignore_init_summary = true
-#
+[project.plugins.mkdocstrings]
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+inventories = ["https://docs.python.org/3/objects.inv"]
+load_external_modules = true
+[project.plugins.mkdocstrings.handlers.python.options]
+summary = true
+backlinks = "tree"
+filters = ["!^_"]
+heading_level = 1
+show_bases = true
+show_source = true
+inherited_members = true
+separate_signature = true
+show_root_heading = true
+show_root_full_path = true
+signature_crossrefs = true
+show_symbol_type_toc = true
+show_if_no_docstring = true
+merge_init_into_class = true
+show_symbol_type_heading = true
+show_signature_annotations = true
+docstring_section_style = "list"
+docstring_options.ignore_init_summary = true
+
 [project.plugins.git-revision-date-localized]
 type = "date"
 strict = false
