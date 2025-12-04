@@ -1,15 +1,17 @@
+docs_dir: docs
 site_dir: site
+edit_uri: edit/main/docs/
+dev_addr: "localhost:3000"
+repo_name: sagikimhi/socx-cli
+repo_url: https://github.com/sagikimhi/socx-cli
+use_directory_urls: true
 site_url: https://sagikimhi.github.io/socx-cli/
 site_name: socx-cli
 site_description: >-
   System on chip verification and tooling infrastructure.
 
-repo_name: sagikimhi/socx-cli
-repo_url: https://github.com/sagikimhi/socx-cli
-edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2025 Sagi Kimhi
-dev_addr: "localhost:3000"
-use_directory_urls: false
+favicon: "assets/images/Hamsta.png"
 
 validation:
   omitted_files: warn
@@ -31,25 +33,9 @@ nav:
       - development/code_of_conduct.md
 
 
-#       - Changelog: home/changelog.md
-#       - Credits: home/credits.md
-#       - License: home/license.md
-#   - Quick Start: home/quickstart.md
-#   - User Guide:
-#       - CLI Tour: user-guide/cli.md
-#       - Configuration: user-guide/configuration.md
-#       - Regression Automation: user-guide/regression.md
-#       - Plugin Development: user-guide/plugins.md
-#   - Reference:
-#       - API: reference/api.md
-#   - Conepts:
-#       - Plugins: concepts/plugins.md
-#   - Development:
-#       - Contributing: development/contributing.md
-#       - Code of Conduct: development/code_of_conduct.md
-
 theme:
-  name: material
+  # name: material
+  logo: assets/images/Hamsta.png
   font:
     text: Inter
     code: Jetbrains Mono
@@ -62,34 +48,30 @@ theme:
       link: /he/
       lang: he
   highlightjs: true
-  hljs_languages:
-    - sh
-    - zsh
-    - bash
-    - tcsh
-    - yaml
-    - python
-    - verilog
-    - systemverilog
   features:
     - toc.follow
+    - header.autohide
     - navigation.top
     - navigation.path
     - navigation.prune
     - navigation.header
     - navigation.footer
+    - navigation.instant
     - navigation.indexes
     - navigation.sections
-    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs.sticky
     - navigation.instant.preview
     - navigation.instant.prefetch
     - navigation.instant.progress
     - search.suggest
     - search.highlight
     - announce.dismiss
+    - content.tabs.link
     - content.action.edit
     - content.action.view
     - content.tooltips
+    - content.footnote.tooltips
     - content.code.copy
     - content.code.select
     - content.code.annotate
@@ -169,14 +151,14 @@ markdown_extensions:
   - pymdownx.blocks.caption
 
 plugins:
-  - tags
-  - offline
-  - search
-  - social
-  - macros
-  - autorefs
-  - section-index
-  - markdown-exec
+  - tags: {}
+  - offline: {}
+  - search: {}
+  - social: {}
+  - macros: {}
+  - autorefs: {}
+  - section-index: {}
+  - markdown-exec: {}
   - mike:
       alias_type: copy
   - git-revision-date-localized:

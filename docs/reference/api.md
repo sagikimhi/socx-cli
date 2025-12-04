@@ -1,5 +1,5 @@
 ---
-title: API reference
+title: API Reference
 icon: lucide/file-code
 ---
 

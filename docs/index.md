@@ -72,18 +72,43 @@ Requirements: Python 3.12 or newer.
 
 ## Where to go from here
 
-- Proceed to the [Quick Start](quickstart.md) guide to get up and
-  running quickly.
-- Read the [User Guide](user-guide/cli.md) for detailed usage instructions
-  and examples.
-- Explore the [API Reference](reference/api.md) for advanced integration and
-  customization.
-- Visit the [Contributing Guide](development/contributing.md) if you’d like to help
-  improve the project.
+<div class="grid cards" markdown>
 
-## Documentation & Community
+-   __:lucide-rocket:{ .lg .middle } Quickstart__{ .lg .middle }
 
-- [Project Documentation](https://sagikimhi.github.io/socx-cli)
-- [Community Discussions](https://gitter.im/socx-cli/community)
-- [Code of Conduct](development/code_of_conduct.md)
-- [Changelog](development/changelog.md)
+    ---
+
+    Proceed to the [quickstart](user-guide/quickstart.md) guide to get up and
+    running quickly.
+
+    [:lucide-rocket: Quickstart](user-guide/quickstart.md){ .md-button .md-button--primary }
+    /// caption
+    ///
+
+</div>
+
+<div class="grid cards" markdown>
+
+-   __:lucide-file-code:{ .lg .middle } API Reference__
+
+    ---
+
+    Explore the [API Reference](reference/api.md) for advanced integration and
+    customization.
+
+    [:lucide-file-code: API Reference](reference/api.md){ .md-button .md-button--primary }
+    /// caption
+    ///
+
+-   __:lucide-handshake:{ .lg .middle } Contributing__
+
+    ---
+
+    Visit the [Contributing Guide](development/contributing.md) if you’d like
+    to help improve the project.
+
+    [ :lucide-handshake: Contributing Guide](development/contributing.md){ .md-button .md-button--primary }
+    /// caption
+    ///
+
+</div>
