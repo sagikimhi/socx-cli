@@ -1,6 +1,6 @@
 ---
 title: Plugin Development
-description: Extend socx-cli with your own commands and share them across teams.
+icon: lucide/blocks
 ---
 
 Every subcommand that appears under `socx` comes from an entry in the

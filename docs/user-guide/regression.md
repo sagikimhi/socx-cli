@@ -1,6 +1,6 @@
 ---
 title: Regression Automation
-description: Learn how socx-cli replays failure logs, records results, and exposes a terminal UI.
+icon: lucide/flask-conical
 ---
 
 The regression rerun plugin (`socx rgr`) is designed to take the text files your

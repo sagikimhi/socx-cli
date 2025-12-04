@@ -1,21 +1,15 @@
-site_dir: "site"
-site_name: "socx-cli"
-site_url: "https://sagikimhi.dev/socx-cli/"
-site_description: "System on chip verification and tooling infrastructure."
+site_dir: site
+site_url: https://sagikimhi.github.io/socx-cli/
+site_name: socx-cli
+site_description: >-
+  System on chip verification and tooling infrastructure.
 
-repo_name: "sagikimhi/socx-cli"
-repo_url: "https://github.com/sagikimhi/socx-cli"
+repo_name: sagikimhi/socx-cli
+repo_url: https://github.com/sagikimhi/socx-cli
 edit_uri: edit/main/docs/
 copyright: Copyright &copy; 2025 Sagi Kimhi
-
-watch:
-  - mkdocs.yml
-  - README.md
-  - CONTRIBUTING.md
-  - CHANGELOG.md
-  - src/socx
-  - src/socx_tui
-  - src/socx_plugins
+dev_addr: "localhost:3000"
+use_directory_urls: false
 
 validation:
   omitted_files: warn
@@ -23,27 +17,50 @@ validation:
   unrecognized_links: warn
 
 nav:
-  - Home:
-      - Overview: index.md
-      - Changelog: home/changelog.md
-      - Credits: home/credits.md
-      - License: home/license.md
-  - Quick Start: home/quickstart.md
+  - Overview:
+      - index.md
   - User Guide:
-      - CLI Tour: user-guide/cli.md
-      - Configuration: user-guide/configuration.md
-      - Regression Automation: user-guide/regression.md
-      - Plugin Development: user-guide/plugins.md
+      - user-guide/quickstart.md
   - Reference:
-      - API: reference/api.md
-  - Conepts:
-      - Plugins: concepts/plugins.md
+      - reference/api.md
   - Development:
-      - Contributing: development/contributing.md
-      - Code of Conduct: development/code_of_conduct.md
+      - development/license.md
+      - development/credits.md
+      - development/changelog.md
+      - development/contributing.md
+      - development/code_of_conduct.md
+
+
+#       - Changelog: home/changelog.md
+#       - Credits: home/credits.md
+#       - License: home/license.md
+#   - Quick Start: home/quickstart.md
+#   - User Guide:
+#       - CLI Tour: user-guide/cli.md
+#       - Configuration: user-guide/configuration.md
+#       - Regression Automation: user-guide/regression.md
+#       - Plugin Development: user-guide/plugins.md
+#   - Reference:
+#       - API: reference/api.md
+#   - Conepts:
+#       - Plugins: concepts/plugins.md
+#   - Development:
+#       - Contributing: development/contributing.md
+#       - Code of Conduct: development/code_of_conduct.md
 
 theme:
   name: material
+  font:
+    text: Inter
+    code: Jetbrains Mono
+  generator: true
+  alternate:
+    - name: English
+      link: /
+      lang: en
+    - name: Hebrew
+      link: /he/
+      lang: he
   highlightjs: true
   hljs_languages:
     - sh
@@ -62,6 +79,7 @@ theme:
     - navigation.header
     - navigation.footer
     - navigation.indexes
+    - navigation.sections
     - navigation.instant
     - navigation.instant.preview
     - navigation.instant.prefetch
@@ -88,24 +106,27 @@ theme:
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
+        # icon: lucide/sun-moon
         name: Switch to light mode
-    # Palette toggle for light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: teal
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to dark mode
-    # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: teal
       toggle:
         icon: material/weather-night
+        # icon: lucide/moon
         name: Switch to system preference
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/weather-sunny
+        # icon: lucide/sun
+        name: Switch to dark mode
 
 markdown_extensions:
-  # Python Markdown
+  - toc:
+      title: On this page
+      permalink: true
   - abbr
   - tables
   - admonition
@@ -113,13 +134,9 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
-  - toc:
-      title: On this page
-      permalink: true
-  # Python Markdown Extensions
   - pymdownx.keys
-  - pymdownx.caret
   - pymdownx.mark
+  - pymdownx.caret
   - pymdownx.tilde
   - pymdownx.emoji:
       emoji_index: !!python/name:zensical.extensions.emoji.twemoji
@@ -132,7 +149,8 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.highlight:
-      auto_title: false
+      linenums: false
+      auto_title: true
       line_spans: __span
       anchor_linenums: true
       pygments_lang_class: true
@@ -201,12 +219,18 @@ plugins:
 
 extra:
   social:
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:sagi.kim5@gmail.com
     - icon: fontawesome/brands/github
       link: https://github.com/sagikimhi
     - icon: fontawesome/brands/gitter
       link: https://gitter.im/socx-cli/community
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/socx-cli/
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/sagi-kimhi
+    - icon: fontawesome/brands/discord
+      link: https://discord.com/users/335750831146270721
 
   analytics:
     feedback:

@@ -168,10 +168,21 @@ docs_deploy: uv ## Deploy documentation to GitHub Pages
 
 export_svg: uv ## Export help menus of all socx commands as svg images
 	$(HIDE)$(MKDIR) $(SVG_DIR)
-	$(HIDE)-$(RM) $(SVG_DIR)/socx-*.svg
-	$(HIDE)$(UV) run rich-click -o svg socx -- --help > $(SVG_DIR)/socx-cli.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- git --help > $(SVG_DIR)/socx-git.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- rgr --help > $(SVG_DIR)/socx-rgr.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- config --help > $(SVG_DIR)/socx-config.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- plugin --help > $(SVG_DIR)/socx-plugin.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- convert --help > $(SVG_DIR)/socx-convert.svg &
+	$(HIDE)-$(RMDIR) $(SVG_DIR)/socx-*.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx --help" $(SVG_DIR)/socx-cli.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git --help" $(SVG_DIR)/socx-git.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git log .." $(SVG_DIR)/socx-git-log.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git diff .." $(SVG_DIR)/socx-git-diff.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git fetch .." $(SVG_DIR)/socx-git-fetch.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git status .." $(SVG_DIR)/socx-git-status.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git summary .." $(SVG_DIR)/socx-git-summary.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx rgr --help" $(SVG_DIR)/socx-rgr.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx rgr run $(CWD)/assets/rgr/inputs/tiny" $(SVG_DIR)/socx-rgr-run.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config --help" $(SVG_DIR)/socx-config.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config list" $(SVG_DIR)/socx-config-list.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config tree" $(SVG_DIR)/socx-config-tree.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config debug" $(SVG_DIR)/socx-config-debug.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config get plugins" $(SVG_DIR)/socx-config-get.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx plugin --help" $(SVG_DIR)/socx-plugin.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx plugin example" $(SVG_DIR)/socx-plugin-example.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx convert --help" $(SVG_DIR)/socx-convert.svg
