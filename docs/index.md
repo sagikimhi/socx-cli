@@ -1,14 +1,11 @@
 ---
 title: Overview
-hide:
-  - feedback
+icon: lucide/book
 ---
 
-# SoCX CLI
-
-[![Hatch](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![License](https://img.shields.io/badge/license-MIT-9400d3.svg)](https://spdx.org/licenses/)
+[![Hatch](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 
 SoCX is a command-line toolbox for EDA development teams.
 
@@ -19,98 +16,63 @@ extensive API with many useful features targeted at EDA development.
 
 Requirements: Python 3.12 or newer.
 
-### Install with uv
+=== "Install with pip"
 
-=== "Install as tool"
+    === "Install as tool"
 
-    ```bash
-    uv tool install socx-cli
-    ```
+        ```bash
+        pipx install socx-cli
+        ```
 
-=== "Execute without installing"
+    === "Execute without installing"
 
-    ```bash
-    uvx socx-cli
-    ```
+        ```bash
+        pipx run socx-cli
+        ```
 
-=== "Add to your project"
+    ???+ tip "Verify the installation"
 
-    ```bash
-    uv add socx-cli
-    ```
+        ```bash
+        socx --help
+        socx version
+        ```
 
-=== "Add to your script"
+=== "Install with uv"
 
-    ```bash
-    uv add --script socx-cli
-    ```
+    === "Install as tool"
 
-### Install with pip
+        ```bash
+        uv tool install socx-cli
+        ```
 
-=== "Install as tool"
+    === "Execute without installing"
 
-    ```bash
-    pipx install socx-cli
-    ```
+        ```bash
+        uvx socx-cli
+        ```
 
-=== "Execute without installing"
+    === "Add to your project"
 
-    ```bash
-    pipx run socx-cli
-    ```
+        ```bash
+        uv add socx-cli
+        ```
 
-### Verify the installation
+    === "Add to your script"
 
-```bash
-socx --help
-socx version
-```
+        ```bash
+        uv add --script socx-cli
+        ```
 
-## License
+    ???+ tip "Verify the installation"
 
-Dual-licensed under Apache-2.0 or MIT.
-
-See [LICENSE](home/license.md) for details.
-
-## Development
-
-Contributions are welcome—check `CONTRIBUTING.md` for workflow details.
-
-Typical checks:
-
-=== "run checks"
-
-    ```bash
-    make check
-    ```
-
-=== "build project"
-
-    ```bash
-    make build
-    ```
-
-=== "sync dependencies"
-
-    ```bash
-    make sync
-    ```
-
-=== "build documentation"
-
-    ```bash
-    make docs
-    ```
-
-=== "deploy documentation"
-
-    ```bash
-    make docs_deploy
-    ```
+        ```bash
+        socx --help
+        socx version
+        ```
 
 ## Where to go from here
 
-- Proceed to the [Quick Start](home/quickstart.md) guide to get up and
+- Proceed to the [Quick Start](quickstart.md) guide to get up and
   running quickly.
 - Read the [User Guide](user-guide/cli.md) for detailed usage instructions
   and examples.
@@ -121,7 +83,7 @@ Typical checks:
 
 ## Documentation & Community
 
-- Project Documentation: <https://sagikimhi.dev/socx-cli>
-- Community Discussions: <https://gitter.im/socx-cli/community>
-- Code of Conduct: `CODE_OF_CONDUCT.md`
-- Changelog: `CHANGELOG.md`
+- [Project Documentation](https://sagikimhi.github.io/socx-cli)
+- [Community Discussions](https://gitter.im/socx-cli/community)
+- [Code of Conduct](development/code_of_conduct.md)
+- [Changelog](development/changelog.md)

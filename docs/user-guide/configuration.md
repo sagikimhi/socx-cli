@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Understand how Dynaconf settings drive socx-cli and how to override them.
+icon: lucide/file-cog
 ---
 
 SoCX layers configuration with [Dynaconf](https://www.dynaconf.com/). Every

@@ -1,7 +1,6 @@
 ---
 title: Credits
-hide:
-- toc
+icon: lucide/package-open
 ---
 
 ```python exec="yes"

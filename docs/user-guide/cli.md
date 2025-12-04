@@ -1,6 +1,6 @@
 ---
 title: CLI Tour
-description: Explore the top-level socx commands, global options, and plugin discovery model.
+icon: lucide/square-terminal
 ---
 
 SoCX is built on [`rich-click`](https://github.com/ewels/rich-click) and

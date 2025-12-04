@@ -1,8 +1,6 @@
 ---
 title: API reference
-description: SoCX API reference.
+icon: lucide/file-code
 ---
-
-# API
 
 ## ::: socx

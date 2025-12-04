@@ -2,35 +2,39 @@
 # Constants
 # -----------------------------------------------------------------------------
 
-CWD:=$(shell realpath $(dir $(lastword $(MAKEFILE_LIST))))
+.DEFAULT_GOAL := help
 
-CHANGELOG:=$(CWD)/CHANGELOG.md
+CWD := $(shell realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-UV_INSTALL_URL:=https://astral.sh/uv/install.sh
+CHANGELOG := $(CWD)/CHANGELOG.md
+
+UV_INSTALL_URL := https://astral.sh/uv/install.sh
 
 # -----------------------------------------------------------------------------
 # Commands
 # -----------------------------------------------------------------------------
 
-UV ?= uv
+UV := uv
 
-RM ?= rm
+RM := rm
 
-RMDIR ?= rm -r
+PIP := $(UV) pip
 
-PIP ?= $(UV) pip
+RMDIR := rm -r
 
-MKDIR ?= mkdir -p
+MKDIR := mkdir -p
 
-PYTHON ?= $(UV) run python
+PYTHON := $(UV) run python
 
-PUBLISHER ?= devpi
+PUBLISHER := devpi
 
 # -----------------------------------------------------------------------------
 # Variables
 # -----------------------------------------------------------------------------
 
-SVG_DIR ?= $(CWD)/docs/images
+VERBOSE ?=
+
+SVG_DIR ?= $(CWD)/docs/assets/images
 
 SITE_DIR ?= $(CWD)/site
 
@@ -56,19 +60,11 @@ CHANGELOG_FLAGS ?= \
 	--config $(CHANGELOG_CONFIG)
 
 CLEAN_ARTIFACTS ?= \
-	$(SVG_DIR) \
 	$(SITE_DIR) \
 	$(BUILD_DIR) \
 	$(CACHE_DIRS) \
 	$(WORKRUN_DIR) \
 	$(COVERAGE_DIRS)
-
-
-# -----------------------------------------------------------------------------
-# Options
-# -----------------------------------------------------------------------------
-
-VERBOSE ?=
 
 # -----------------------------------------------------------------------------
 # Options appliance
@@ -81,48 +77,11 @@ else
 endif
 
 # -----------------------------------------------------------------------------
-# I/O Utilities
-# -----------------------------------------------------------------------------
-
-RESET:=\033[0;30m
-
-define RED
-    $(2)$(HIDE)echo -n "\033[0;31m$(1)$(RESET)"
-endef
-
-define BLUE
-    $(2)$(HIDE)echo -n "\033[0;34m$(1)$(RESET)"
-endef
-
-define CYAN
-    $(2)$(HIDE)echo -n "\033[0;36m$(1)$(RESET)"
-endef
-
-define GREEN
-    $(2)$(HIDE)echo -n "\033[0;32m$(1)$(RESET)"
-endef
-
-define YELLOW
-    $(2)$(HIDE)echo -n "\033[0;33m$(1)$(RESET)"
-endef
-
-define MAGENTA
-    $(2)$(HIDE)echo -n "\033[0;35m$(strip $(1))$(RESET)"
-endef
-
-define CONFIRM
-	echo -n "Do you accept? \(y/n\) [n] "; read ans; if [ $${ans:-N} != y ]; then \
-		exit 0; \
-	fi
-endef
-
-# -----------------------------------------------------------------------------
-# Targets
+# Goals
 # -----------------------------------------------------------------------------
 
 .PHONY: \
 	uv \
-	all \
 	sync \
 	help \
 	docs \
@@ -132,20 +91,16 @@ endef
 	clean \
 	check \
 	format \
-	default \
 	release \
 	publish \
 	coverage \
 	changelog \
-	export_svg \
 	check_api \
 	check_code \
 	check_docs \
 	check_types \
-	docs_deploy
-
-
-all default: help
+	docs_deploy \
+	export_svg
 
 uv: ## Install 'uv' on the user, if it isn't already installed
 	$(HIDE)$(UV) > /dev/null -h 2>&1 || curl -LsSf  $(UV_INSTALL_URL) | sh
@@ -207,15 +162,27 @@ check_docs: uv ## Check that project documentation builds correctly
 check_types: uv ## Check that code is properly typed
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
-export_svg: uv sync ## Export help menus of all 'socx [subcmd]' commands as svg images
-	$(HIDE)$(MKDIR) $(SVG_DIR)
-	$(HIDE)$(UV) run rich-click -o svg socx -- --help > $(SVG_DIR)/socx-cli.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- git --help > $(SVG_DIR)/socx-git.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- rgr --help > $(SVG_DIR)/socx-rgr.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- config --help > $(SVG_DIR)/socx-config.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- plugin --help > $(SVG_DIR)/socx-plugin.svg &
-	$(HIDE)$(UV) run rich-click -o svg socx -- convert --help > $(SVG_DIR)/socx-convert.svg &
-
 docs_deploy: uv ## Deploy documentation to GitHub Pages
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 	$(HIDE)$(MAKE) clean
+
+export_svg: uv ## Export help menus of all socx commands as svg images
+	$(HIDE)$(MKDIR) $(SVG_DIR)
+	$(HIDE)-$(RMDIR) $(SVG_DIR)/socx-*.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx --help" $(SVG_DIR)/socx-cli.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git --help" $(SVG_DIR)/socx-git.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git log .." $(SVG_DIR)/socx-git-log.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git diff .." $(SVG_DIR)/socx-git-diff.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git fetch .." $(SVG_DIR)/socx-git-fetch.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git status .." $(SVG_DIR)/socx-git-status.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx git summary .." $(SVG_DIR)/socx-git-summary.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx rgr --help" $(SVG_DIR)/socx-rgr.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx rgr run $(CWD)/assets/rgr/inputs/tiny" $(SVG_DIR)/socx-rgr-run.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config --help" $(SVG_DIR)/socx-config.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config list" $(SVG_DIR)/socx-config-list.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config tree" $(SVG_DIR)/socx-config-tree.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config debug" $(SVG_DIR)/socx-config-debug.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx config get plugins" $(SVG_DIR)/socx-config-get.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx plugin --help" $(SVG_DIR)/socx-plugin.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx plugin example" $(SVG_DIR)/socx-plugin-example.svg
+	$(HIDE)$(UV) run termtosvg -D 3000 -m 100 -M 1000000 -t base16_default_dark -c "socx convert --help" $(SVG_DIR)/socx-convert.svg
