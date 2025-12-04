@@ -9,7 +9,7 @@ header = """
 #
 body = """
 {%- macro remote_url() -%}
-    https://bitbucket.org/wiliot/socenv
+    https://github.com/sagikimhi/socx-cil
 {%- endmacro -%}
 
 {% macro print_commit(commit) -%}
