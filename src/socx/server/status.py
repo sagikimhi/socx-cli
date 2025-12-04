@@ -14,11 +14,11 @@ class JobResult(StrEnum):
         non-applicable.
 
     Succeeded: StrEnum
-        Job had finished and terminated normally with no errors and a 0 exit
+        Job has finished and terminated normally with no errors and a 0 exit
         code.
 
     Failed: StrEnum
-        Job had finished either normally or abnormally with a non-zero exit
+        Job has finished either normally or abnormally with a non-zero exit
         code.
     """
 

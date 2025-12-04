@@ -14,6 +14,9 @@ from socx.io import logger
 from socx.patterns import UIDMixin
 from socx.server.status import JobStatus, JobResult
 
+# Time to wait after terminating a process before killing it (in seconds)
+_TERMINATE_TIMEOUT = 0.1
+
 
 @dataclass
 class JobCommand:
@@ -125,7 +128,7 @@ class Job(UIDMixin):
         if self.status == JobStatus.Running and self.process:
             try:
                 self.process.terminate()
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(_TERMINATE_TIMEOUT)
                 if self.process.returncode is None:
                     self.process.kill()
                 self.status = JobStatus.Cancelled

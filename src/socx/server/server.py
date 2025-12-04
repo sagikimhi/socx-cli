@@ -83,9 +83,12 @@ class Server:
         if self.running:
             task = asyncio.create_task(self._job_queue.put(job))
             # Task is intentionally not awaited to allow async scheduling
-            task.add_done_callback(
-                lambda t: t.exception() if not t.cancelled() else None
-            )
+
+            def _log_exception(t: asyncio.Task[None]) -> None:
+                if not t.cancelled() and (exc := t.exception()):
+                    logger.error(f"Failed to queue job {job.uid}: {exc}")
+
+            task.add_done_callback(_log_exception)
 
         return job.uid
 
@@ -208,17 +211,21 @@ class Server:
     async def _worker(self) -> None:
         """Worker coroutine that processes jobs from the queue."""
         while self.running:
+            job = None
             try:
                 # Wait for a job with a timeout to allow checking running flag
                 job = await asyncio.wait_for(
                     self._job_queue.get(), timeout=1.0
                 )
                 await job.run()
-                self._job_queue.task_done()
             except TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Worker error: {e}")
+            finally:
+                # Ensure task_done is called even if job.run() fails
+                if job is not None:
+                    self._job_queue.task_done()
 
     async def start(self) -> None:
         """Start the server and begin processing jobs."""
