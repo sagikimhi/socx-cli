@@ -15,6 +15,16 @@ def manifest_cb(
     return value
 
 
+def manifest_lst_cb(
+    ctx: click.Context, param: click.Parameter, value: str
+) -> list[str]:
+    """Update manifest root path."""
+    settings.git.manifest.update(
+        {param.name: [*settings.git.manifest.get(param.name), *value]}
+    )
+    return settings.git.manifest.get(param.name)
+
+
 def summary_cb(
     ctx: click.Context, param: click.Parameter, value: SummaryFormat
 ) -> SummaryFormat:

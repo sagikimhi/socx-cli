@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-from pathlib import Path
 
 import rich_click as click
 from sh import RunningCommand
-from socx import global_options, TreeFormatter, get_console, settings
+from socx import TreeFormatter, get_console, settings
 from rich.console import RenderableType
 
 from socx_plugins.git import arguments
@@ -40,107 +38,105 @@ def print_command_outputs(
         print_with_pager(text)
 
 
-@click.group(context_settings=settings.cli.context_settings)
-@global_options()
-def cli() -> None:
-    """Various common git command utilities to manage your environment."""
+pass_manifest = click.make_pass_decorator(Manifest)
+
+context_settings = dict(
+    ignore_unknown_options=True,
+    allow_interspersed_args=True,
+    **settings.cli.context_settings,
+)
 
 
-def command():
-    return cli.command(
-        context_settings=dict(
-            ignore_unknown_options=True,
-            allow_interspersed_args=True,
-            **settings.cli.context_settings,
-        )
+@click.group(
+    "git",
+    no_args_is_help=True,
+    invoke_without_command=True,
+    context_settings=context_settings,
+)
+@arguments.root()
+@arguments.pager()
+@arguments.excludes()
+@click.argument(
+    "args",
+    help="Arguments to pass to git",
+    nargs=-1,
+    is_eager=True,
+    type=click.UNPROCESSED,
+)
+@click.pass_context
+def cli(ctx, pager, args) -> None:
+    r"""
+    # `socx git`
+
+    Run `git` commands on multiple repositories in parallel.
+
+    Any `git` command will work, including aliases!
+
+    Any flag that is not in the help menu will also be passed directly to git.
+
+    Simply run commands as you would normally with git and see it all unfold.
+
+    ## Commands
+
+    Some commands you can try:
+
+    - `git log`
+    - `git diff`
+    - `git fetch`
+    - `git status`
+    - `git branch`
+    - `git checkout`
+
+    > ***TIP:***
+    > Add the `-p` or `--pager` flag to comfortably view output from a pager
+    > such as `less`.
+
+    ## Examples
+
+    ### Running `git status` on all repositories under current directory
+
+    ```py
+    socx git status
+    # or
+    socx git status -r .
+    # or
+    socx git status --root .
+    # or
+    socx git status --root=.
+    ```
+
+    ### Run `git pull` from parent directory and exclude *foo* directory
+
+    ```py
+    socx git pull -r .. -e foo
+    # or
+    socx git pull --root .. --exclude foo
+    # or
+    socx git pull --root=.. --exclude=foo
+    ```
+
+    """  # noqa: D400
+    cmd, args = args[0], args[1:]
+    mfest = Manifest(
+        root=settings.git.manifest.root,
+        includes=settings.git.manifest.includes,
+        excludes=settings.git.manifest.excludes,
     )
-
-
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git log",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def log(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git log on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("log", *settings.git.log.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Log")
-
-
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git pull",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def pull(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git pull on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("pull", *settings.git.pull.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Pull")
-
-
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git diff",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def diff(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git diff on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("diff", *settings.git.diff.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Diff")
-
-
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git fetch",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def fetch(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git fetch on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("fetch", *args)
-    print_command_outputs(outputs, pager=pager, title="Git Fetch")
-
-
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git status",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def status(root: Path, pager: bool, args: list[Any]):
-    """Run git status on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("status", *settings.git.status.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Status")
+    ctx.obj = mfest
+    if cmd not in settings.git:
+        flags = []
+    else:
+        flags = settings.git.get(cmd).get("flags", [])
+    if cmd in ctx.command.commands:
+        ctx.invoke(ctx.command.get_command(ctx, cmd), args, obj=ctx.obj)
+    else:
+        outputs = mfest.git(cmd, *flags, *args)
+        print_command_outputs(outputs, pager, f"Git {cmd.title()}")
 
 
 @cli.command()
-@global_options()
-@arguments.root()
 @arguments.format_()
-def summary(root: Path):
+@pass_manifest
+def summary(manifest):
     """Output a manifest of all git repositories found under a given path."""
-    manifest = Manifest(root=root)
     console.print(Summary(manifest.repos.values()))

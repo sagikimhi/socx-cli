@@ -5,7 +5,7 @@ from pathlib import Path
 import rich_click as click
 from socx import settings
 
-from socx_plugins.git.callbacks import summary_cb, manifest_cb
+from socx_plugins.git.callbacks import summary_cb, manifest_cb, manifest_lst_cb
 
 
 def format_():
@@ -26,8 +26,27 @@ def format_():
     )
 
 
+def excludes():
+    return click.option(
+        "--exclude",
+        "-e",
+        "excludes",
+        nargs=1,
+        multiple=True,
+        type=click.STRING,
+        required=False,
+        envvar="SOCX_GIT_ROOT",
+        callback=manifest_lst_cb,
+        default=[],
+        is_eager=True,
+        expose_value=False,
+    )
+
+
 def root():
-    return click.argument(
+    return click.option(
+        "--root",
+        "-r",
         "root",
         help=(
             "Path to a git directory, or to a directory with one or "
@@ -44,8 +63,9 @@ def root():
         required=False,
         envvar="SOCX_GIT_ROOT",
         callback=manifest_cb,
-        default=Path.cwd(),
-        expose_value=True,
+        default=settings.git.manifest.root or Path.cwd(),
+        is_eager=True,
+        expose_value=False,
     )
 
 
