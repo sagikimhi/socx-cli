@@ -10,6 +10,7 @@ import rich_click as click
 from socx.config import settings
 from socx.cli.types import Decorator
 from socx.cli.types import AnyCallable
+from socx.cli.plugin import PluginModel
 from socx.cli.callbacks import debug_cb
 from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb
@@ -100,6 +101,7 @@ def _command_panels():
     panel_commands = {}
 
     for plugin in settings.plugins:
+        plugin = PluginModel(**plugin)
         panel_commands[plugin.panel] = [
             *panel_commands.get(plugin.panel, []),
             plugin.name,
