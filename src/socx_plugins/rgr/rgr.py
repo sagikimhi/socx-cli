@@ -11,12 +11,12 @@ from socx import settings
 from socx_plugins.rgr._rgr import options, _run_from_file
 
 
-@click.group("rgr", context_settings=settings.cli.context_settings)
+@click.group("rgr", **settings.cli.group)
 def cli() -> None:
     """Perform various regression related actions."""
 
 
-@cli.command()
+@cli.command(**settings.cli.command)
 def tui() -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
     from socx_tui import SoCX as SoCX
@@ -24,7 +24,9 @@ def tui() -> None:
     SoCX().run()
 
 
-@cli.command()
+@cli.command(
+    **settings.cli.command, no_args_is_help=True, add_help_option=True
+)
 @options()
 @click.pass_context
 def run(ctx: click.Context, input: Path, output: Path):  # noqa: A002
@@ -50,10 +52,11 @@ def run(ctx: click.Context, input: Path, output: Path):  # noqa: A002
     """
     try:
         regression = asyncio.run(
-            _run_from_file(input, output), debug=settings.cli.debug
+            _run_from_file(input, output), debug=settings.cli.params.debug
         )
     except (asyncio.CancelledError, KeyboardInterrupt):
-        ctx.exit(0x80 + 2)  # SIGINT
+        rv = 0x80 + 2  # SIGINT
     else:
-        rv = sum(1 if test.passed else 0 for test in regression)
-        ctx.exit(rv)
+        rv = sum(1 if test.failed else 0 for test in regression)
+
+    return rv

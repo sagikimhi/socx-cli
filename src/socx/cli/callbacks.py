@@ -21,12 +21,12 @@ logger = logging.getLogger(__name__)
 @log_it(logger=logger)
 def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     """Enable debug logging and persist the CLI switch to settings."""
-    value = settings.cli.get(param.name) or value
+    value = settings.cli.params.get(param.name) or value
 
     if value and log.get_level(log.logger) != Level.DEBUG:
         log.set_level(log.Level.DEBUG, log.logger)
 
-    if value != settings.cli.get(param.name):
+    if value != settings.cli.params.get(param.name):
         settings.update(cli={param.name: value}, merge=True)
 
     return value
@@ -35,7 +35,7 @@ def debug_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 @log_it(logger=logger)
 def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     """Toggle whether user overrides should be merged into settings."""
-    value = settings.cli.get(param.name) and value
+    value = settings.cli.params.get(param.name) and value
 
     if not value:
         settings.configure(
@@ -46,7 +46,7 @@ def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
         )
         settings.reload()
 
-    if value != settings.cli.get(param.name):
+    if value != settings.cli.params.get(param.name):
         settings.update(cli={param.name: value}, merge=True)
 
     return value
@@ -56,7 +56,7 @@ def configure_cb(ctx: Context, param: Parameter, value: bool) -> bool:
 def verbosity_cb(ctx: Context, param: Parameter, value: str) -> str:
     """Update the global log level while respecting existing overrides."""
     new_verbosity = log.Level[value]
-    curr_verbosity = log.Level[settings.cli.get(param.name)]
+    curr_verbosity = log.Level[settings.cli.params.get(param.name)]
 
     if log.get_level(log.logger) == Level.DEBUG:
         settings.update(cli={param.name: value}, merge=True)

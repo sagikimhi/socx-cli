@@ -2,141 +2,91 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
 
 import rich_click as click
-from sh import RunningCommand
-from socx import TreeFormatter, get_console, settings
-from rich.console import RenderableType
+from socx import join_decorators, settings, Decorator
+from rich.markdown import Markdown
 
-from socx_plugins.git import arguments
+import socx_plugins.git.arguments as arguments
+from socx_plugins.git._cli import console, print_command_outputs
 from socx_plugins.git.summary import Summary
 from socx_plugins.git.manifest import Manifest
 
 
-console = get_console()
+def opts() -> Decorator:
+    return join_decorators(
+        arguments.root(),
+        arguments.pager(),
+        arguments.timeout(),
+        arguments.includes(),
+        arguments.excludes(),
+    )
 
 
-def print_with_pager(text: RenderableType) -> None:
-    with console.pager(styles=True, links=True):
-        console.print(text)
+def args() -> Decorator:
+    return join_decorators(arguments.git_cmd(), arguments.git_args())
 
 
-def print_command_outputs(
-    outputs: dict[str, RunningCommand],
-    pager: bool = True,
-    title: str | None = None,
-) -> None:
-    title = title or ""
-    formatter = TreeFormatter()
-    cmd_outputs = {
-        name: output.stdout.decode() for name, output in outputs.items()
-    }
-    text = formatter(cmd_outputs, title)
-    if not pager:
-        console.print(text)
-    else:
-        print_with_pager(text)
+def option_panels() -> Decorator:
+    return join_decorators(
+        *[
+            click.option_panel(**panel)
+            for panel in settings.git.cli.option_panels
+        ]
+    )
 
 
-pass_manifest = click.make_pass_decorator(Manifest)
-
-context_settings = dict(
-    ignore_unknown_options=True,
-    allow_interspersed_args=True,
-    **settings.cli.context_settings,
-)
-
-
-@click.group(
-    "git",
-    no_args_is_help=True,
-    invoke_without_command=True,
-    context_settings=context_settings,
-)
-@arguments.root()
-@arguments.pager()
-@arguments.excludes()
-@click.argument(
-    "args",
-    help="Arguments to pass to git",
-    nargs=-1,
-    is_eager=True,
-    type=click.UNPROCESSED,
-)
+@click.group(**settings.git.cli.group)
+@opts()
+@args()
+@option_panels()
 @click.pass_context
-def cli(ctx, pager, args) -> None:
-    r"""
-    # `socx git`
+def cli(
+    ctx: click.Context,
+    pager: bool,
+    git_cmd: str,
+    git_options_and_args: list[str],
+) -> None:
+    """Run `git` commands in parallel on multiple repositories."""
+    if TYPE_CHECKING:
+        ctx.command = cast(click.Group, ctx.command)
 
-    Run `git` commands on multiple repositories in parallel.
+    cmd = ctx.command.get_command(ctx, git_cmd)
 
-    Any `git` command will work, including aliases!
+    # console.print(ctx.to_info_dict())
+    # console.print(git_options_and_args)
 
-    Any flag that is not in the help menu will also be passed directly to git.
+    if cmd is not None:
+        ctx.invoke(cmd, git_options_and_args)
+    else:
+        mfest = Manifest(
+            root=settings.git.manifest.root,
+            includes=settings.git.manifest.includes,
+            excludes=settings.git.manifest.excludes,
+        )
+        flags = settings.git.get(git_cmd, {}).get("flags", [])
+        outputs = mfest.git(git_cmd, *flags, *git_options_and_args)
+        print_command_outputs(outputs, pager, f"Git {git_cmd.title()}")
 
-    Simply run commands as you would normally with git and see it all unfold.
 
-    ## Commands
+if TYPE_CHECKING:
+    cli = cast(click.Group, cli)
 
-    Some commands you can try:
 
-    - `git log`
-    - `git diff`
-    - `git fetch`
-    - `git status`
-    - `git branch`
-    - `git checkout`
-
-    > ***TIP:***
-    > Add the `-p` or `--pager` flag to comfortably view output from a pager
-    > such as `less`.
-
-    ## Examples
-
-    ### Running `git status` on all repositories under current directory
-
-    ```py
-    socx git status
-    # or
-    socx git status -r .
-    # or
-    socx git status --root .
-    # or
-    socx git status --root=.
-    ```
-
-    ### Run `git pull` from parent directory and exclude *foo* directory
-
-    ```py
-    socx git pull -r .. -e foo
-    # or
-    socx git pull --root .. --exclude foo
-    # or
-    socx git pull --root=.. --exclude=foo
-    ```
-
-    """  # noqa: D400
-    cmd, args = args[0], args[1:]
+@cli.command(**settings.cli.command)
+@arguments.format_()
+def summary():
+    """Output a manifest of all git repositories found under a given path."""
     mfest = Manifest(
         root=settings.git.manifest.root,
         includes=settings.git.manifest.includes,
         excludes=settings.git.manifest.excludes,
     )
-    ctx.obj = mfest
-    if cmd not in settings.git:
-        flags = []
-    else:
-        flags = settings.git.get(cmd).get("flags", [])
-    if cmd in ctx.command.commands:
-        ctx.invoke(ctx.command.get_command(ctx, cmd), args, obj=ctx.obj)
-    else:
-        outputs = mfest.git(cmd, *flags, *args)
-        print_command_outputs(outputs, pager, f"Git {cmd.title()}")
+    console.print(Summary(mfest.repos.values()))
 
 
-@cli.command()
-@arguments.format_()
-@pass_manifest
-def summary(manifest):
-    """Output a manifest of all git repositories found under a given path."""
-    console.print(Summary(manifest.repos.values()))
+@cli.command("help", **settings.cli.command, add_help_option=False)
+def help_():
+    """Print the full help menu along with usage examples."""
+    console.print(Markdown(settings.git.cli.help))

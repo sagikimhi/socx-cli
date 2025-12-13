@@ -1,8 +1,8 @@
 ---
 dynaconf_include:
   - rich_click.yaml
-  - plugins.yaml
   - cli.yaml
+  - plugins.yaml
   - git.yaml
   - lang.yaml
   - convert.yaml

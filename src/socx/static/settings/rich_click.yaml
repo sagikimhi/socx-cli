@@ -1,15 +1,22 @@
 rich_click:
   # Options
-  THEME: cargo-modern
-  TEXT_MARKUP: markdown
-  COMMANDS_BEFORE_OPTIONS: false
+  theme: cargo-modern
+  text_markup: markdown
+  text_emojis: true
+  show_arguments: true
+  show_metavars_column: true
+  append_metavars_help: true
+  helptext_show_aliases: true
+  commands_before_options: true
+  text_paragraph_linebreaks: "\n\n"
 
   # Texts
-  FOOTER_TEXT: >-
+  footer_text: |
     Documentation is available at <https://sagikimhi.github.io/socx-cli>
-
-  ERRORS_SUGGESTION: |
+  errors_suggestion: |
     Try running with '-h' or '--help' for more information.
-
-  ERRORS_EPILOGUE: >-
+  errors_epilogue: >-
     Documentation is available at [link]https://sagikimhi.github.io/socx-cli[/link]
+
+  # Styles
+  style_option_envvar: bright_blue

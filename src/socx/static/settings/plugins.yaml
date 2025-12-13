@@ -1,15 +1,19 @@
 ---
 plugins:
   - name: git
-    type: command
-    help: Various common git command utilities to manage your environment.
+    help: Run `git` commands in parallel on multiple repositories.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.git:cli"
+    epilog: |
+      > ***NOTE***
+      >
+      > For a more in-depth explanation with working examples, run `socx git
+      > help`
+
 
   - name: rgr
-    type: command
     help: Perform various regression related actions.
     panel: Commands
     enabled: true
@@ -17,7 +21,6 @@ plugins:
     command: "socx_plugins.rgr:cli"
 
   - name: plugin
-    type: command
     help: Add, create, inspect, and manage extension plugins.
     panel: Commands
     enabled: true
@@ -25,7 +28,6 @@ plugins:
     command: "socx_plugins.plugin:cli"
 
   - name: config
-    type: command
     help: Get, set, list, or modify settings configuration values.
     panel: Commands
     enabled: true
@@ -33,7 +35,6 @@ plugins:
     command: "socx_plugins.config:cli"
 
   - name: convert
-    type: command
     help: Perform a conversion based on current configurations.
     panel: Commands
     enabled: true
@@ -41,7 +42,6 @@ plugins:
     command: "socx_plugins.convert:cli"
 
   - name: version
-    type: command
     help: Print version information and exit.
     panel: Commands
     enabled: true

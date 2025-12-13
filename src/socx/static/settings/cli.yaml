@@ -1,16 +1,34 @@
 ---
 cli:
-  debug: false
-  configure: true
-  verbosity: INFO
+  context_settings: &socx-cli-context-settings
+    auto_envvar_prefix: "SOCX_"
+    help_option_names:
+      - -h
+      - --help
+    allow_extra_args: true
+    ignore_unknown_options: true
+    allow_interspersed_args: false
+
+  group:
+    context_settings: *socx-cli-context-settings
+    no_args_is_help: true
+    options_metavar: "[<options>]"
+    subcommand_metavar: "[<subcommand>] [<args>...]"
+    invoke_without_command: true
+
+  command:
+    context_settings: *socx-cli-context-settings
+    options_metavar: "[<options>]"
+
+  params:
+    debug: false
+    configure: true
+    verbosity: INFO
+
   option-panels:
     - name: Options
       options:
         - --help
-        - --configure/--no-configure
         - --debug
         - --verbosity
-  context_settings:
-    help_option_names:
-      - -h
-      - --help
+        - --configure/--no-configure

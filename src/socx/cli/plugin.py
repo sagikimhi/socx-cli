@@ -16,9 +16,8 @@ from socx.config.converters import ShConverter
 class PluginModel(BaseModel):
     """Metadata describing a plugin-backed CLI command."""
 
-    name: str = Field(
-        frozen=True, pattern=r"\w+", description="Name of the plugin"
-    )
+    name: str = Field(pattern=r"\w+", description="Name of the plugin")
+    help: str = Field(default="", description="Command help text.")
     panel: str = Field(
         default="Commands",
         description="""
@@ -42,8 +41,15 @@ class PluginModel(BaseModel):
         pattern=r"(((((\w+)(.|/))*)(\w+))(:(\w+))?)?",
         description="The plugin's entry point",
     )
-    help: str = Field(
-        frozen=True, default="", description="Command help text."
+    epilog: str = Field(
+        default="",
+        description=(
+            "Help string printed at the end of the help page after everything"
+            "else."
+        ),
+    )
+    short_help: str = Field(
+        default="", description="The short help to use for this command"
     )
     model_config = ConfigDict(
         extra="allow", from_attributes=True, arbitrary_types_allowed=True

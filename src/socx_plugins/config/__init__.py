@@ -12,7 +12,7 @@ from socx import console, settings, TreeFormatter, get_logger
 logger = get_logger(__name__)
 
 
-@click.group("config", context_settings=settings.cli.context_settings)
+@click.group("config", **settings.cli.group)
 @click.rich_config()
 def cli():
     """Get, set, inspect, or debug configuration settings."""
@@ -68,14 +68,21 @@ def inspect():
     )
 
 
-@cli.command()
+@cli.command(no_args_is_help=True)
 @click.argument(
     "field",
     type=click.STRING,
     help="The configuration field to be read.",
 )
 def get(field: str):
-    """Get the current value of a configuration field."""
+    """Get the current value of a configuration field.
+
+    > ***TIP***
+    >
+    > - Run `socx config list` to print a list of available config fields
+    > - Run `socx config tree` to print a tree of available config fields
+
+    """
     formatter = TreeFormatter()
     if value := settings.get(field):
         console.print(formatter(value, field))
@@ -88,7 +95,11 @@ def get(field: str):
 get.help = """
 Get the current value of a configuration field.
 
-Available fields:
+Some available fields:
 {}
 
-""".strip().format("\n".join(f"- {key.lower()}" for key in settings.as_dict()))
+""".strip().format(
+    "\n".join(
+        f"- {key.lower()}" for key in settings if "dynaconf" not in key.lower()
+    )
+)

@@ -35,29 +35,16 @@ class _CmdLine(click.RichGroup):
     ) -> click.Command | None:
         """Resolve commands from core registrations or configured plugins."""
         if cmd_name not in self.commands and cmd_name in self.plugins:
-            cmd = None
             plugin = self.plugins[cmd_name]
 
-            if plugin.script:
-                cmd = self._converter(plugin.script)
-            elif plugin.command:
-                cmd = self._converter(plugin.command)
+            if not plugin.enabled:
+                return None
 
-            if cmd is not None:
-                self.add_command(
-                    cmd=cmd,
-                    name=plugin.name,
-                    panel=plugin.panel,
-                    aliases=plugin.aliases or None,
-                )
-                if plugin.aliases:
-                    cmd.aliases = [*cmd.aliases, *plugin.aliases]
+            cmd = self._converter(plugin.script or plugin.command)
 
             if isinstance(cmd, click.Command):
-                cmd.short_help = (
-                    plugin.help or cmd.short_help or inspect.getdoc(cmd)
-                )
-                cmd.help = inspect.getdoc(cmd) or cmd.help or plugin.help
+                self._update_command_attrs(cmd, plugin)
+                self.add_command(cmd)
 
         return super().get_command(ctx, cmd_name)
 
@@ -72,16 +59,42 @@ class _CmdLine(click.RichGroup):
         rv.sort(key=get_cmd_order)
         return rv
 
+    def _update_command_attrs(
+        self, cmd: click.Command, plugin: PluginModel
+    ) -> None:
+        if isinstance(cmd, click.Command):
+            cmd.name = plugin.name
+            cmd.epilog = cmd.epilog or plugin.epilog
+            cmd.short_help = cmd.__doc__ = cmd.callback.__doc__ = (
+                cmd.short_help
+                or plugin.short_help
+                or inspect.getdoc(cmd)
+                or inspect.getdoc(cmd.callback)
+            )
+            cmd.help = cmd.__doc__ = cmd.callback.__doc__ = (
+                cmd.help
+                or plugin.help
+                or plugin.short_help
+                or cmd.short_help
+                or inspect.getdoc(cmd)
+                or inspect.getdoc(cmd.callback)
+            )
 
-def socx() -> Callable[[AnyCallable], _CmdLine]:
+            if isinstance(cmd, click.RichCommand):
+                cmd.aliases = [*cmd.aliases, *plugin.aliases]
+                cmd.panel = plugin.panel or cmd.panel
+
+
+def socx(*args, **kwargs) -> Callable[[AnyCallable], _CmdLine]:
     """Decorate a callable as the root SoCX CLI group."""
 
     def decorator(app: AnyCallable):
         return click.group(
             "socx",
+            *args,
             cls=_CmdLine,
-            no_args_is_help=True,
-            invoke_without_command=True,
+            **kwargs,
+            **settings.cli.group,
         )(app)
 
     return decorator

@@ -26,10 +26,11 @@ __all__ = (
     # CLI
     "cli",
     "cli_cfg",
-    "join_decorators",
-    "global_options",
+    "opts",
     "Decorator",
     "AnyCallable",
+    # Util
+    "join_decorators",
     # Config
     "settings",
     "__author__",
@@ -108,10 +109,11 @@ from socx.io import get_handler_names as get_handler_names
 
 from socx.cli import cli as cli
 from socx.cli import cfg as cli_cfg
-from socx.cli import join_decorators as join_decorators
-from socx.cli import global_options as global_options
+from socx.cli import opts as opts
 from socx.cli import Decorator as Decorator
 from socx.cli import AnyCallable as AnyCallable
+
+from socx.utils import join_decorators as join_decorators
 
 from socx.config import settings as settings
 from socx.config import __author__ as __author__
