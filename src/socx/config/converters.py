@@ -474,7 +474,7 @@ class CommandConverter(
         *args: Any,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
-        self._run_from_pathspec(str(value), *args, **kwargs)
+        return self._run_from_pathspec(str(value), *args, **kwargs)
 
     @_run_from_pathspec.register
     def _(

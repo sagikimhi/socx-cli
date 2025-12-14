@@ -21,7 +21,7 @@ class PluginModel(BaseModel):
     env: dict[str, str] = Field(
         default_factory=dict,
         description="""
-            Environment variables tnat should be present when the
+            Environment variables that should be present when the
             command/script is invoked
         """.strip(),
     )

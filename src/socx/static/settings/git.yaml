@@ -186,7 +186,7 @@ git:
           socx git fetch
           ```
 
-      - ***run `git status` on all repos in current directroy, excluding 'foo'
+      - ***run `git status` on all repos in current directory, excluding 'foo'
         and 'bar', and any repo in parent directory who's name contains
         'bazz'***:
 
