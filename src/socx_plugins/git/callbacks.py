@@ -16,7 +16,7 @@ def manifest_cb(
 
 
 def manifest_lst_cb(
-    ctx: click.Context, param: click.Parameter, value: str
+    ctx: click.Context, param: click.Parameter, value: tuple[str, ...]
 ) -> list[str]:
     """Update manifest root path."""
     settings.git.manifest.update(
