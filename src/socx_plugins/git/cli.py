@@ -54,9 +54,6 @@ def cli(
 
     cmd = ctx.command.get_command(ctx, git_cmd)
 
-    # console.print(ctx.to_info_dict())
-    # console.print(git_options_and_args)
-
     if cmd is not None:
         ctx.invoke(cmd, git_options_and_args)
     else:
@@ -64,6 +61,7 @@ def cli(
             root=settings.git.manifest.root,
             includes=settings.git.manifest.includes,
             excludes=settings.git.manifest.excludes,
+            cmd_timeout=settings.git.manifest.cmd_timeout,
         )
         flags = settings.git.get(git_cmd, {}).get("flags", [])
         outputs = mfest.git(git_cmd, *flags, *git_options_and_args)
@@ -82,6 +80,7 @@ def summary():
         root=settings.git.manifest.root,
         includes=settings.git.manifest.includes,
         excludes=settings.git.manifest.excludes,
+        cmd_timeout=settings.git.manifest.cmd_timeout,
     )
     console.print(Summary(mfest.repos.values()))
 

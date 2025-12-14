@@ -115,7 +115,7 @@ def timeout() -> Decorator:
     return click.option(
         "--timeout",
         "-t",
-        "timeout",
+        "cmd_timeout",
         nargs=1,
         help=(
             "set a timeout for command after which all unfinished parallel "
