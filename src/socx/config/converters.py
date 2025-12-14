@@ -375,7 +375,6 @@ class CommandConverter(
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
-        env = env or os.environ.copy()
         proc = value(
             *args,
             **kwargs,
