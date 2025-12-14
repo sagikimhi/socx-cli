@@ -29,6 +29,7 @@ __all__ = (
 )
 
 from socx.io import log as log
+
 from socx.io.log import DEFAULT_LEVEL as DEFAULT_LEVEL
 from socx.io.log import DEFAULT_FORMAT as DEFAULT_FORMAT
 from socx.io.log import DEFAULT_HANDLERS as DEFAULT_HANDLERS

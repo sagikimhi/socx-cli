@@ -6,14 +6,12 @@ __all__ = (
     "debug",
     "configure",
     "verbosity",
-    "join_decorators",
-    "global_options",
+    "opts",
     "debug_cb",
     "configure_cb",
     "verbosity_cb",
     "Decorator",
     "AnyCallable",
-    "PluginModel",
 )
 
 
@@ -24,13 +22,10 @@ from socx.cli.cli import cli as cli
 from socx.cli.types import Decorator as Decorator
 from socx.cli.types import AnyCallable as AnyCallable
 
-from socx.cli.plugin import PluginModel as PluginModel
-
-from socx.cli.options import debug as debug
-from socx.cli.options import configure as configure
-from socx.cli.options import verbosity as verbosity
-from socx.cli.options import join_decorators as join_decorators
-from socx.cli.options import global_options as global_options
+from socx.cli.params import opts as opts
+from socx.cli.params import debug as debug
+from socx.cli.params import configure as configure
+from socx.cli.params import verbosity as verbosity
 
 from socx.cli.callbacks import debug_cb as debug_cb
 from socx.cli.callbacks import configure_cb as configure_cb

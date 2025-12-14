@@ -28,8 +28,11 @@ def _input() -> Decorator[AnyCallable]:
     """Click option configuring the regression input file path."""
     return click.argument(
         "input",
-        expose_value=True,
         help="A file containing a list of test commands to be ran.",
+        metavar="[<args>...]",
+        required=True,
+        callback=input_cb,
+        expose_value=True,
         type=click.Path(
             exists=True,
             file_okay=True,
@@ -38,7 +41,6 @@ def _input() -> Decorator[AnyCallable]:
             resolve_path=True,
             path_type=Path,
         ),
-        callback=input_cb,
     )
 
 
@@ -48,6 +50,7 @@ def _output() -> Decorator[AnyCallable]:
         "--output",
         "-o",
         "output",
+        help="Output directory for writing passed/failed run commands.",
         nargs=1,
         type=click.Path(
             exists=False,
@@ -57,9 +60,8 @@ def _output() -> Decorator[AnyCallable]:
             path_type=Path,
         ),
         required=False,
-        expose_value=True,
-        help="Output directory for writing passed/failed run commands.",
         callback=output_cb,
+        expose_value=True,
     )
 
 

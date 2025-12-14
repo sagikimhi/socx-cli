@@ -30,6 +30,7 @@ __all__ = (
     "__directory__",
     # Converters
     "Converter",
+    "ShConverter",
     "PathConverter",
     "ImportConverter",
     "CompileConverter",
@@ -80,6 +81,7 @@ from socx.config.metadata import __appname__ as __appname__
 from socx.config.metadata import __directory__ as __directory__
 
 from socx.config.converters import Converter as Converter
+from socx.config.converters import ShConverter as ShConverter
 from socx.config.converters import PathConverter as PathConverter
 from socx.config.converters import ImportConverter as ImportConverter
 from socx.config.converters import CompileConverter as CompileConverter

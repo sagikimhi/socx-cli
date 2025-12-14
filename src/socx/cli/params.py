@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 from collections.abc import Callable
 
 import rich_click as click
@@ -14,6 +13,8 @@ from socx.cli.types import AnyCallable
 from socx.cli.callbacks import debug_cb
 from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb
+from socx.utils.decorators import join_decorators
+from socx.config.schema.plugin import PluginModel
 
 
 debug: Decorator[AnyCallable] = click.option(
@@ -56,6 +57,7 @@ configure: Decorator[AnyCallable] = click.option(
     "--config/--no-config",
     "configure",
     help="specifies whether or not user configurations should be loaded.",
+    envvar="SOCX_CONFIGURE",
     default=True,
     is_flag=True,
     is_eager=True,
@@ -66,44 +68,47 @@ configure: Decorator[AnyCallable] = click.option(
 )
 
 
-def join_decorators(*args: Any) -> Decorator[AnyCallable]:
-    """Compose multiple option decorators into a single decorator."""
-
-    def _join_decorators(func):
-        for arg in reversed(args):
-            func = arg(func)
-        return func
-
-    return _join_decorators
-
-
-def global_options() -> Callable[..., Decorator[AnyCallable]]:
+def opts() -> Callable[..., Decorator[AnyCallable]]:
     """Apply the standard set of global SoCX CLI options."""
     return join_decorators(debug, configure, verbosity)
 
 
+def panels():
+    if settings.rich_click.commands_before_options:
+        return join_decorators(*_command_panels(), *_option_panels())
+    else:
+        return join_decorators(*_option_panels(), *_command_panels())
+
+
 def option_panels():
-    panels = [
+    return join_decorators(*_option_panels())
+
+
+def command_panels():
+    return join_decorators(*_command_panels())
+
+
+def _option_panels():
+    return [
         click.option_panel(
             name=panel.name,
             options=panel.options,
         )
         for panel in settings.cli.option_panels
     ]
-    return join_decorators(*panels)
 
 
-def command_panels():
+def _command_panels():
     panel_commands = {}
 
-    for plugin in settings.plugins:
+    for name, plugin in settings.plugins.items():
+        plugin = PluginModel(name=name, **plugin)
         panel_commands[plugin.panel] = [
             *panel_commands.get(plugin.panel, []),
             plugin.name,
         ]
 
-    panels = [
+    return [
         click.command_panel(name=name, commands=commands)
         for name, commands in panel_commands.items()
     ]
-    return join_decorators(*panels)

@@ -2,145 +2,90 @@
 
 from __future__ import annotations
 
-from typing import Any
-from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import rich_click as click
-from sh import RunningCommand
-from socx import global_options, TreeFormatter, get_console, settings
-from rich.console import RenderableType
+from socx import join_decorators, settings, Decorator
+from rich.markdown import Markdown
 
-from socx_plugins.git import arguments
+import socx_plugins.git.arguments as arguments
+from socx_plugins.git._cli import console, print_command_outputs
 from socx_plugins.git.summary import Summary
 from socx_plugins.git.manifest import Manifest
 
 
-console = get_console()
-
-
-def print_with_pager(text: RenderableType) -> None:
-    with console.pager(styles=True, links=True):
-        console.print(text)
-
-
-def print_command_outputs(
-    outputs: dict[str, RunningCommand],
-    pager: bool = True,
-    title: str | None = None,
-) -> None:
-    title = title or ""
-    formatter = TreeFormatter()
-    cmd_outputs = {
-        name: output.stdout.decode() for name, output in outputs.items()
-    }
-    text = formatter(cmd_outputs, title)
-    if not pager:
-        console.print(text)
-    else:
-        print_with_pager(text)
-
-
-@click.group(context_settings=settings.cli.context_settings)
-@global_options()
-def cli() -> None:
-    """Various common git command utilities to manage your environment."""
-
-
-def command():
-    return cli.command(
-        context_settings=dict(
-            ignore_unknown_options=True,
-            allow_interspersed_args=True,
-            **settings.cli.context_settings,
-        )
+def opts() -> Decorator:
+    return join_decorators(
+        arguments.root(),
+        arguments.pager(),
+        arguments.timeout(),
+        arguments.includes(),
+        arguments.excludes(),
     )
 
 
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git log",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def log(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git log on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("log", *settings.git.log.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Log")
+def args() -> Decorator:
+    return join_decorators(arguments.git_cmd(), arguments.git_args())
 
 
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git pull",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def pull(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git pull on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("pull", *settings.git.pull.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Pull")
+def option_panels() -> Decorator:
+    return join_decorators(
+        *[
+            click.option_panel(**panel)
+            for panel in settings.git.cli.option_panels
+        ]
+    )
 
 
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git diff",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def diff(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git diff on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("diff", *settings.git.diff.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Diff")
+@click.group(**settings.git.cli.group)
+@opts()
+@args()
+@option_panels()
+@click.pass_context
+def cli(
+    ctx: click.Context,
+    pager: bool,
+    git_cmd: str,
+    git_options_and_args: list[str],
+) -> None:
+    """Run `git` commands in parallel on multiple repositories."""
+    if TYPE_CHECKING:
+        ctx.command = cast(click.Group, ctx.command)
+
+    cmd = ctx.command.get_command(ctx, git_cmd)
+
+    if cmd is not None:
+        ctx.invoke(cmd, git_options_and_args)
+    else:
+        mfest = Manifest(
+            root=settings.git.manifest.root,
+            includes=settings.git.manifest.includes,
+            excludes=settings.git.manifest.excludes,
+            cmd_timeout=settings.git.manifest.cmd_timeout,
+        )
+        flags = settings.git.get(git_cmd, {}).get("flags", [])
+        outputs = mfest.git(git_cmd, *flags, *git_options_and_args)
+        print_command_outputs(outputs, pager, f"Git {git_cmd.title()}")
 
 
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git fetch",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def fetch(root: Path, pager: bool, args: list[Any]) -> None:
-    """Run git fetch on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("fetch", *args)
-    print_command_outputs(outputs, pager=pager, title="Git Fetch")
+if TYPE_CHECKING:
+    cli = cast(click.Group, cli)
 
 
-@command()
-@arguments.root()
-@arguments.pager()
-@click.argument(
-    "args",
-    help="Arguments to pass to git status",
-    nargs=-1,
-    type=click.UNPROCESSED,
-)
-def status(root: Path, pager: bool, args: list[Any]):
-    """Run git status on all repositories found under ROOT."""
-    manifest = Manifest(root=root)
-    outputs = manifest.git("status", *settings.git.status.flags, *args)
-    print_command_outputs(outputs, pager=pager, title="Git Status")
-
-
-@cli.command()
-@global_options()
-@arguments.root()
+@cli.command(**settings.cli.command)
 @arguments.format_()
-def summary(root: Path):
+def summary():
     """Output a manifest of all git repositories found under a given path."""
-    manifest = Manifest(root=root)
-    console.print(Summary(manifest.repos.values()))
+    mfest = Manifest(
+        root=settings.git.manifest.root,
+        includes=settings.git.manifest.includes,
+        excludes=settings.git.manifest.excludes,
+        cmd_timeout=settings.git.manifest.cmd_timeout,
+    )
+    console.print(Summary(mfest.repos.values()))
+
+
+@cli.command("help", **settings.cli.command, add_help_option=False)
+def help_():
+    """Print the full help menu along with usage examples."""
+    console.print(Markdown(settings.git.cli.help))

@@ -12,10 +12,9 @@ from rich_click import Context, Parameter
 logger = log.get_logger(__name__)
 
 
-@log_it(logger=logger)
-def input_cb(ctx: Context, param: Parameter, value: str) -> str:
+def input_cb(ctx: Context, param: Parameter, value: str | Path) -> Path:
     """Normalise the regression input path and update configuration."""
-    if value:
+    if value and isinstance(value, str):
         path = Path(value)
 
         if path.exists() and path.is_file():

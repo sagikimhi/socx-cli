@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from glob import has_magic
 from pathlib import Path
+from contextlib import suppress
 from collections.abc import Generator, Iterable
 
 import git
@@ -114,6 +116,21 @@ def is_git_dir(path: str | Path) -> bool:
     return bool(get_repo(path))
 
 
+def iter_repositories(
+    root: Path, recursive: bool = False
+) -> Generator[git.Repo]:
+    for root_dir, dirs, _ in root.walk():
+        if is_git_dir(root_dir):
+            yield git.Repo(root_dir)
+
+        for name in dirs:
+            if is_git_dir(root_dir / name):
+                yield git.Repo(root_dir / name)
+
+        if not recursive:
+            break
+
+
 def find_repositories(
     directory: Path | None,
     includes: Iterable[str | Path] | None = None,
@@ -121,29 +138,35 @@ def find_repositories(
 ) -> Generator[git.Repo]:
     """Yield repositories discovered directly underneath ``directory``."""
     directory = directory or Path.cwd()
-    includes = includes or []
-    excludes = excludes or []
-    excludes_set = set()
 
-    for path in excludes:
-        if isinstance(path, str):
-            if path == "." or path == "./":
-                excludes_set.add(directory)
-            else:
-                excludes_set.update(directory.glob(path))
-        elif path.is_dir():
-            excludes_set.add(path)
+    def try_get_paths_set(paths: Iterable[str | Path]) -> set[Path]:
+        rv = set()
 
-    subdirs = list(
-        {
-            directory,
-            *filter(is_git_dir, includes),
-            *filter(is_git_dir, directory.iterdir()),
-        }.difference(excludes_set)
-    )
-    subdirs.sort(key=lambda x: Path(x).name.casefold())
-    subdirs.sort(key=lambda x: len(Path(x).name))
+        for path in paths:
+            if isinstance(path, Path):
+                if path.is_dir():
+                    rv.add(path.resolve())
+                continue
 
-    for subdir in subdirs:
-        if repo := get_repo(subdir):
+            if has_magic(path):
+                with suppress(ValueError):
+                    rv.update(directory.glob(path))
+                continue
+
+            with suppress(OSError):
+                rv.add(Path(path).resolve())
+
+        if rv:
+            rv = set(filter(is_git_dir, rv))
+
+        return rv
+
+    dirs = [get_repo_dir(repo) for repo in iter_repositories(directory)]
+    dirs = {*dirs, *try_get_paths_set(includes or [])}
+    dirs = list(dirs.difference(try_get_paths_set(excludes or [])))
+    dirs.sort(key=lambda x: Path(x).name.casefold())
+    dirs.sort(key=lambda x: len(Path(x).name))
+
+    for d in dirs:
+        if repo := get_repo(d):
             yield repo
