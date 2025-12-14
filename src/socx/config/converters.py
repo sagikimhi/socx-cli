@@ -433,12 +433,11 @@ class CommandConverter(
         argv = sys.argv.copy()
         syspath = sys.path.copy()
         environ = os.environ.copy()
-
         sys.argv = [*sys.argv[1:]]
 
         if env:
             os.environ.clear()
-            os.environ.update(env or environ)
+            os.environ.update(env)
 
         if self.is_script_path(path):
             sys.path.insert(0, str(Path(path).parent))
@@ -455,9 +454,11 @@ class CommandConverter(
                 rv = runpy.run_path(path).get(symbol, noop)(*args, **kwargs)
             else:
                 rv = runpy.run_path(path, run_name=_detect_program_name())
-        except Exception:
-            logger.exception(f"Failed to run pathspec '{value}'")
-            rv = {}
+        except Exception as exc:
+            err = f"Failed to run pathspec '{value}'"
+            logger.exception(err)
+            exc.add_note(err)
+            raise
         finally:
             sys.argv = argv
             sys.path = syspath

@@ -127,7 +127,7 @@ git:
           - --timeout
           - --include
           - --exclude
-      - name: Arguments
+      - name: Git Arguments
         options:
           - git_cmd
           - git_options_and_args
