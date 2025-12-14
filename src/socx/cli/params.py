@@ -10,11 +10,11 @@ import rich_click as click
 from socx.config import settings
 from socx.cli.types import Decorator
 from socx.cli.types import AnyCallable
-from socx.cli.plugin import PluginModel
 from socx.cli.callbacks import debug_cb
 from socx.cli.callbacks import verbosity_cb
 from socx.cli.callbacks import configure_cb
 from socx.utils.decorators import join_decorators
+from socx.config.schema.plugin import PluginModel
 
 
 debug: Decorator[AnyCallable] = click.option(
@@ -57,6 +57,7 @@ configure: Decorator[AnyCallable] = click.option(
     "--config/--no-config",
     "configure",
     help="specifies whether or not user configurations should be loaded.",
+    envvar="SOCX_CONFIGURE",
     default=True,
     is_flag=True,
     is_eager=True,
@@ -100,8 +101,8 @@ def _option_panels():
 def _command_panels():
     panel_commands = {}
 
-    for plugin in settings.plugins:
-        plugin = PluginModel(**plugin)
+    for name, plugin in settings.plugins.items():
+        plugin = PluginModel(name=name, **plugin)
         panel_commands[plugin.panel] = [
             *panel_commands.get(plugin.panel, []),
             plugin.name,

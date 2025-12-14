@@ -1,6 +1,7 @@
 """Click command group that exposes configuration management workflows."""
 
 from __future__ import annotations
+from typing import TYPE_CHECKING, cast
 
 import rich
 import rich_click as click
@@ -12,10 +13,13 @@ from socx import console, settings, TreeFormatter, get_logger
 logger = get_logger(__name__)
 
 
-@click.group("config", **settings.cli.group)
-@click.rich_config()
+@click.group(**settings.cli.group)
 def cli():
     """Get, set, inspect, or debug configuration settings."""
+
+
+if TYPE_CHECKING:
+    cli = cast(click.Group, cli)
 
 
 @cli.command()
@@ -25,10 +29,13 @@ def cli():
     is_flag=True,
     type=click.BOOL,
     default=False,
-    help="edit user configurations.",
+    help=f"""
+        Edit user configuration file at '{settings.paths.USER_CONFIG_FILE}'
+        instead of the default local .socx.yaml file.
+    """.strip(),
 )
 def edit(user: bool):
-    """Edit settings with nano/vim/nvim/gvim."""
+    """Interactively edit configuration settings in your preferred editor."""
     from socx_plugins.config.edit import edit as _edit
 
     _edit(settings.paths.USER_CONFIG_FILE if user else None)
@@ -36,7 +43,7 @@ def edit(user: bool):
 
 @cli.command()
 def tree():
-    """Print a tree of all loaded configurations."""
+    """Print a pretty tree structure of all loaded configurations."""
     formatter = TreeFormatter()
     console.print(formatter(settings.as_dict(), "Settings"))
 

@@ -36,9 +36,6 @@ __all__ = (
 # User Directories
 # -----------------------------------------------------------------------------
 
-APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[3].resolve()
-"""Absolute path to directory where application is installed."""
-
 USER_DATA_DIR: Path = user_data_path(
     appname=__appname__, appauthor=__author__, ensure_exists=True
 ).resolve()
@@ -105,6 +102,9 @@ LOCAL_CONFIG_FILE: Path = Path.cwd() / LOCAL_CONFIG_FILENAME
 # -----------------------------------------------------------------------------
 # Application Directories
 # -----------------------------------------------------------------------------
+
+APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[3].resolve()
+"""Absolute path to directory where application is installed."""
 
 APP_STATIC_DIR: Path = __directory__ / "static"
 """Path to application's static files directory."""

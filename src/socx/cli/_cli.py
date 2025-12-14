@@ -8,9 +8,9 @@ from collections.abc import Callable
 
 import rich_click as click
 
-from socx.config import settings, CommandConverter
+from socx.config import settings, CommandConverter, ShConverter
 from socx.cli.types import AnyCallable
-from socx.cli.plugin import PluginModel
+from socx.config.schema.plugin import PluginModel
 
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -22,8 +22,12 @@ class _CmdLine(click.RichGroup):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("context_settings", settings.cli.context_settings)
         super().__init__(*args, **kwargs)
-        self._converter = CommandConverter()
-        self._plugins = {p.name: PluginModel(**p) for p in settings.plugins}  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
+        self._sh_converter = ShConverter()
+        self._cmd_converter = CommandConverter()
+        self._plugins = {
+            name: PluginModel(name=name, **plugin)
+            for name, plugin in settings.plugins.items()
+        }  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
 
     @property
     def plugins(self) -> dict[str, PluginModel]:
@@ -40,7 +44,7 @@ class _CmdLine(click.RichGroup):
             if not plugin.enabled:
                 return None
 
-            cmd = self._converter(plugin.script or plugin.command)
+            cmd = self._cmd_converter(plugin)
 
             if isinstance(cmd, click.Command):
                 self._update_command_attrs(cmd, plugin)

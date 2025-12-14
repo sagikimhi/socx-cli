@@ -2,26 +2,38 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import abc
 import runpy
-import logging
 import shlex
-from pathlib import Path
+import logging
 from types import CodeType, ModuleType, MethodType, FunctionType
-from typing import Any, cast, overload, override, TypeVar, ClassVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    cast,
+    overload,
+    override,
+    TypeVar,
+    ClassVar,
+)
+from pathlib import Path
 from importlib import import_module
+from functools import singledispatchmethod
 from collections.abc import Iterable, Callable
 
 import sh
 import rich_click as click
 import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
-from click.utils import _detect_program_name
 from pydantic import validate_call, ConfigDict
 from dynaconf import add_converter
-from dynaconf.utils.parse_conf import Lazy
 from dynaconf.utils.boxing import DynaBox
+from dynaconf.utils.parse_conf import Lazy
+from click.utils import _detect_program_name
+
+from socx.config.schema.plugin import PluginModel
 
 
 AnyCallableT = TypeVar("AnyCallableT", bound=Callable[..., Any])
@@ -32,11 +44,11 @@ logger = logging.getLogger(__name__)
 _validate = validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 
 
-class Converter(abc.ABC):
+class Converter[TI, TO](abc.ABC):
     """Base protocol for Dynaconf converters used by SoCX."""
 
     @abc.abstractmethod
-    def __call__(self, value: Any) -> Any:
+    def __call__(self, value: TI) -> TO:
         """Convert Dynaconf configuration values into runtime objects."""
 
     @property
@@ -44,18 +56,16 @@ class Converter(abc.ABC):
         """Return the registered converter name inferred from the class."""
         return self.__class__.__name__.lower().removesuffix("converter")
 
-    def exception(self, value: str) -> None:
-        """Log a conversion failure with context for debugging."""
-        logger.exception(
-            f"Converter({self.name}): failed to convert value '{value}'"
-        )
-
-    def error(self, error: str) -> None:
+    def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log a recoverable converter error message."""
-        logger.error(f"Converter({self.name}): {error}")
+        logger.exception(msg, *args, **kwargs)
+
+    def exception(self, msg: str, *args: Any, **kwargs: Any) -> None:
+        """Log a conversion failure with context for debugging."""
+        logger.exception(msg, *args, **kwargs)
 
 
-class PathConverter(Converter):
+class PathConverter(Converter[str | Path | Lazy, Path | Lazy]):
     """Resolve string inputs into concrete filesystem paths."""
 
     @overload
@@ -69,6 +79,8 @@ class PathConverter(Converter):
     def __call__(self, value: str | Path | Lazy) -> Lazy | Path:
         """Return a resolved ``Path`` or preserve deferred conversion."""
         if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
             return value.set_casting(self)
 
         path = Path(value) if isinstance(value, str) else value
@@ -81,14 +93,23 @@ class PathConverter(Converter):
         return path
 
 
-class CompileConverter(Converter):
+class CompileConverter(Converter[str | Path | Lazy, CodeType | Lazy | None]):
     """Compile python source files referenced in configuration values."""
+
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
+    @overload
+    def __call__(self, value: str) -> CodeType | None: ...
+    @overload
+    def __call__(self, value: Path) -> CodeType | None: ...
 
     @override
     @_validate
     def __call__(self, value: str | Path | Lazy) -> CodeType | Lazy | None:
         """Return compiled code objects or propagate lazy evaluation."""
         if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
             return value.set_casting(self)
 
         if isinstance(value, str):
@@ -108,7 +129,7 @@ class CompileConverter(Converter):
         return rv
 
 
-class ImportConverter(Converter):
+class ImportConverter(Converter[str | Lazy, ModuleType | Lazy | None]):
     """Import modules referenced in configuration entries."""
 
     @override
@@ -116,27 +137,58 @@ class ImportConverter(Converter):
     def __call__(self, value: str | Lazy) -> ModuleType | Lazy | None:
         """Import a module referenced by dotted string or handle laziness."""
         if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
             return value.set_casting(self)
+
+        if not self.is_module_path(value):
+            return None
+
+        if TYPE_CHECKING:
+            value = cast(str, value)
 
         try:
             rv = import_module(value)
         except ImportError:
             rv = None
             self.exception(value)
-        return rv
+        else:
+            return rv
+
+    @classmethod
+    def is_module_path(cls, path: Any) -> bool:
+        return isinstance(path, str) and all(
+            part.isidentifier() for part in path.split(".")
+        )
 
 
-class EvalConverter(Converter):
+class EvalConverter(
+    Converter[str | Path | CodeType | Lazy, Lazy | dict[str, Any]]
+):
     """Evaluate compiled python code in an isolated namespace."""
 
     def __init__(self) -> None:
         self.compiler = CompileConverter()
 
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
+    @overload
+    def __call__(self, value: str) -> dict[str, Any]: ...
+    @overload
+    def __call__(self, value: Path) -> dict[str, Any]: ...
+    @overload
+    def __call__(self, value: CodeType) -> dict[str, Any]: ...
+
     @override
     @_validate
-    def __call__(self, value: str | Path | CodeType | Lazy) -> Any:
+    def __call__(
+        self,
+        value: str | Path | CodeType | Lazy,
+    ) -> dict[str, Any] | Lazy:
         """Provide an execution namespace for compiled configuration code."""
         if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
             return value.set_casting(self)
 
         code = self.compiler(value) if isinstance(value, str | Path) else value
@@ -154,7 +206,7 @@ class EvalConverter(Converter):
         return {}
 
 
-class SymbolConverter(Converter):
+class SymbolConverter(Converter[str | Lazy, Any]):
     """Resolve dotted ``path:attribute`` references or file symbols."""
 
     def __init__(self) -> None:
@@ -164,7 +216,6 @@ class SymbolConverter(Converter):
 
     @overload
     def __call__(self, value: str) -> Any: ...
-
     @overload
     def __call__(self, value: Lazy) -> Lazy: ...
 
@@ -172,11 +223,12 @@ class SymbolConverter(Converter):
     @_validate
     def __call__(self, value: str | Lazy) -> Any:
         """Resolve a symbol from a module or python file path."""
-        logger.debug(f"Symbol converter called with value: {value}")
         if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
             return value.set_casting(self)
 
-        path, _, symbol = value.rpartition(":")
+        path, _, symbol = value.partition(":")
 
         if not path:
             self.error(f"Command path/pathspec is missing: {value}")
@@ -201,7 +253,12 @@ class SymbolConverter(Converter):
         return None
 
 
-class CommandConverter(Converter):
+class CommandConverter(
+    Converter[
+        str | Lazy | sh.Command | click.Command | PluginModel,
+        str | Lazy | click.Command,
+    ]
+):
     """Turn module or script references into Rich Click commands."""
 
     command_kwargs: ClassVar[dict[str, Any]] = dict(
@@ -230,36 +287,34 @@ class CommandConverter(Converter):
 
     def __init__(self) -> None:
         self.importer = ImportConverter()
-
-    @overload
-    def __call__(self, value: str) -> click.Command: ...
-
-    @overload
-    def __call__(self, value: None) -> None: ...
-
-    @overload
-    def __call__(self, value: sh.Command) -> click.Command: ...
-
-    @overload
-    def __call__(self, value: click.Command) -> click.Command: ...
+        self.sh_converter = ShConverter()
 
     @overload
     def __call__(self, value: Lazy) -> Lazy: ...
+    @overload
+    def __call__(self, value: str) -> click.Command: ...
+    @overload
+    def __call__(self, value: sh.Command) -> click.Command: ...
+    @overload
+    def __call__(self, value: click.Command) -> click.Command: ...
+    @overload
+    def __call__(self, value: PluginModel) -> click.Command: ...
 
     @override
     @_validate
-    def __call__(self, value: Any) -> Lazy | click.Command | None:
+    def __call__(
+        self, value: str | Lazy | sh.Command | click.Command | PluginModel
+    ) -> Lazy | click.Command:
         """Build a Click command from dotted paths or reuse existing ones."""
-        if value is None:
-            return None
-
         if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
             return value.set_casting(self)
 
         self._patch_theme()
 
-        if self.is_click_command(value):
-            return cast(click.RichCommand, value)
+        if isinstance(value, click.Command):
+            return value
 
         @click.group(**self.group_kwargs)
         @click.argument(
@@ -273,37 +328,117 @@ class CommandConverter(Converter):
         def cli(args):
             nonlocal value
 
-            if self.is_shell_command(value):
+            if TYPE_CHECKING:
+                value = cast(str | sh.Command | PluginModel, value)
+
+            if isinstance(value, str):
+                return self._run_from_pathspec(value, *args)
+
+            if isinstance(value, sh.Command):
+                return self._run_shell_script(value, *args)
+
+            if isinstance(value, PluginModel) and value.is_script():
                 return self._run_shell_script(value, *args)
 
             return self._run_from_pathspec(value, *args)
 
         return cli
 
-    def _run_shell_script(self, value, *args, **kwargs) -> int:
-        cmd = value.bake(*args, **kwargs)
-        proc = cmd(
+    @singledispatchmethod
+    def _run_shell_script(
+        self,
+        value: str | sh.Command | PluginModel,
+        *args: Any,
+        env: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> int: ...
+
+    @_run_shell_script.register
+    def _(
+        self,
+        value: str,
+        *args: Any,
+        env: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> int:
+        cmd = self.sh_converter.convert(value)
+        if isinstance(cmd, str):
+            return -1
+        else:
+            return self._run_shell_script(cmd, *args, env=env, **kwargs)
+
+    @_run_shell_script.register
+    def _(
+        self,
+        value: sh.Command,
+        *args: Any,
+        env: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> int:
+        env = env or os.environ.copy()
+        proc = value(
+            *args,
+            **kwargs,
             _bg=True,
+            _env=env,
             _in=sys.stdin,
             _out=sys.stdout,
             _err=sys.stderr,
+            _return_cmd=True,
         )
-        return proc.wait()
 
+        if TYPE_CHECKING:
+            proc = cast(sh.RunningCommand, proc)
+
+        rv = proc.exit_code
+        return rv if rv is not None else -1
+
+    @_run_shell_script.register
+    def _(
+        self,
+        value: PluginModel,
+        *args: Any,
+        env: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> int:
+        env = (
+            value.env
+            if value.fresh_env
+            else {**os.environ.copy(), **value.env}
+        )
+        return self._run_shell_script(value.script, *args, env=env, **kwargs)
+
+    @singledispatchmethod
     def _run_from_pathspec(
-        self, value, *args, **kwargs
-    ) -> dict[str, Any] | Any:
-        def noop(*args, **kwargs) -> None:
-            pass
+        self,
+        value: str | Path | PluginModel,
+        *args: Any,
+        env: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any] | Any: ...
 
-        if not isinstance(value, str):
-            value = str(value)
+    @_run_from_pathspec.register
+    def _(
+        self,
+        value: str,
+        *args: Any,
+        env: dict[str, str] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any] | Any:
+        def noop(**_) -> None:
+            pass
 
         rv = {}
         path, _, symbol = value.partition(":")
         argv = sys.argv.copy()
         syspath = sys.path.copy()
+        environ = os.environ.copy()
+
         sys.argv = [*sys.argv[1:]]
+
+        if env:
+            os.environ.clear()
+            os.environ.update(env or environ)
 
         if self.is_script_path(path):
             sys.path.insert(0, str(Path(path).parent))
@@ -322,12 +457,39 @@ class CommandConverter(Converter):
                 rv = runpy.run_path(path, run_name=_detect_program_name())
         except Exception:
             logger.exception(f"Failed to run pathspec '{value}'")
-            rv = 1
+            rv = {}
         finally:
             sys.argv = argv
             sys.path = syspath
+            os.environ.clear()
+            os.environ.update(environ)
 
         return rv
+
+    @_run_from_pathspec.register
+    def _(
+        self,
+        value: Path,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any] | Any:
+        self._run_from_pathspec(str(value), *args, **kwargs)
+
+    @_run_from_pathspec.register
+    def _(
+        self,
+        value: PluginModel,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any] | Any:
+        if not value.command:
+            return {}
+        env = (
+            value.env
+            if value.fresh_env
+            else {**os.environ.copy(), **value.env}
+        )
+        return self._run_from_pathspec(value.command, *args, env=env, **kwargs)
 
     @classmethod
     def _patch_theme(cls) -> None:
@@ -351,13 +513,10 @@ class CommandConverter(Converter):
         return isinstance(value, sh.Command)
 
     def is_click_command(self, value: Any) -> bool:
-        return isinstance(value, click.Command | click.Group)
+        return isinstance(value, click.Command)
 
     def is_module_path(self, path: Any) -> bool:
-        if isinstance(path, str):
-            return all(part.isidentifier() for part in path.split("."))
-        else:
-            return False
+        return self.importer.is_module_path(path)
 
     def is_script_path(self, value: Any) -> bool:
         """Return ``True`` if ``path`` points to a python script file."""
@@ -382,28 +541,103 @@ class CommandConverter(Converter):
         )
 
 
-class IncludeConverter(Converter):
+class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
     """Load configuration files referenced within other settings."""
+
+    @overload
+    def __call__(self, value: Lazy) -> Lazy: ...
+    @overload
+    def __call__(self, value: str) -> DynaBox | None: ...
+    @overload
+    def __call__(self, value: Path) -> DynaBox | None: ...
 
     @override
     @_validate
     def __call__(self, value: str | Path | Lazy) -> DynaBox | Lazy | None:
         """Return a new ``Settings`` instance for the provided include path."""
         if isinstance(value, Lazy):
-            value.set_casting(self)
-            return value
+            if value.casting is self:
+                return value
+            return value.set_casting(self)
 
         path = Path(value) if isinstance(value, str) else value
 
+        if not self.is_yaml_path(path):
+            return DynaBox()
+
         try:
-            obj = DynaBox().from_yaml(path.read_text())
+            obj = DynaBox.from_yaml(path.read_text())
         except Exception:
             self.exception(str(value))
-            return None
+            obj = DynaBox()
         return obj
 
+    @classmethod
+    def is_yaml_path(cls, value: Path) -> bool:
+        return (
+            value.exists()
+            and value.is_file()
+            and value.suffix in [".yml", ".yaml"]
+        )
 
-class GenericConverter(Converter):
+
+class ShConverter(
+    Converter[str | Lazy | sh.Command | PluginModel, str | Lazy | sh.Command]
+):
+    @override
+    @_validate
+    def __call__(
+        self, value: str | Lazy | sh.Command | PluginModel
+    ) -> str | Lazy | sh.Command:
+        return self.convert(value)
+
+    @singledispatchmethod
+    def convert(
+        self, value: str | sh.Command | PluginModel
+    ) -> str | Lazy | sh.Command: ...
+
+    @convert.register
+    def _(self, value: str) -> str | sh.Command:
+        args = [arg.strip() for arg in value.split()]
+
+        if not args:
+            err = f"Invalid script '{shlex.quote(value)}'"
+            self.error(err)
+            return value
+
+        try:
+            cmd = sh.Command(args.pop(0))
+        except sh.CommandNotFound as exc:
+            err = f"Invalid script '{shlex.quote(value)}': {exc}"
+            self.error(err)
+            exc.add_note(err)
+            raise
+        else:
+            return cmd.bake(*args) if args else cmd
+
+    @convert.register
+    def _(self, value: Lazy) -> Lazy:
+        return value if value.casting is self else value.set_casting(self)
+
+    @convert.register
+    def _(self, value: sh.Command) -> sh.Command:
+        return value
+
+    @convert.register
+    def _(self, value: PluginModel) -> str | sh.Command:
+        if isinstance(value.script, str):
+            return value.script
+
+        env = (
+            value.env
+            if value.fresh_env
+            else {**os.environ.copy(), **value.env}
+        )
+
+        return value.script.bake(_env=env)
+
+
+class GenericConverter(Converter[Any, Any]):
     """Adapter turning plain callables into ``Converter`` instances."""
 
     @override
@@ -438,20 +672,6 @@ def get_converters() -> Iterable[tuple[str, Converter]]:
             cvt = GenericConverter(name, cvt)
         rv.append((name, cvt))
     return rv
-
-
-class ShConverter(Converter):
-    def __call__(self, value: str) -> sh.Command:
-        args = [arg.strip() for arg in value.split()]
-        try:
-            cmd = sh.Command(args[0])
-        except sh.CommandNotFound:
-            self.error(f"Command {shlex.quote(args[0])}")
-            raise
-        else:
-            cmd = cmd.bake(*args[1:])
-
-        return cmd
 
 
 def init() -> None:

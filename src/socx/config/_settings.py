@@ -33,11 +33,11 @@ class Settings(LazySettings):
 
     def __init__(self, wrapped=None, **kwargs: Any) -> None:
         """Initialise Dynaconf with project defaults and user overrides."""
-        LazySettings.__init__(self, wrapped, **{**SETTINGS_OPTIONS, **kwargs})
+        LazySettings.__init__(self, wrapped, **SETTINGS_OPTIONS, **kwargs)
 
     def to_yaml(self, key: str | None = None) -> str:
         """Serialize all settings or a nested key selection to YAML."""
-        if key is None:
+        if key is None or not bool(key):
             data = DynaBox(**self.as_dict())  # pyright: ignore[reportCallIssue, reportOptionalCall]
         else:
             data = DynaBox(**{key: self.get(key, {})})  # pyright: ignore[reportCallIssue, reportOptionalCall]

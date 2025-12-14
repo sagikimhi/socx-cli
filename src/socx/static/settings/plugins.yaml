@@ -1,6 +1,6 @@
 ---
 plugins:
-  - name: git
+  git:
     help: Run `git` commands in parallel on multiple repositories.
     panel: Commands
     enabled: true
@@ -12,36 +12,35 @@ plugins:
       > For a more in-depth explanation with working examples, run `socx git
       > help`
 
-
-  - name: rgr
+  rgr:
     help: Perform various regression related actions.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.rgr:cli"
 
-  - name: plugin
+  plugin:
     help: Add, create, inspect, and manage extension plugins.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.plugin:cli"
 
-  - name: config
+  config:
     help: Get, set, list, or modify settings configuration values.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.config:cli"
 
-  - name: convert
+  convert:
     help: Perform a conversion based on current configurations.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.convert:cli"
 
-  - name: version
+  version:
     help: Print version information and exit.
     panel: Commands
     enabled: true

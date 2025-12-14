@@ -55,6 +55,7 @@ __all__ = (
     "Formatter",
     "TreeFormatter",
     "Converter",
+    "ShConverter",
     "PathConverter",
     "CompileConverter",
     "ImportConverter",
@@ -110,6 +111,9 @@ from socx.io import get_handler_names as get_handler_names
 from socx.cli import cli as cli
 from socx.cli import cfg as cli_cfg
 from socx.cli import opts as opts
+from socx.cli import debug as debug
+from socx.cli import configure as configure
+from socx.cli import verbosity as verbosity
 from socx.cli import Decorator as Decorator
 from socx.cli import AnyCallable as AnyCallable
 
@@ -143,6 +147,7 @@ from socx.config import (
 from socx.config import Formatter as Formatter
 from socx.config import TreeFormatter as TreeFormatter
 from socx.config import Converter as Converter
+from socx.config import ShConverter as ShConverter
 from socx.config import PathConverter as PathConverter
 from socx.config import SymbolConverter as SymbolConverter
 from socx.config import ImportConverter as ImportConverter
