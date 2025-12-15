@@ -16,6 +16,9 @@ from socx.cli.callbacks import configure_cb
 from socx.utils.decorators import join_decorators
 from socx.config.schema.plugin import PluginModel
 
+group: Decorator[AnyCallable] = click.command(**settings.cli.group)
+
+command: Decorator[AnyCallable] = click.command(**settings.cli.command)
 
 debug: Decorator[AnyCallable] = click.option(
     "--debug",
