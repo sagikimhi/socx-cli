@@ -2,124 +2,57 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from inspect import getfile
-
-from platformdirs import user_log_path
-from platformdirs import user_data_path
-from platformdirs import user_state_path
-from platformdirs import user_cache_path
-from platformdirs import user_config_path
-from platformdirs import user_runtime_path
-
-from socx.config.metadata import __author__
-from socx.config.metadata import __appname__
-from socx.config.metadata import __directory__
-
 __all__ = (
-    "APP_ROOT_DIR",
+    # Project Directories
+    "PROJECT_ROOT_DIR",
+    "PROJECT_CONFIG_FILE",
+    # User Directories
     "USER_LOG_DIR",
     "USER_DATA_DIR",
     "USER_CACHE_DIR",
     "USER_STATE_DIR",
     "USER_CONFIG_DIR",
     "USER_RUNTIME_DIR",
+    # User Files
     "USER_LOG_FILE",
     "USER_CONFIG_FILE",
+    "LOCAL_CONFIG_FILE",
+    "USER_LOG_FILENAME",
+    "USER_CONFIG_FILENAME",
+    "LOCAL_CONFIG_FILENAME",
+    # Application Directories
+    "APP_ROOT_DIR",
     "APP_STATIC_DIR",
     "APP_CONFIG_DIR",
     "APP_TEMPLATES_DIR",
+    # Application Files
     "APP_CONFIG_FILE",
+    "APP_CONFIG_FILENAME",
 )
 
-# -----------------------------------------------------------------------------
+
+# Project Directories
+from socx.config._paths import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
+from socx.config._paths import PROJECT_CONFIG_FILE as PROJECT_CONFIG_FILE
 # User Directories
-# -----------------------------------------------------------------------------
-
-USER_DATA_DIR: Path = user_data_path(
-    appname=__appname__, appauthor=__author__, ensure_exists=True
-).resolve()
-"""Absolute path to platform's native application data directory."""
-
-
-USER_CACHE_DIR: Path = user_cache_path(
-    appname=__appname__, appauthor=__author__, ensure_exists=True
-).resolve()
-"""Absolute path to platform's native application cache directory."""
-
-
-USER_STATE_DIR: Path = user_state_path(
-    appname=__appname__, appauthor=__author__, ensure_exists=True
-).resolve()
-"""Absolute path to platform's native application state directory."""
-
-
-USER_CONFIG_DIR: Path = user_config_path(
-    appname=__appname__, appauthor=__author__, ensure_exists=True
-).resolve()
-"""Absolute path to platform's native application config directory."""
-
-
-USER_RUNTIME_DIR: Path = user_runtime_path(
-    appname=__appname__, appauthor=__author__, ensure_exists=True
-).resolve()
-"""Absolute path to platform's native application runtime directory."""
-
-
-USER_LOG_DIR: Path = user_log_path(
-    appname=__appname__,
-    appauthor=__author__,
-    ensure_exists=True,
-).resolve()
-"""Absolute path to platform's native application logs directory."""
-
-# -----------------------------------------------------------------------------
-# User File Names
-# -----------------------------------------------------------------------------
-
-USER_LOG_FILENAME: str = f"{__appname__}.log"
-"""File name of application's native log file used for debug and tracing."""
-
-USER_CONFIG_FILENAME: str = f"{__appname__}.yaml"
-"""File name searched in user's config directory to load user configs."""
-
-LOCAL_CONFIG_FILENAME: str = f".{__appname__}.yaml"
-"""File name searched in parent directories to load local config overrides."""
-
-# -----------------------------------------------------------------------------
+from socx.config._paths import USER_LOG_DIR as USER_LOG_DIR
+from socx.config._paths import USER_DATA_DIR as USER_DATA_DIR
+from socx.config._paths import USER_CACHE_DIR as USER_CACHE_DIR
+from socx.config._paths import USER_STATE_DIR as USER_STATE_DIR
+from socx.config._paths import USER_CONFIG_DIR as USER_CONFIG_DIR
+from socx.config._paths import USER_RUNTIME_DIR as USER_RUNTIME_DIR
 # User Files
-# -----------------------------------------------------------------------------
-
-USER_LOG_FILE: Path = USER_LOG_DIR / USER_LOG_FILENAME
-"""Absolute path to application's main log for the current local user."""
-
-USER_CONFIG_FILE: Path = USER_CONFIG_DIR / USER_CONFIG_FILENAME
-"""Absolute path to application's user config file."""
-
-LOCAL_CONFIG_FILE: Path = Path.cwd() / LOCAL_CONFIG_FILENAME
-"""Absolute path to the nearest local override configuration file."""
-
-# -----------------------------------------------------------------------------
+from socx.config._paths import USER_LOG_FILE as USER_LOG_FILE
+from socx.config._paths import USER_CONFIG_FILE as USER_CONFIG_FILE
+from socx.config._paths import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
+from socx.config._paths import USER_LOG_FILENAME as USER_LOG_FILENAME
+from socx.config._paths import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
+from socx.config._paths import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
 # Application Directories
-# -----------------------------------------------------------------------------
-
-APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[3].resolve()
-"""Absolute path to directory where application is installed."""
-
-APP_STATIC_DIR: Path = __directory__ / "static"
-"""Path to application's static files directory."""
-
-
-APP_CONFIG_DIR: Path = APP_STATIC_DIR / "settings"
-"""Path to application's settings files directory."""
-
-
-APP_TEMPLATES_DIR: Path = __directory__ / "templates"
-"""Path to application's template files directory."""
-
-# -----------------------------------------------------------------------------
+from socx.config._paths import APP_ROOT_DIR as APP_ROOT_DIR
+from socx.config._paths import APP_STATIC_DIR as APP_STATIC_DIR
+from socx.config._paths import APP_CONFIG_DIR as APP_CONFIG_DIR
+from socx.config._paths import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
 # Application Files
-# -----------------------------------------------------------------------------
-
-APP_CONFIG_FILE: Path = APP_CONFIG_DIR / "settings.yaml"
-"""File path to application's main settings file."""
+from socx.config._paths import APP_CONFIG_FILE as APP_CONFIG_FILE
+from socx.config._paths import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME

@@ -38,20 +38,26 @@ __all__ = (
     "__version__",
     "__appname__",
     "__directory__",
-    "APP_CONFIG_DIR",
-    "APP_CONFIG_FILE",
+    "USER_LOG_DIR",
     "USER_DATA_DIR",
     "USER_CACHE_DIR",
     "USER_STATE_DIR",
     "USER_CONFIG_DIR",
     "USER_RUNTIME_DIR",
-    "USER_LOG_DIR",
     "USER_LOG_FILE",
     "USER_CONFIG_FILE",
+    "LOCAL_CONFIG_FILE",
+    "USER_LOG_FILENAME",
+    "USER_CONFIG_FILENAME",
+    "LOCAL_CONFIG_FILENAME",
+    "PROJECT_ROOT_DIR",
+    "PROJECT_CONFIG_FILE",
+    "APP_ROOT_DIR",
     "APP_STATIC_DIR",
-    "APP_TEMPLATES_DIR",
     "APP_CONFIG_DIR",
+    "APP_TEMPLATES_DIR",
     "APP_CONFIG_FILE",
+    "APP_CONFIG_FILENAME",
     "Formatter",
     "TreeFormatter",
     "Converter",
@@ -133,10 +139,18 @@ from socx.config import USER_CONFIG_DIR as USER_CONFIG_DIR
 from socx.config import USER_RUNTIME_DIR as USER_RUNTIME_DIR
 from socx.config import USER_LOG_FILE as USER_LOG_FILE
 from socx.config import USER_CONFIG_FILE as USER_CONFIG_FILE
+from socx.config import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
+from socx.config import USER_LOG_FILENAME as USER_LOG_FILENAME
+from socx.config import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
+from socx.config import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
+from socx.config import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
+from socx.config import PROJECT_CONFIG_FILE as PROJECT_CONFIG_FILE
+from socx.config import APP_ROOT_DIR as APP_ROOT_DIR
 from socx.config import APP_STATIC_DIR as APP_STATIC_DIR
 from socx.config import APP_CONFIG_DIR as APP_CONFIG_DIR
 from socx.config import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
 from socx.config import APP_CONFIG_FILE as APP_CONFIG_FILE
+from socx.config import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
 from socx.config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
 from socx.config import get_includes as get_includes
 from socx.config import get_excludes as get_excludes
