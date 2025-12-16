@@ -5,7 +5,7 @@ from __future__ import annotations
 __all__ = (
     # Project Directories
     "PROJECT_ROOT_DIR",
-    "PROJECT_CONFIG_FILE",
+    "PROJECT_ROOT_CONFIG",
     # User Directories
     "USER_LOG_DIR",
     "USER_DATA_DIR",
@@ -33,7 +33,7 @@ __all__ = (
 
 # Project Directories
 from socx.config._paths import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
-from socx.config._paths import PROJECT_CONFIG_FILE as PROJECT_CONFIG_FILE
+from socx.config._paths import PROJECT_ROOT_CFG as PROJECT_ROOT_CONFIG
 # User Directories
 from socx.config._paths import USER_LOG_DIR as USER_LOG_DIR
 from socx.config._paths import USER_DATA_DIR as USER_DATA_DIR

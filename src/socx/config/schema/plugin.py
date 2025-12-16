@@ -5,7 +5,8 @@ from __future__ import annotations
 import shlex
 
 import sh
-import click
+import rich_click as click
+from dynaconf.utils.boxing import DynaBox
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -105,6 +106,11 @@ class PluginModel(BaseModel):
     def is_command(self) -> bool:
         return bool(self.command)
 
+    @classmethod
+    def to_yaml(cls) -> str | None:
+        return DynaBox.from_json(cls.model_json_schema()).to_yaml()
+
+
     @field_validator("script", mode="before")
     @classmethod
     def validate_script(cls, value: str | sh.Command) -> str | sh.Command:
@@ -123,3 +129,5 @@ class PluginModel(BaseModel):
             raise ValidationError(err) from None
 
         return cmd.bake(*args) if args else cmd
+
+p = PluginModel.model_construct()

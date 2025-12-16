@@ -150,7 +150,7 @@ APP_CONFIG_FILE: Path = APP_CONFIG_DIR / APP_CONFIG_FILENAME
 PROJECT_ROOT_DIR: Path = find_project_root(Path.cwd()) or Path.cwd()
 """Path to project root directory if such exists, otherwise None."""
 
-PROJECT_CONFIG_FILE: Path = PROJECT_ROOT_DIR / LOCAL_CONFIG_FILENAME
+PROJECT_ROOT_CFG: Path = PROJECT_ROOT_DIR / LOCAL_CONFIG_FILENAME
 """Path to project root configuration file.
 
 Note that this is simply a path and does not indicate the existence of it.

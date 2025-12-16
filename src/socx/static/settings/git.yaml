@@ -1,7 +1,7 @@
 ---
 git:
   manifest:
-    root: ~
+    root: "@jinja {{'.' | relpath}}"
     includes: []
     excludes: []
     references: {}
@@ -88,19 +88,7 @@ git:
         style: cyan
 
   cli:
-    context_settings: &socx-git-context-settings
-      help_option_names:
-        - -h
-        - --help
-      allow_extra_args: true
-      ignore_unknown_options: true
-      allow_interspersed_args: true
     group:
-      context_settings: *socx-git-context-settings
-      no_args_is_help: true
-      invoke_without_command: true
-      options_metavar: "[<options>]"
-      subcommand_metavar: "\n[<options>] [<subcommand>] [<args>...]"
       help: Run `git` commands in parallel on multiple repositories.
       epilog: |
         > ---
@@ -115,18 +103,31 @@ git:
         >
 
         > ---
+      no_args_is_help: true
+      invoke_without_command: true
+      options_metavar: "[<options>]"
+      subcommand_metavar: "\n[<options>] [<subcommand>] [<args>...]"
+      context_settings:
+        help_option_names:
+          - -h
+          - --help
+        allow_extra_args: true
+        ignore_unknown_options: true
+        allow_interspersed_args: true
 
     option-panels:
       - name: I/O Options
         options:
           - --help
           - --pager
+
       - name: Git Options
         options:
           - --root
           - --timeout
           - --include
           - --exclude
+
       - name: Git Arguments
         options:
           - git_cmd

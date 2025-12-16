@@ -9,7 +9,7 @@ from upath import UPath as Path
 from dynaconf.utils import ensure_a_list
 
 from socx.config import converters
-from socx.config.paths import (
+from socx.config._paths import (
     LOCAL_CONFIG_FILE,
     LOCAL_CONFIG_FILENAME,
     USER_CONFIG_FILE,
@@ -20,17 +20,7 @@ from socx.config._settings import Settings
 logger = logging.getLogger(__name__)
 
 
-def find_root_dir() -> Path | None:
-    """Find the outermost parent directory containing a .socx.yaml file."""
-    root = None
-    for parent in Path(LOCAL_CONFIG_FILE).parents:
-        cfg = parent / LOCAL_CONFIG_FILENAME
-        if cfg.exists() and cfg.is_file():
-            root = cfg
-    return root
-
-
-def get_local_settings_files() -> list[Path]:
+def get_local_config_files() -> list[Path]:
     """Get a list of all valid user and local configuration file paths.
 
     Description
@@ -62,7 +52,7 @@ def get_local_settings_files() -> list[Path]:
 
     """
     local_includes = []
-    for parent in Path(LOCAL_CONFIG_FILE).parents:
+    for parent in LOCAL_CONFIG_FILE.parents:
         cfg = parent / LOCAL_CONFIG_FILENAME
         if cfg.exists() and cfg.is_file():
             local_includes.append(cfg)
@@ -80,7 +70,7 @@ def get_includes(settings: Settings) -> list[str]:
     includes_it = chain(
         iter(ensure_a_list(settings.DYNACONF_INCLUDE)),
         iter(ensure_a_list(settings.INCLUDE_FOR_DYNACONF)),
-        iter(get_local_settings_files()),
+        iter(get_local_config_files()),
     )
     return [str(f) for f in includes_it if str(f) not in excludes]
 
@@ -96,8 +86,8 @@ def get_settings(path: str | Path | None = None, *args, **kwargs) -> Settings:
     if isinstance(path, str):
         path = Path(path).resolve()
 
-    includes = get_local_settings_files()
-    settings_files = [str(path)]
+    includes = get_local_config_files()
+    settings_files = ensure_a_list(str(path))
 
     if USER_CONFIG_FILE.exists():
         settings_files.append(str(USER_CONFIG_FILE))

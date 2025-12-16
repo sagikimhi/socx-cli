@@ -4,8 +4,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 import rich
+from rich.syntax import Syntax
 import rich_click as click
-from dynaconf.utils.inspect import get_debug_info
 
 from socx import console, settings, TreeFormatter, get_logger
 
@@ -42,22 +42,54 @@ def edit(user: bool):
 
 
 @cli.command()
-def tree():
+@click.option(
+    "--raw",
+    "-r",
+    "raw",
+    help="""
+    Disable auto casting of configuration values, instead, use the raw
+    configuration values as defined in the original settings file.
+    """.strip(),
+    is_flag=True,
+    default=False,
+    show_default=True,
+)
+def tree(raw: bool):
     """Print a pretty tree structure of all loaded configurations."""
     formatter = TreeFormatter()
-    console.print(formatter(settings.as_dict(), "Settings"))
+    console.print(
+        formatter(settings.raw if raw else settings.as_dict(), "Settings")
+    )
 
 
 @cli.command("list")
-def list_():
+@click.option(
+    "--raw",
+    "-r",
+    "raw",
+    help="""
+    Disable auto casting of configuration values, instead, use the raw
+    configuration values as defined in the original settings file.
+    """.strip(),
+    is_flag=True,
+    default=False,
+    show_default=True,
+)
+def list_(raw: bool):
     """Print a list of all current configuration values."""
-    console.print(settings.as_dict(settings.current_env))
+    console.print(settings.raw if raw else settings.as_dict())
 
 
 @cli.command()
 def debug():
     """Dump cli debug info and modification history."""
-    console.print(get_debug_info(settings))
+    console.print(settings.get_debug_info(verbosity=2))
+
+
+@cli.command()
+def history():
+    """Dump cli debug info and modification history."""
+    console.print(settings.get_history())
 
 
 @cli.command()
@@ -65,23 +97,39 @@ def inspect():
     """Inspect the current settings instance and print the results."""
     rich.inspect(
         settings,
-        title="Inspect Settings",
-        console=console,
+        title="Settings",
         help=True,
-        methods=True,
         docs=True,
-        private=True,
         value=True,
+        dunder=False,
+        private=True,
+        methods=True,
+        console=console,
     )
 
 
 @cli.command(no_args_is_help=True)
+@click.option(
+    "--raw",
+    "-r",
+    "raw",
+    help="""
+    Disable auto casting of configuration values, instead, use the raw
+    configuration values as defined in the original settings file.
+    """.strip(),
+    is_flag=True,
+    default=False,
+    show_default=True,
+)
 @click.argument(
     "field",
     type=click.STRING,
+    required=True,
+    metavar="<field>",
     help="The configuration field to be read.",
 )
-def get(field: str):
+@click.pass_context
+def get(ctx: click.Context, raw: bool, field: str):
     """Get the current value of a configuration field.
 
     > ***TIP***
@@ -90,13 +138,12 @@ def get(field: str):
     > - Run `socx config tree` to print a tree of available config fields
 
     """
+    if field not in settings:
+        ctx.fail(f"Invalid field: '{field}'")
+
     formatter = TreeFormatter()
-    if value := settings.get(field):
-        console.print(formatter(value, field))
-    else:
-        ctx = click.get_current_context()
-        if ctx is not None:
-            ctx.fail(f"No such field: {field}")
+    value = settings.get_raw(field) if raw else settings.get(field)
+    console.print(formatter(obj=value, label=field))
 
 
 get.help = """
@@ -110,3 +157,40 @@ Some available fields:
         f"- {key.lower()}" for key in settings if "dynaconf" not in key.lower()
     )
 )
+
+
+@cli.command(**settings.cli.command)
+@click.option(
+    "--format",
+    "-f",
+    "format_",
+    nargs=1,
+    type=click.Choice(["yaml", "toml", "json"]),
+    help="Specify a format for dumping configrations.",
+    envvar="SOCX_CONFIG_DUMP_FORMAT",
+    default="yaml",
+    show_envvar=True,
+    show_default=True,
+)
+@click.argument(
+    "field",
+    default=None,
+    type=click.STRING,
+    metavar="[field]",
+    help="An optional name of the configuration field to be shown",
+    required=False,
+)
+@click.pass_context
+def dump(
+    ctx: click.Context,
+    format_: str,
+    field: str | None,
+) -> None:
+    """Dump the current settings configurations in the specified format."""
+    if field and field not in settings:
+        ctx.fail(f"No such field: {field}")
+
+    f = getattr(settings, f"to_{format_}")
+    rv = Syntax(f(field), format_, theme="ansi_dark")
+
+    console.print(rv)

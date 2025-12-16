@@ -2,19 +2,12 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from types import ModuleType
 from typing import Any, override
 
+from dynaconf import LazySettings
 
-class Serializer[T](ABC):
-    """Generic protocol for converting values into configuration payloads."""
-
-    @classmethod
-    @abstractmethod
-    def serialize(cls, value: T) -> dict[str, Any]:
-        """Serialize a value to a dictionary."""
-        ...
+from socx.core.serializer import Serializer
 
 
 class ModuleSerializer(Serializer[ModuleType]):
@@ -22,10 +15,30 @@ class ModuleSerializer(Serializer[ModuleType]):
 
     @classmethod
     @override
-    def serialize(cls, value: ModuleType) -> dict[str, Any]:
-        shortname = value.__name__.rpartition(".")[-1]
+    def serialize(
+        cls, obj: ModuleType, *args: Any, **kwargs: Any
+    ) -> dict[str, Any]:
+        shortname = obj.__name__.rpartition(".")[-1]
         return {
             shortname: {
-                k: getattr(value, k) for k in getattr(value, "__all__", {})
+                k: getattr(obj, k) for k in getattr(obj, "__all__", {})
             }
         }
+
+
+class SettingsSerializer(Serializer[LazySettings]):
+    @classmethod
+    @override
+    def serialize(
+        cls,
+        obj: LazySettings,
+        key: str | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        from dynaconf.utils.inspect import inspect_settings
+
+        data = inspect_settings(
+            obj, key=key, history_limit=1, print_report=False
+        )
+        return data["current"]
