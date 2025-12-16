@@ -21,7 +21,7 @@ def tui() -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
     from socx_tui import SoCX as SoCX
 
-    SoCX().run()
+    SoCX().run(inline=True)
 
 
 @cli.command(
