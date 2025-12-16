@@ -21,11 +21,11 @@ logger: Logger = get_logger(__name__)
 
 def edit(target_path: Path | None = None):
     """Launch the user's editor with the selected configuration snapshot."""
-    settings = get_settings(auto_cast=False)
+    settings = get_settings()
     file_choices = {
-        Path(path).stem: Path(path)
-        for _path in settings._loaded_files
-        if (path := Path(_path)).exists() and path.stem in settings
+        path.stem: path
+        for path in settings.includes
+        if path.exists() and path.stem in settings
     }
     editor_choices = ["vim", "gvim", "nano"]
     default_editor = settings.get_environ("EDITOR", "vim")

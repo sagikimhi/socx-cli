@@ -3,6 +3,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
+from box import SBox
 import rich
 from rich.syntax import Syntax
 import rich_click as click
@@ -187,10 +188,18 @@ def dump(
     field: str | None,
 ) -> None:
     """Dump the current settings configurations in the specified format."""
+    formatter = TreeFormatter()
+
     if field and field not in settings:
         ctx.fail(f"No such field: {field}")
 
-    f = getattr(settings, f"to_{format_}")
-    rv = Syntax(f(field), format_, theme="ansi_dark")
-
-    console.print(rv)
+    if field:
+        sbox = SBox(settings.get_raw(field))
+        syntax = Syntax(getattr(sbox, format_), format_)
+        console.print(formatter(syntax))
+    else:
+        obj = Syntax(
+            getattr(SBox(settings.raw), format_), format_, theme="ansi_dark"
+        )
+        console.print(formatter(obj))
+        # console.print(obj)
