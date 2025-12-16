@@ -36,6 +36,7 @@ class SettingsSerializer(Serializer[LazySettings]):
         *args: Any,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        """Serialize a ``LazySettings`` obj into a python ``dict``."""
         from dynaconf.utils.inspect import inspect_settings
 
         data = inspect_settings(
