@@ -10,8 +10,8 @@ __all__ = (
     "get_settings",
     "get_local_config_files",
     # Paths
-    "PROJECT_ROOT_CFG",
     "PROJECT_ROOT_DIR",
+    "PROJECT_ROOT_CONFIG",
     "USER_LOG_DIR",
     "USER_DATA_DIR",
     "USER_CACHE_DIR",
@@ -78,7 +78,7 @@ from socx.config.paths import USER_RUNTIME_DIR as USER_RUNTIME_DIR
 from socx.config.paths import USER_LOG_FILE as USER_LOG_FILE
 from socx.config.paths import USER_CONFIG_FILE as USER_CONFIG_FILE
 from socx.config.paths import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
-from socx.config.paths import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CFG
+from socx.config.paths import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CONFIG
 from socx.config.paths import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
 from socx.config.paths import USER_LOG_FILENAME as USER_LOG_FILENAME
 from socx.config.paths import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
