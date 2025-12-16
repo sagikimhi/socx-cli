@@ -2,23 +2,26 @@
 
 from __future__ import annotations
 
+import sys
+import weakref
 import logging
 from typing import Any, Literal
 from pathlib import Path
 from functools import reduce
 
+import box
 from dynaconf import LazySettings
-from dynaconf.base import SourceMetadata
+from dynaconf.base import SourceMetadata, ensure_a_list
 from dynaconf.utils.boxing import DynaBox
-from dynaconf.utils.inspect import (
-    get_debug_info,
-    _get_data_by_key,
-)
+from dynaconf.utils.inspect import get_debug_info, _get_data_by_key
 
 from socx.config.serializers import SettingsSerializer
 
 
 logger = logging.getLogger(__name__)
+
+
+sys.modules["dynaconf.vendor.box"] = box
 
 
 SETTINGS_OPTIONS: dict[str, Any] = dict(
@@ -66,8 +69,18 @@ class Settings(LazySettings):
 
     def __init__(self, wrapped=None, **kwargs: Any) -> None:
         """Initialise Dynaconf with project defaults and user overrides."""
+        _dict = object.__getattribute__(self, "__dict__")
         LazySettings.__init__(
-            self, wrapped=wrapped, **SETTINGS_OPTIONS, **kwargs
+            self, wrapped=wrapped, **(SETTINGS_OPTIONS | kwargs)
+        )
+        _dict["_includes"] = [
+            *ensure_a_list(self.dynaconf_include),
+            *ensure_a_list(self.includes_for_dynaconf),
+        ]
+        _dict["_includes"] = box.BoxList([Path(p) for p in _dict["_includes"]])
+        _includes = weakref.proxy(_dict["_includes"])
+        self.update(
+            {"dynaconf_include": _includes, "includes_for_dynaconf": _includes}
         )
 
     def __contains__(self, key: object):
@@ -87,6 +100,11 @@ class Settings(LazySettings):
     def root(self) -> Path:
         """Get the root path of this instance."""
         return Path(self._root_path)
+
+    @property
+    def includes(self) -> list[Path]:
+        """Get a list of included configuration files."""
+        return object.__getattribute__(self, "__dict__")["_includes"]
 
     @property
     def history(self) -> list[dict[str, Any]]:
@@ -112,6 +130,22 @@ class Settings(LazySettings):
     def debug_info(self) -> dict[str, Any]:
         """Return a ``dict`` with useful debugging information of settings."""
         return self.get_debug_info()
+
+    def as_box(self, key: str | None = None) -> DynaBox:
+        """Return this instance as a ``DynaBox`` instance."""
+        return DynaBox({key: self.get_raw(key)}) if key else DynaBox(self.raw)
+
+    def to_json(self, key: str | None = None) -> str:
+        """Serialize this instance into a JSON string."""
+        return self.as_box(key).to_json() or ""
+
+    def to_toml(self, key: str | None = None) -> str:
+        """Serialize this instance into a TOML string."""
+        return self.as_box(key).to_toml() or ""
+
+    def to_yaml(self, key: str | None = None) -> str:
+        """Serialize this instance into a YAML string."""
+        return self.as_box(key).to_yaml() or ""
 
     def get_raw(
         self,
@@ -171,19 +205,3 @@ class Settings(LazySettings):
         return lowerfy(
             get_debug_info(settings=self, verbosity=verbosity, key=key)
         )
-
-    def as_box(self, key: str | None = None) -> DynaBox:
-        """Return this instance as a ``DynaBox`` instance."""
-        return DynaBox({key: self.get_raw(key)}) if key else DynaBox(self.raw)
-
-    def to_json(self, key: str | None = None) -> str:
-        """Serialize this instance into a JSON string."""
-        return self.as_box(key).to_json() or ""
-
-    def to_toml(self, key: str | None = None) -> str:
-        """Serialize this instance into a TOML string."""
-        return self.as_box(key).to_toml() or ""
-
-    def to_yaml(self, key: str | None = None) -> str:
-        """Serialize this instance into a YAML string."""
-        return self.as_box(key).to_yaml() or ""
