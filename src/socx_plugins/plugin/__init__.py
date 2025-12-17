@@ -19,3 +19,14 @@ def example():
     from socx_plugins.plugin.example import QUICKSTART
 
     io.print(QUICKSTART)
+
+
+@cli.command()
+def schema():
+    """Print a yaml representation of a plugin's schema."""
+    from rich.syntax import Syntax
+    from socx import PluginModel, console
+
+    text = PluginModel.yaml_schema()
+    syntax = Syntax(text, "yaml", theme="ansi_dark", tab_size=2, padding=1)
+    console.print(syntax)
