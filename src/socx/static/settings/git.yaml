@@ -1,7 +1,7 @@
 ---
 git:
   manifest:
-    root: "@jinja {{'.' | relpath}}"
+    root: "@path ."
     includes: []
     excludes: []
     references: {}
