@@ -88,6 +88,12 @@ icon: lucide/rocket
         /// caption
         ///
 
+    === "`socx git help`"
+
+        ![socx git](../assets/images/socx-git-help.svg){ width="800" loading=lazy }
+        /// caption
+        ///
+
     === "`socx git diff`"
 
         ![socx git diff](../assets/images/socx-git-diff.svg){ width="800" loading=lazy }
@@ -118,6 +124,12 @@ icon: lucide/rocket
         /// caption
         ///
 
+    === "`socx config dump`"
+
+        ![socx config dump](../assets/images/socx-config-dump.svg){ width="800" loading=lazy }
+        /// caption
+        ///
+
     === "`socx config get`"
 
         ![socx config get](../assets/images/socx-config-get.svg){ width="800" loading=lazy }
@@ -133,6 +145,12 @@ icon: lucide/rocket
     === "`socx config tree`"
 
         ![socx config tree](../assets/images/socx-config-tree.svg){ width="800" loading=lazy }
+        /// caption
+        ///
+
+    === "`socx config inspect`"
+
+        ![socx config inspect](../assets/images/socx-config-debug.svg){ width="800" loading=lazy }
         /// caption
         ///
 

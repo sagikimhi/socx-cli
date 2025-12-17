@@ -1,3 +1,4 @@
+---
 rich_click:
   # type: NotRequired[Optional[Union[str, "RichClickTheme"]]]
   theme: cargo-modern
@@ -402,4 +403,3 @@ rich_click:
 
   # type: NotRequired[Optional[bool]]
   legacy_windows: ~
-
