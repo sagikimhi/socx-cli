@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 from box import SBox
 import rich
 from rich.syntax import Syntax
+from rich.json import JSON
 import rich_click as click
 
 from socx import console, settings, TreeFormatter, get_logger
@@ -43,42 +44,16 @@ def edit(user: bool):
 
 
 @cli.command()
-@click.option(
-    "--raw",
-    "-r",
-    "raw",
-    help="""
-    Disable auto casting of configuration values, instead, use the raw
-    configuration values as defined in the original settings file.
-    """.strip(),
-    is_flag=True,
-    default=False,
-    show_default=True,
-)
-def tree(raw: bool):
+def tree():
     """Print a pretty tree structure of all loaded configurations."""
     formatter = TreeFormatter()
-    console.print(
-        formatter(settings.raw if raw else settings.as_dict(), "Settings")
-    )
+    console.print(formatter(settings.raw, "Settings"))
 
 
 @cli.command("list")
-@click.option(
-    "--raw",
-    "-r",
-    "raw",
-    help="""
-    Disable auto casting of configuration values, instead, use the raw
-    configuration values as defined in the original settings file.
-    """.strip(),
-    is_flag=True,
-    default=False,
-    show_default=True,
-)
 def list_(raw: bool):
     """Print a list of all current configuration values."""
-    console.print(settings.raw if raw else settings.as_dict())
+    console.print(settings.raw)
 
 
 @cli.command()
@@ -110,18 +85,6 @@ def inspect():
 
 
 @cli.command(no_args_is_help=True)
-@click.option(
-    "--raw",
-    "-r",
-    "raw",
-    help="""
-    Disable auto casting of configuration values, instead, use the raw
-    configuration values as defined in the original settings file.
-    """.strip(),
-    is_flag=True,
-    default=False,
-    show_default=True,
-)
 @click.argument(
     "field",
     type=click.STRING,
@@ -130,7 +93,7 @@ def inspect():
     help="The configuration field to be read.",
 )
 @click.pass_context
-def get(ctx: click.Context, raw: bool, field: str):
+def get(ctx: click.Context, field: str):
     """Get the current value of a configuration field.
 
     > ***TIP***
@@ -143,7 +106,7 @@ def get(ctx: click.Context, raw: bool, field: str):
         ctx.fail(f"Invalid field: '{field}'")
 
     formatter = TreeFormatter()
-    value = settings.get_raw(field) if raw else settings.get(field)
+    value = settings.get_raw(field)
     console.print(formatter(obj=value, label=field))
 
 
@@ -188,18 +151,18 @@ def dump(
     field: str | None,
 ) -> None:
     """Dump the current settings configurations in the specified format."""
-    formatter = TreeFormatter()
-
     if field and field not in settings:
         ctx.fail(f"No such field: {field}")
 
-    if field:
-        sbox = SBox(settings.get_raw(field))
-        syntax = Syntax(getattr(sbox, format_), format_)
-        console.print(formatter(syntax))
-    else:
-        obj = Syntax(
-            getattr(SBox(settings.raw), format_), format_, theme="ansi_dark"
-        )
-        console.print(formatter(obj))
-        # console.print(obj)
+    raw_box = SBox(settings.as_box(field))
+    text = getattr(raw_box, format_)
+    if format_ == "json":
+        text = JSON(text).text.plain
+    syntax = Syntax(
+        cast(str, text),
+        format_,
+        tab_size=2,
+        theme="ansi_dark",
+        padding=1,
+    )
+    console.print(syntax)
