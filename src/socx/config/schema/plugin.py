@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import shlex
 
+from box import SBox
 import sh
 import rich_click as click
-from dynaconf.utils.boxing import DynaBox
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -107,9 +107,16 @@ class PluginModel(BaseModel):
         return bool(self.command)
 
     @classmethod
-    def to_yaml(cls) -> str | None:
-        return DynaBox.from_json(cls.model_json_schema()).to_yaml()
+    def toml_schema(cls) -> str | None:
+        return SBox(cls.model_json_schema()).toml
 
+    @classmethod
+    def yaml_schema(cls) -> str:
+        return SBox(cls.model_json_schema()).yaml
+
+    @classmethod
+    def json_schema(cls) -> str:
+        return SBox(cls.model_json_schema()).json
 
     @field_validator("script", mode="before")
     @classmethod
@@ -129,5 +136,6 @@ class PluginModel(BaseModel):
             raise ValidationError(err) from None
 
         return cmd.bake(*args) if args else cmd
+
 
 p = PluginModel.model_construct()
