@@ -11,7 +11,7 @@ from functools import reduce
 
 import box
 from dynaconf import LazySettings
-from dynaconf.base import SourceMetadata, ensure_a_list
+from dynaconf.base import SourceMetadata, ensure_a_list, Lazy
 from dynaconf.utils.boxing import DynaBox
 from dynaconf.utils.inspect import get_debug_info, _get_data_by_key
 
@@ -46,22 +46,32 @@ def _lowerfy(obj: Any):
     return obj.lower() if isinstance(obj, str) else obj
 
 
-def lowerfy(obj: Any) -> Any:
+def _encode(obj: Any):
+    rv = obj._dynaconf_encode() if isinstance(obj, Lazy) else obj
+    rv = _lowerfy(rv)
+    return rv
+
+
+def encode(obj: Any) -> Any:
     if isinstance(obj, set):
-        return {lowerfy(v) for v in obj}
+        return {encode(v) for v in obj}
 
     if isinstance(obj, list):
-        return [lowerfy(v) for v in obj]
+        return [encode(v) for v in obj]
 
     if isinstance(obj, tuple):
-        return tuple(lowerfy(v) for v in obj)
+        return tuple(encode(v) for v in obj)
 
     if isinstance(obj, dict):
         return reduce(
-            lambda val, key: {_lowerfy(key): lowerfy(obj[key]), **val}, obj, {}
+            lambda val, key: {_encode(key): encode(obj[key]), **val}
+            if "dynaconf" not in _encode(key)
+            else val,
+            obj,
+            {},
         )
 
-    return obj
+    return _encode(obj)
 
 
 class Settings(LazySettings):
@@ -74,8 +84,8 @@ class Settings(LazySettings):
             self, wrapped=wrapped, **(SETTINGS_OPTIONS | kwargs)
         )
         _dict["_includes"] = [
-            *ensure_a_list(self.dynaconf_include),
-            *ensure_a_list(self.includes_for_dynaconf),
+            *ensure_a_list(self.store.dynaconf_include),
+            *ensure_a_list(self.store.includes_for_dynaconf),
         ]
         _dict["_includes"] = box.BoxList([Path(p) for p in _dict["_includes"]])
         _includes = weakref.proxy(_dict["_includes"])
@@ -94,7 +104,7 @@ class Settings(LazySettings):
         See ``get_raw`` for more info regarding 'raw values'.
 
         """
-        return lowerfy(SettingsSerializer.serialize(self))
+        return encode(SettingsSerializer.serialize(self))
 
     @property
     def root(self) -> Path:
@@ -189,7 +199,7 @@ class Settings(LazySettings):
         return [
             {
                 **metadata._asdict(),
-                "data": lowerfy(data),
+                "data": encode(data),
                 "num_keys": len(data),
             }
             for i, (metadata, data) in enumerate(
@@ -202,6 +212,6 @@ class Settings(LazySettings):
         self, key: str | None = None, verbosity: Literal[0, 1, 2] = 0
     ) -> dict[str, Any]:
         """Get a dict with debug info about the settings object."""
-        return lowerfy(
+        return encode(
             get_debug_info(settings=self, verbosity=verbosity, key=key)
         )
