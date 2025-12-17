@@ -1,0 +1,16 @@
+from textwrap import dedent
+
+
+schema = dedent("""
+    | name | type | description | required | default |
+    | :--- | :--- | :---------: | :------: | :-----: |
+    | `#!yaml env` | `#!py dict` | Environment variables that should be present when the command/script is invoked | no | `#!yaml {}` |
+    | `#!yaml fresh_env` | `#!py bool` | An optional boolean that specifies whether or not the current environment should be copied into the plugin's subprocess when running the plugin.<br><br>If this is set to true, when the plugin is started, it will run in a new subprocess with no environment variables other than what is specified under the plugin's `env` field.<br><br>If this is set to false, the current environment variables will be copied into the new subprocess when the command is invoked, along with the variable definitions defined under `env`. | no | `#!yaml false` |
+    | `#!yaml script` | `#!py str` | A shell command, script, or executable to run when the plugin is invoked.<br><br>If your plugin is a ^^**shell script**^^, command, or executable - then use the `#!yaml script` field.<br><br>Otherwise, if it is a ^^**python**^^ `#!py script`(e.g. `#!py script.py`), `#!py callable`, `#!py module`, or `#!py package` use `#!yaml command` instead. | only if `#!yaml command` is empty | `#!yaml ""` |
+    | `#!yaml command` | `#!py str` | A filesystem path or module path to a callable (i.e. function or method) python symbol to execute when the plugin is invoked.<br><br>A ^^module path^^ is written in the form of: `#!yaml foo.bar:bazz`<br>A ^^filesystem path^^ is written in the form of: `#!yaml "foo/bar.py:bazz"`<br><br>if your python module checks for<br>`#!py if __name__ == "__main__"`<br>or if your package contains a dedicated `__main__.py` file, and you wish for that module/package to be executed directly, then you may also specify the raw file/module path without the trailing `#!yaml :symbol` postfix (e.g. `#!yaml foo.bar.bazz` or `#!yaml foo/bar/bazz.py`). | only if `#!yaml script` is empty | `#!yaml ""` |
+    | `#!yaml enabled` | `#!py bool` | Whether or not to enable this plugin as a sub-command | no | `#!yaml true` |
+    | `#!yaml panel` | `#!py str` | Specify a title for the help section panel of the command's help text in the parent command's help menu.<br><br>This is the panel where the command and its one-liner `#!yaml short_help` text will be shown when the parent command is invoked with the `-h`/`--help` flag. | no | `#!yaml Commands` |
+    | `#!yaml short_help` | `#!py str` | A short one-liner help text for the plugin that will be used to render the one-liner help text in the parent command's help menu when the parent command is invoked with the `-h`/`--help` flag. | no | `#!yaml ""` |
+    | `#!yaml epilog` | `#!py str` | Help text shown at the bottom/end of the help menu.<br><br>This is usually usful for providing references, such as a url to a documentation site. | no | `#!yaml ""` |
+    | `#!yaml help` | `#!py str` | Plugin help text to show when running the plugin command with the `-h`/`--help` flag.<br><br>Note that markdown is supported, and is the recommended format for documenting plugin commands.<br><br>To see an example for how markdown is later rendered in the terminal, check out the GIF image for the `socx git help` command in the quickstart section. | no | `#!yaml ""` |
+""")

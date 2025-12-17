@@ -55,14 +55,18 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+    "sh~=2.2",
     "uv",
     "pip",
     "rich",
     "click",
+    "typer~=0.19",
     "jinja2",
     "psutil",
+    "copier~=9.11",
     "hoptex",
     "textual",
+    "plumbum",
     "pydantic",
     "dynaconf",
     "paramiko",
@@ -71,8 +75,8 @@ dependencies = [
     "platformdirs",
     "textual-speedups",
     "universal-pathlib",
-    "typer>=0.19.1",
-    "sh>=2.2.2",
+    "copier-template-extensions>=0.3.3",
+    "python-box[ruamel.yaml,toml]~=7.0",
 ]
 
 [project.urls]
@@ -106,17 +110,20 @@ docs = [
     "zensical",
     "pygments",
     "markdown-exec",
+    "markdown-include",
     "markdown-callouts",
     "pymdown-extensions",
     "mkdocs-macros-plugin",
     "mkdocs-llmstxt>=0.4.0",
     "mkdocs-coverage",
+    "mkdocs-glightbox",
     "mkdocstrings-python",
     "mkdocs-material[imaging]",
     "mkdocs-section-index",
     "mkdocs-material-extensions",
     "mkdocs-git-revision-date-localized-plugin",
     "tomli>=2.0; python_version < '3.11'",
+    "mkdocs-include-markdown-plugin>=7.1.7; python_version>='3.9'",
 ]
 
 
