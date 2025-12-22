@@ -1,13 +1,36 @@
-{#-
-  This file was automatically generated - do not edit
--#}
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  {%- for page in pages -%}
-    {%- if page.canonical_url %}
       <url>
-        <loc>{{ page.canonical_url }}</loc>
+        <loc>https://sagikimhi.dev/socx-cli/user-guide/overview.html</loc>
       </url>
-    {%- endif -%}
-  {%- endfor %}
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/user-guide/quickstart.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/user-guide/plugins.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/user-guide/configuration.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/reference/api.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/reference/configuration.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/development/license.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/development/credits.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/development/changelog.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/development/contributing.html</loc>
+      </url>
+      <url>
+        <loc>https://sagikimhi.dev/socx-cli/development/code_of_conduct.html</loc>
+      </url>
 </urlset>
