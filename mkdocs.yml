@@ -4,14 +4,14 @@ edit_uri: edit/main/docs/
 dev_addr: "localhost:3000"
 repo_name: sagikimhi/socx-cli
 repo_url: https://github.com/sagikimhi/socx-cli
-use_directory_urls: true
-site_url: https://sagikimhi.github.io/socx-cli/
+site_url: https://sagikimhi.dev/socx-cli
 site_name: socx-cli
 site_description: >-
   System on chip verification and tooling infrastructure.
 
 copyright: Copyright &copy; 2025 Sagi Kimhi
 favicon: "assets/images/Hamsta.png"
+use_directory_urls: true
 
 validation:
   omitted_files: warn
@@ -20,18 +20,20 @@ validation:
 
 nav:
   - Overview:
-      - index.md
-  - User Guide:
+      - user-guide/overview.md
       - user-guide/quickstart.md
+  - User Guide:
+      - user-guide/plugins.md
+      - user-guide/configuration.md
   - Reference:
       - reference/api.md
+      - reference/configuration.md
   - Development:
       - development/license.md
       - development/credits.md
       - development/changelog.md
       - development/contributing.md
       - development/code_of_conduct.md
-
 
 theme:
   # name: material
@@ -50,6 +52,7 @@ theme:
   highlightjs: true
   features:
     - toc.follow
+    # - toc.integrate
     - header.autohide
     - navigation.top
     - navigation.path
@@ -109,6 +112,10 @@ markdown_extensions:
   - toc:
       title: On this page
       permalink: true
+      toc_depth: 5
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+          kwds:
+            case: lower
   - abbr
   - tables
   - admonition
@@ -131,7 +138,7 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.highlight:
-      linenums: false
+      linenums: true
       auto_title: true
       line_spans: __span
       anchor_linenums: true
@@ -161,6 +168,7 @@ plugins:
   - markdown-exec: {}
   - mike:
       alias_type: copy
+      canonical_version: latest
   - git-revision-date-localized:
       type: date
       strict: false
@@ -180,14 +188,19 @@ plugins:
             summary: true
             backlinks: tree
             filters: ["!^_"]
-            heading_level: 1
+            heading_level: 3
             show_bases: true
             show_source: true
-            show_root_heading: true
+            allow_inspection: true
+            show_inheritance_diagram: true
             show_root_full_path: true
+            show_root_members_full_path: true
             signature_crossrefs: true
-            show_symbol_type_toc: true
             show_if_no_docstring: true
+            show_root_toc_entry: true
+            show_symbol_type_toc: true
+            show_root_heading: true
+            show_category_heading: true
             show_symbol_type_heading: true
             show_signature_annotations: true
             inherited_members: true
@@ -197,8 +210,9 @@ plugins:
             docstring_options:
               ignore_init_summary: true
           inventories:
-            - https://docs.python.org/3/objects.inv
-
+            - url: https://docs.python.org/3/objects.inv
+            - url: https://docs.python-requests.org/en/master/objects.inv
+              domains: [std, py]
 extra:
   social:
     - icon: fontawesome/solid/paper-plane
@@ -226,3 +240,9 @@ extra:
           name: This page could be improved
           data: 0
           note: Let us know how we can improve this page.
+          extra:
+
+  version:
+    provider: mike
+    default: latest
+    alias: true

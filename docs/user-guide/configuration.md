@@ -1,6 +1,5 @@
 ---
-title: Configuration
-icon: lucide/file-cog
+icon: lucide/cog
 ---
 
 SoCX layers configuration with [Dynaconf](https://www.dynaconf.com/). Every

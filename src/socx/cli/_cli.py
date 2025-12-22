@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from functools import cached_property, wraps
 import inspect
 import logging
 from collections.abc import Callable
 
+from pydantic import ValidationError
 import rich_click as click
 
 from socx.config import settings, CommandConverter, ShConverter
@@ -24,14 +26,17 @@ class _CmdLine(click.RichGroup):
         super().__init__(*args, **kwargs)
         self._sh_converter = ShConverter()
         self._cmd_converter = CommandConverter()
-        self._plugins = {
-            name: PluginModel(name=name, **plugin)
-            for name, plugin in settings.plugins.items()
-        }  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
+        self._plugins = {}
 
-    @property
+    @cached_property
     def plugins(self) -> dict[str, PluginModel]:
         """Return the plugin metadata keyed by plugin name."""
+        if not self._plugins:
+            for name, value in settings.plugins.items():
+                try:
+                    self._plugins[name] = PluginModel(name=name, **value)
+                except ValidationError:
+                    continue
         return self._plugins
 
     def get_command(
@@ -59,7 +64,10 @@ class _CmdLine(click.RichGroup):
             cmd_len = len(cmd_name)
             return sum(cmd_len * i + ord(c) for i, c in enumerate(cmd_name))
 
-        rv = [*super().list_commands(ctx), *list(self.plugins)]
+        rv = [
+            *super().list_commands(ctx),
+            *list(filter(lambda k: self.plugins[k].enabled, self.plugins)),
+        ]
         rv.sort(key=get_cmd_order)
         return rv
 
@@ -89,16 +97,19 @@ class _CmdLine(click.RichGroup):
                 cmd.panel = plugin.panel or cmd.panel
 
 
-def socx(*args, **kwargs) -> Callable[[AnyCallable], _CmdLine]:
+def socx(**kwargs) -> Callable[[AnyCallable], _CmdLine]:
     """Decorate a callable as the root SoCX CLI group."""
 
     def decorator(app: AnyCallable):
-        return click.group(
+        @wraps(app)
+        def group(name, cls, **attrs):
+            return click.group(name=name, cls=cls, **attrs)(app)
+
+        return group(
             "socx",
-            *args,
             cls=_CmdLine,
             **kwargs,
             **settings.cli.group,
-        )(app)
+        )
 
     return decorator

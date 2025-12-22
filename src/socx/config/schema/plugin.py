@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import shlex
 
+from box import SBox
 import sh
-import click
+import rich_click as click
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     field_validator,
-    ValidationError,
 )
 
 
@@ -105,6 +105,18 @@ class PluginModel(BaseModel):
     def is_command(self) -> bool:
         return bool(self.command)
 
+    @classmethod
+    def toml_schema(cls) -> str | None:
+        return SBox(cls.model_json_schema()).toml
+
+    @classmethod
+    def yaml_schema(cls) -> str:
+        return SBox(cls.model_json_schema()).yaml
+
+    @classmethod
+    def json_schema(cls) -> str:
+        return SBox(cls.model_json_schema()).json
+
     @field_validator("script", mode="before")
     @classmethod
     def validate_script(cls, value: str | sh.Command) -> str | sh.Command:
@@ -114,12 +126,12 @@ class PluginModel(BaseModel):
         if isinstance(value, sh.Command):
             return value
 
-        args = [arg.strip() for arg in value.split()]
+        args = shlex.split(value, comments=True)
 
         try:
             cmd = sh.Command(args.pop(0))
         except sh.CommandNotFound as exc:
             err = f"Invalid script '{shlex.quote(value)}': {exc}"
-            raise ValidationError(err) from None
+            raise ValueError(err) from None
 
         return cmd.bake(*args) if args else cmd
