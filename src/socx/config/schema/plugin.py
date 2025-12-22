@@ -12,7 +12,6 @@ from pydantic import (
     ConfigDict,
     Field,
     field_validator,
-    ValidationError,
 )
 
 
@@ -127,13 +126,13 @@ class PluginModel(BaseModel):
         if isinstance(value, sh.Command):
             return value
 
-        args = [arg.strip() for arg in value.split()]
+        args = shlex.split(value)
 
         try:
             cmd = sh.Command(args.pop(0))
         except sh.CommandNotFound as exc:
             err = f"Invalid script '{shlex.quote(value)}': {exc}"
-            raise ValidationError(err) from None
+            raise ValueError(err) from None
 
         return cmd.bake(*args) if args else cmd
 

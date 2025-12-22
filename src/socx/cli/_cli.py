@@ -6,6 +6,7 @@ import inspect
 import logging
 from collections.abc import Callable
 
+from pydantic import ValidationError
 import rich_click as click
 
 from socx.config import settings, CommandConverter, ShConverter
@@ -24,14 +25,17 @@ class _CmdLine(click.RichGroup):
         super().__init__(*args, **kwargs)
         self._sh_converter = ShConverter()
         self._cmd_converter = CommandConverter()
-        self._plugins = {
-            name: PluginModel(name=name, **plugin)
-            for name, plugin in settings.plugins.items()
-        }  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
+        self._plugins = {}
 
     @property
     def plugins(self) -> dict[str, PluginModel]:
         """Return the plugin metadata keyed by plugin name."""
+        if not self._plugins:
+            for name, value in settings.plugins.items():
+                try:
+                    self._plugins[name] = PluginModel(name=name, **value)
+                except ValidationError:
+                    continue
         return self._plugins
 
     def get_command(

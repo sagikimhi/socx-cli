@@ -53,15 +53,6 @@ def _encode(obj: Any):
 
 
 def encode(obj: Any) -> Any:
-    if isinstance(obj, set):
-        return {encode(v) for v in obj}
-
-    if isinstance(obj, list):
-        return [encode(v) for v in obj]
-
-    if isinstance(obj, tuple):
-        return tuple(encode(v) for v in obj)
-
     if isinstance(obj, dict):
         return reduce(
             lambda val, key: {_encode(key): encode(obj[key]), **val}
@@ -71,7 +62,10 @@ def encode(obj: Any) -> Any:
             {},
         )
 
-    return _encode(obj)
+    if isinstance(obj, list | set | tuple):
+        return type(obj)([encode(v) for v in obj])
+
+    return obj
 
 
 class Settings(LazySettings):

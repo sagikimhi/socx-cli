@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 
+from pydantic import ValidationError
 import rich_click as click
 
 from socx.config import settings
@@ -105,7 +106,14 @@ def _command_panels():
     panel_commands = {}
 
     for name, plugin in settings.plugins.items():
-        plugin = PluginModel(name=name, **plugin)
+        try:
+            plugin = PluginModel(name=name, **plugin)
+        except ValidationError:
+            continue
+
+        if not plugin.enabled:
+            continue
+
         panel_commands[plugin.panel] = [
             *panel_commands.get(plugin.panel, []),
             plugin.name,

@@ -1,48 +1,48 @@
 ---
 plugins:
   git:
-    help: Run `git` commands in parallel on multiple repositories.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.git:cli"
-    epilog: |
-      > ***NOTE***
-      >
-      > For a more in-depth explanation with working examples, run `socx git
-      > help`
+    short_help: Run `git` commands in parallel on multiple repositories.
 
   rgr:
-    help: Perform various regression related actions.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.rgr:cli"
+    short_help: Perform various regression related actions.
+
+  init:
+    panel: Commands
+    enabled: true
+    aliases: []
 
   plugin:
-    help: Add, create, inspect, and manage extension plugins.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.plugin:cli"
+    short_help: Add, create, inspect, and manage extension plugins.
 
   config:
-    help: Get, set, list, or modify settings configuration values.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.config:cli"
+    short_help: Get, set, list, or modify settings configuration values.
 
   convert:
-    help: Perform a conversion based on current configurations.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.convert:cli"
+    short_help: Perform a conversion based on current configurations.
 
   version:
-    help: Print version information and exit.
     panel: Commands
     enabled: true
     aliases: []
     command: "socx_plugins.version:version"
+    short_help: Print version information and exit.

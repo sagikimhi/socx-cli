@@ -22,7 +22,7 @@ def cli(ctx: click.Context):
 @cli.command()
 @params.opts()
 def init():
-    """Initialize a `socx` project.
+    """Initialize a `socx` project at the current directory.
 
     Initializing a `socx` project will create a .socx.yaml file at the root of
     your project.
