@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 
+from pydantic import ValidationError
 import rich_click as click
 
 from socx.config import settings
@@ -16,6 +17,9 @@ from socx.cli.callbacks import configure_cb
 from socx.utils.decorators import join_decorators
 from socx.config.schema.plugin import PluginModel
 
+group: Decorator[AnyCallable] = click.command(**settings.cli.group)
+
+command: Decorator[AnyCallable] = click.command(**settings.cli.command)
 
 debug: Decorator[AnyCallable] = click.option(
     "--debug",
@@ -61,6 +65,7 @@ configure: Decorator[AnyCallable] = click.option(
     default=True,
     is_flag=True,
     is_eager=True,
+    flag_value=True,
     show_envvar=True,
     show_default=True,
     expose_value=False,
@@ -70,7 +75,7 @@ configure: Decorator[AnyCallable] = click.option(
 
 def opts() -> Callable[..., Decorator[AnyCallable]]:
     """Apply the standard set of global SoCX CLI options."""
-    return join_decorators(debug, configure, verbosity)
+    return join_decorators(configure, debug, verbosity)
 
 
 def panels():
@@ -102,7 +107,14 @@ def _command_panels():
     panel_commands = {}
 
     for name, plugin in settings.plugins.items():
-        plugin = PluginModel(name=name, **plugin)
+        try:
+            plugin = PluginModel(name=name, **plugin)
+        except ValidationError:
+            continue
+
+        if not plugin.enabled:
+            continue
+
         panel_commands[plugin.panel] = [
             *panel_commands.get(plugin.panel, []),
             plugin.name,

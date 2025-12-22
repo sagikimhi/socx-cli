@@ -24,6 +24,8 @@ from socx.cli.types import AnyCallable as AnyCallable
 
 from socx.cli.params import opts as opts
 from socx.cli.params import debug as debug
+from socx.cli.params import group as group
+from socx.cli.params import command as command
 from socx.cli.params import configure as configure
 from socx.cli.params import verbosity as verbosity
 

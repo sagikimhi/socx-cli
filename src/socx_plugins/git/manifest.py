@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 
 class Manifest(BaseModel):
     root: Path = settings.git.manifest.root
-    includes: list[str | Path] = settings.git.manifest.includes or []
-    excludes: list[str | Path] = settings.git.manifest.excludes or []
-    cmd_timeout: float | None = settings.git.manifest.cmd_timeout
+    includes: list[str | Path] = []
+    excludes: list[str | Path] = []
+    cmd_timeout: float | None = None
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __len__(self) -> int:

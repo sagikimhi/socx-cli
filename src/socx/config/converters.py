@@ -303,8 +303,10 @@ class CommandConverter(
     @override
     @_validate
     def __call__(
-        self, value: str | Lazy | sh.Command | click.Command | PluginModel
-    ) -> Lazy | click.Command:
+        self,
+        value: str | Lazy | sh.Command | click.Command | PluginModel,
+        opts: dict | None = None,
+    ) -> Lazy | click.Command | click.Group:
         """Build a Click command from dotted paths or reuse existing ones."""
         if isinstance(value, Lazy):
             if value.casting is self:
@@ -316,7 +318,10 @@ class CommandConverter(
         if isinstance(value, click.Command):
             return value
 
-        @click.group(**self.group_kwargs)
+        if opts is None:
+            opts = self.group_kwargs
+
+        @click.group(**opts)
         @click.argument(
             "args",
             nargs=-1,
@@ -341,6 +346,9 @@ class CommandConverter(
                 return self._run_shell_script(value, *args)
 
             return self._run_from_pathspec(value, *args)
+
+        if TYPE_CHECKING:
+            cli = cast(click.Group, cli)
 
         return cli
 
@@ -420,19 +428,21 @@ class CommandConverter(
     def _(
         self,
         value: str,
-        *args: Any,
         env: dict[str, str] | None = None,
-        **kwargs: Any,
     ) -> dict[str, Any] | Any:
         def noop(**_) -> None:
-            pass
+            return None
 
         rv = {}
         path, _, symbol = value.partition(":")
         argv = sys.argv.copy()
         syspath = sys.path.copy()
         environ = os.environ.copy()
-        sys.argv = [*sys.argv[1:]]
+
+        sys.argv = sys.argv[1:]
+
+        while sys.argv and sys.argv[0].startswith("-"):
+            sys.argv.pop(0)
 
         if env:
             os.environ.clear()
@@ -450,7 +460,9 @@ class CommandConverter(
                 if callable(obj):
                     rv = obj()
             elif symbol:
-                rv = runpy.run_path(path).get(symbol, noop)(*args, **kwargs)
+                rv = None
+                obj = None
+                rv = runpy.run_path(path).get(symbol, noop)()
             else:
                 rv = runpy.run_path(path, run_name=_detect_program_name())
         except Exception as exc:
@@ -471,16 +483,14 @@ class CommandConverter(
         self,
         value: Path,
         *args: Any,
+        env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
-        return self._run_from_pathspec(str(value), *args, **kwargs)
+        return self._run_from_pathspec(str(value), *args, env=env, **kwargs)
 
     @_run_from_pathspec.register
     def _(
-        self,
-        value: PluginModel,
-        *args: Any,
-        **kwargs: Any,
+        self, value: PluginModel, *args: Any, **kwargs: Any
     ) -> dict[str, Any] | Any:
         if not value.command:
             return {}
@@ -489,7 +499,20 @@ class CommandConverter(
             if value.fresh_env
             else {**os.environ.copy(), **value.env}
         )
-        return self._run_from_pathspec(value.command, *args, env=env, **kwargs)
+        if "-h" in sys.argv or "--help" in sys.argv:
+            ctx = click.get_current_context()
+            if ctx:
+                if value.epilog:
+                    ctx.command.epilog = ctx.command.epilog or value.epilog
+                if value.short_help:
+                    ctx.command.short_help = (
+                        ctx.command.short_help or value.short_help
+                    )
+                if value.help:
+                    ctx.command.help = ctx.command.help or value.help
+                    click.echo(ctx.get_help())
+                    ctx.exit()
+        return self._run_from_pathspec(value.command, env=env)
 
     @classmethod
     def _patch_theme(cls) -> None:

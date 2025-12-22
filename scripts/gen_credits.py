@@ -1,3 +1,4 @@
+#!/usr/bin/env -S uv run python
 # Script to generate the project's credits.
 
 from __future__ import annotations
