@@ -132,7 +132,7 @@ from socx.core import Serializer as Serializer
 from socx.utils import join_decorators as join_decorators
 
 from socx.config import PluginModel as PluginModel
-from socx.config import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS
 from socx.config import settings as settings
 from socx.config import __author__ as __author__
 from socx.config import __project__ as __project__
@@ -159,8 +159,6 @@ from socx.config import APP_CONFIG_DIR as APP_CONFIG_DIR
 from socx.config import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
 from socx.config import APP_CONFIG_FILE as APP_CONFIG_FILE
 from socx.config import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
-from socx.config import get_includes as get_includes
-from socx.config import get_excludes as get_excludes
 from socx.config import get_settings as get_settings
 from socx.config import (
     get_local_config_files as get_local_config_files,

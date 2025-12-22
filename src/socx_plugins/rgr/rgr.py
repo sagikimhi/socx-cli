@@ -16,7 +16,7 @@ def cli() -> None:
     """Perform various regression related actions."""
 
 
-@cli.command(**settings.cli.command)
+@cli.command()
 def tui() -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
     from socx_tui import SoCX as SoCX

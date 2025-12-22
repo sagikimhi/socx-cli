@@ -17,6 +17,9 @@ from socx.config._config import settings
 def cli(ctx: click.Context):
     """System on chip verification and tooling infrastructure."""
     ctx.obj = settings
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        ctx.exit()
 
 
 @cli.command()

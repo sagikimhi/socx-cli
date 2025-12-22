@@ -438,7 +438,11 @@ class CommandConverter(
         argv = sys.argv.copy()
         syspath = sys.path.copy()
         environ = os.environ.copy()
-        sys.argv = [*sys.argv[1:]]
+
+        sys.argv = sys.argv[1:]
+
+        while sys.argv and sys.argv[0].startswith("-"):
+            sys.argv.pop(0)
 
         if env:
             os.environ.clear()
@@ -458,10 +462,7 @@ class CommandConverter(
             elif symbol:
                 rv = None
                 obj = None
-                code = CompileConverter()(path)
-                if code:
-                    rv = EvalConverter()(code).get(symbol, noop)()
-                # rv = runpy.run_path(path).get(symbol, noop)()
+                rv = runpy.run_path(path).get(symbol, noop)()
             else:
                 rv = runpy.run_path(path, run_name=_detect_program_name())
         except Exception as exc:

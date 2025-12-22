@@ -21,7 +21,7 @@ class ModuleSerializer(Serializer[ModuleType]):
         shortname = obj.__name__.rpartition(".")[-1]
         return {
             shortname: {
-                k: getattr(obj, k) for k in getattr(obj, "__all__", {})
+                k: getattr(obj, k) for k in getattr(obj, "__all__", ())
             }
         }
 

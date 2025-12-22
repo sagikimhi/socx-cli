@@ -51,7 +51,7 @@ def tree():
 
 
 @cli.command("list")
-def list_(raw: bool):
+def list_():
     """Print a list of all current configuration values."""
     console.print(settings.raw)
 

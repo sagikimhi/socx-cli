@@ -4,11 +4,9 @@ __all__ = (
     # Schema
     "PluginModel",
     # Settings
-    "SETTINGS_OPTIONS",
+    "SETTINGS_DEFAULTS",
     "Settings",
     "settings",
-    "get_includes",
-    "get_excludes",
     "get_settings",
     "get_local_config_files",
     # Paths
@@ -63,11 +61,9 @@ __all__ = (
 from socx.config.schema import PluginModel as PluginModel
 
 from socx.config._settings import Settings as Settings
-from socx.config._settings import SETTINGS_OPTIONS as SETTINGS_OPTIONS
+from socx.config._settings import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS
 
 from socx.config._config import settings as settings
-from socx.config._config import get_includes as get_includes
-from socx.config._config import get_excludes as get_excludes
 from socx.config._config import get_settings as get_settings
 from socx.config._config import (
     get_local_config_files as get_local_config_files,

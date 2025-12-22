@@ -3,25 +3,20 @@
 from __future__ import annotations
 
 import sys
+import shlex
 import logging
+
+import sh
 
 
 logger = logging.getLogger(__name__)
 
 
-def version() -> int:
+def version() -> None:
     """Print version information and exit."""
     import socx
-    import subprocess
 
-    proj = socx.settings.metadata.__project__
-    command = f"/usr/bin/env -S {sys.executable} -m pip show {proj}"
-    process = subprocess.run(command.split(), capture_output=True)
-
-    if process.stderr:
-        logger.error(process.stderr.decode())
-
-    if process.stdout:
-        socx.console.print(process.stdout.decode())
-
-    return process.returncode
+    command = sh.Command("/usr/bin/env").bake(
+        shlex.split(f"-S {sys.executable} -m pip show {socx.__project__}")
+    )
+    command(_fg=True)

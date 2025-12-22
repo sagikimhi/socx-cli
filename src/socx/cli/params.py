@@ -65,6 +65,7 @@ configure: Decorator[AnyCallable] = click.option(
     default=True,
     is_flag=True,
     is_eager=True,
+    flag_value=True,
     show_envvar=True,
     show_default=True,
     expose_value=False,
@@ -74,7 +75,7 @@ configure: Decorator[AnyCallable] = click.option(
 
 def opts() -> Callable[..., Decorator[AnyCallable]]:
     """Apply the standard set of global SoCX CLI options."""
-    return join_decorators(debug, configure, verbosity)
+    return join_decorators(configure, debug, verbosity)
 
 
 def panels():

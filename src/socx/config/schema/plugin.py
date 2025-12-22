@@ -126,7 +126,7 @@ class PluginModel(BaseModel):
         if isinstance(value, sh.Command):
             return value
 
-        args = shlex.split(value)
+        args = shlex.split(value, comments=True)
 
         try:
             cmd = sh.Command(args.pop(0))
@@ -135,6 +135,3 @@ class PluginModel(BaseModel):
             raise ValueError(err) from None
 
         return cmd.bake(*args) if args else cmd
-
-
-p = PluginModel.model_construct()
