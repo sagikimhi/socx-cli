@@ -269,7 +269,7 @@ class Settings(LazySettings):
             for i, (metadata, data) in enumerate(
                 self._loaded_by_loaders.items()
             )
-            if 0 <= i < limit
+            if limit >= 0 and limit <= i
         ]
 
     def get_debug_info(

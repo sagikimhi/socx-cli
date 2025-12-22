@@ -37,11 +37,9 @@ def configure_cb(ctx: Context, param: Parameter, value: str) -> str:
     settings.cli.params.update({param.name: value})
 
     if settings.cli.params.get(param.name):
-        tok = _settings_cv.set(_global_settings)
-        settings.update({"_VAULT_TOKEN": tok})
+        _settings_cv.set(_global_settings)
     else:
-        tok = _settings_cv.set(_default_settings)
-        settings.update({"_VAULT_TOKEN": tok})
+        _settings_cv.set(_default_settings)
 
     return value
 
