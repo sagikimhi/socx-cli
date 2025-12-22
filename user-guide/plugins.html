@@ -10,27 +10,31 @@
       
       
       
-        <link rel="canonical" href="https://sagikimhi.github.io/socx-cli/user-guide/plugins.html">
+        <link rel="canonical" href="https://sagikimhi.dev/socx-cli/user-guide/plugins.html">
       
       
+        <link rel="prev" href="quickstart.html">
+      
+      
+        <link rel="next" href="configuration.html">
       
       
         
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.11">
+      <meta name="generator" content="zensical-0.0.14">
     
     
       
-        <title>Plugin Development - socx-cli</title>
+        <title>Plugins - socx-cli</title>
       
     
     
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.bd6182e7.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.f1b6466b.min.css">
       
         
           
@@ -112,7 +116,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#anatomy-of-a-plugin-entry" class="md-skip">
+        <a href="#plugins" class="md-skip">
           Skip to content
         </a>
       
@@ -121,6 +125,10 @@
       
     </div>
     
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
     
       
 
@@ -128,7 +136,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="socx-cli" class="md-header__button md-logo" aria-label="socx-cli" data-md-component="logo">
+    <a href="../index.html" title="socx-cli" class="md-header__button md-logo" aria-label="socx-cli" data-md-component="logo">
       
   <img src="../assets/images/Hamsta.png" alt="logo">
 
@@ -147,7 +155,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Plugin Development
+              Plugins
             
           </span>
         </div>
@@ -246,7 +254,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="socx-cli" class="md-nav__button md-logo" aria-label="socx-cli" data-md-component="logo">
+    <a href="../index.html" title="socx-cli" class="md-nav__button md-logo" aria-label="socx-cli" data-md-component="logo">
       
   <img src="../assets/images/Hamsta.png" alt="logo">
 
@@ -278,7 +286,7 @@
     
       
         
-          
+      
         
       
     
@@ -299,9 +307,44 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
         
           
-          <div class="md-nav__link md-nav__container">
-            <a href="../index.html" class="md-nav__link ">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Overview
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
               
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="overview.html" class="md-nav__link">
+        
   
   
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
@@ -317,87 +360,11 @@
   
   
 
-            </a>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Overview
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-          </ul>
-        </nav>
-      
+      </a>
     </li>
   
 
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-      
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    User Guide
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    User Guide
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+              
             
               
                 
@@ -440,10 +407,248 @@
       
   
   
+    
+  
   
   
     
     
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-plug" viewBox="0 0 24 24"><path d="M12 22v-5M15 8V2M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1zM9 8V2"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="plugins.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-plug" viewBox="0 0 24 24"><path d="M12 22v-5M15 8V2M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1zM9 8V2"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#adding-your-first-plugin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding Your First Plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugin-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin Schema
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugin-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#real-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Real Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugins-deep-dive-advanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugins Deep Dive (Advanced)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration.html" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-cog" viewBox="0 0 24 24"><path d="M11 10.27 7 3.34M11 13.73l-4 6.93M12 22v-2M12 2v2M14 12h8M17 20.66l-1-1.73M17 3.34l-1 1.73M2 12h2M20.66 17l-1.73-1M20.66 7l-1.73 1M3.34 17l1.73-1M3.34 7l1.73 1"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="8"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
       
         
       
@@ -505,12 +710,42 @@
         
   
   
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code" viewBox="0 0 24 24"><path d="M10 12.5 8 15l2 2.5M14 12.5l2 2.5-2 2.5M14 2v4a2 2 0 0 0 2 2h4"/><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10 12.5 8 15l2 2.5M14 12.5l2 2.5-2 2.5"/></svg>
   
   <span class="md-ellipsis">
     
   
     API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/configuration.html" class="md-nav__link">
+        
+  
+  
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-cog" viewBox="0 0 24 24"><path d="M13.85 22H18a2 2 0 0 0 2-2V8a2 2 0 0 0-.586-1.414l-4-4A2 2 0 0 0 14 2H6a2 2 0 0 0-2 2v6.6"/><path d="M14 2v5a1 1 0 0 0 1 1h5M3.305 19.53l.923-.382M4.228 16.852l-.924-.383M5.852 15.228l-.383-.923M5.852 20.772l-.383.924M8.148 15.228l.383-.923M8.53 21.696l-.382-.924M9.773 16.852l.922-.383M9.773 19.148l.922.383"/><circle cx="7" cy="18" r="3"/></svg>
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration Reference
   
 
     
@@ -608,7 +843,7 @@
         
   
   
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-scale" viewBox="0 0 24 24"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-scale" viewBox="0 0 24 24"><path d="M12 3v18M19 8l3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1M5 8l3 8a5 5 0 0 1-6 0zV7M7 21h10"/></svg>
   
   <span class="md-ellipsis">
     
@@ -638,7 +873,7 @@
         
   
   
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-package-open" viewBox="0 0 24 24"><path d="M12 22v-9M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.66 1.66 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z"/><path d="M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13"/><path d="M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.64 1.64 0 0 0 1.63 0z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-hand-coins" viewBox="0 0 24 24"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"/><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9M2 16l6 6"/><circle cx="16" cy="9" r="2.9"/><circle cx="6" cy="5" r="3"/></svg>
   
   <span class="md-ellipsis">
     
@@ -774,6 +1009,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -782,10 +1019,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#anatomy-of-a-plugin-entry" class="md-nav__link">
+  <a href="#adding-your-first-plugin" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Anatomy of a Plugin Entry
+        Adding Your First Plugin
       
     </span>
   </a>
@@ -793,10 +1030,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#creating-a-plugin" class="md-nav__link">
+  <a href="#plugin-schema" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Creating a Plugin
+        Plugin Schema
       
     </span>
   </a>
@@ -804,10 +1041,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#packaging-and-distribution" class="md-nav__link">
+  <a href="#plugin-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Packaging and Distribution
+        Plugin Example
       
     </span>
   </a>
@@ -815,10 +1052,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#disabling-or-replacing-plugins" class="md-nav__link">
+  <a href="#real-examples" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Disabling or Replacing Plugins
+        Real Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugins-deep-dive-advanced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugins Deep Dive (Advanced)
       
     </span>
   </a>
@@ -840,6 +1088,27 @@
 
 
 
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+
+      
+      
+        
+  
+    
+  
+
+  
+
+      
+    </ol>
+  </nav>
 
               
               <article class="md-content__inner md-typeset">
@@ -848,7 +1117,7 @@
   
     <a href="https://github.com/sagikimhi/socx-cli/edit/main/docs/user-guide/plugins.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
     </a>
   
   
@@ -857,92 +1126,442 @@
     
     <a href="https://github.com/sagikimhi/socx-cli/raw/main/docs/user-guide/plugins.md" title="View source of this page" class="md-content__button md-icon">
       
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/><path d="M14 2v4a2 2 0 0 0 2 2h4M5 12l-3 3 3 3M9 18l3-3-3-3"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
     </a>
   
 
 
-  <h1>Plugin Development</h1>
-
-<p>Every subcommand that appears under <code>socx</code> comes from an entry in the
-<code>settings.plugins</code> list. Adding your own plugin is as simple as shipping a
-callable that returns a <a href="https://click.palletsprojects.com/"><code>click.Command</code></a> or
-<code>click.Group</code>, then referencing it in configuration.</p>
-<h2 id="anatomy-of-a-plugin-entry">Anatomy of a Plugin Entry<a class="headerlink" href="#anatomy-of-a-plugin-entry" title="Permanent link">&para;</a></h2>
-<div class="language-yaml highlight"><span class="filename">plugins.yaml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">plugins</span><span class="p">:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">git</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.git:cli&quot;</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Various</span><span class="nv"> </span><span class="s">common</span><span class="nv"> </span><span class="s">git</span><span class="nv"> </span><span class="s">command</span><span class="nv"> </span><span class="s">utilities</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">manage</span><span class="nv"> </span><span class="s">your</span><span class="nv"> </span><span class="s">environment.&quot;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span></code></pre></div>
-<ul>
-<li><code>name</code> – the word users type after <code>socx</code>.</li>
-<li><code>command</code> – dotted import path to the callable that returns a Click command or
-  group.</li>
-<li><code>help</code> – optional description shown in <code>socx --help</code>.</li>
-<li><code>enabled</code> – disable the plugin without deleting its metadata.</li>
-<li><code>aliases</code> – extra command names (see <code>plugins.yaml</code> in the sources for
-  examples).</li>
-</ul>
-<h2 id="creating-a-plugin">Creating a Plugin<a class="headerlink" href="#creating-a-plugin" title="Permanent link">&para;</a></h2>
-<ol>
-<li>
-<p>Author a Click command or group. The example below prints "hello" and the
-   current user.</p>
-<div class="language-python highlight"><span class="filename">my_plugins/hello.py</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">click</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">getpass</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nd">@click</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--name&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override the user name&quot;</span><span class="p">)</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">cli</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Say hello from a plugin.&quot;&quot;&quot;</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">who</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hello </span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
-</span></code></pre></div>
-</li>
-<li>
-<p>Expose it in your configuration:</p>
-<div class="language-yaml highlight"><span class="filename">~/.config/socx/socx.yaml</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">plugins</span><span class="p">:</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">hello</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_plugins.hello:cli&quot;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Demo</span><span class="nv"> </span><span class="s">plugin</span><span class="nv"> </span><span class="s">that</span><span class="nv"> </span><span class="s">prints</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">friendly</span><span class="nv"> </span><span class="s">greeting.&quot;</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-</span></code></pre></div>
-</li>
-<li>
-<p>Run <code>socx --help</code> to confirm the new command appears, then execute <code>socx
-   hello</code>.</p>
-</li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The built-in <code>socx plugin example</code> command prints a Markdown guide inside the
-terminal. It expands on these steps and walks through distributing plugins as
-Python packages.</p>
+<h1 id="plugins">Plugins<a class="headerlink" href="#plugins" title="Permanent link">&para;</a></h1>
+<p><code>socx</code> tries to make it as easy and simple as possible to add new plugins.</p>
+<p>Below we will cover what plugins are, how to quickly add your own first custom
+plugins, the plugin schema and what can be done with it, and finally, some
+real examples straight out of <code>socx</code> source code.</p>
+<h2 id="adding-your-first-plugin">Adding Your First Plugin<a class="headerlink" href="#adding-your-first-plugin" title="Permanent link">&para;</a></h2>
+<p>In order to understand what plugins are, and how to add your own custom
+plugins, let's just jump straight into it with a simple hello world example.</p>
+<p>Plugins are either one of two types: <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">script</span></code> for shell scripts, or
+<code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">command</span></code> for <code class="language-py highlight"><span class="nb">callable</span></code> python objects.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Creating a hello world plugin</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block"></div>
 </div>
-<h2 id="packaging-and-distribution">Packaging and Distribution<a class="headerlink" href="#packaging-and-distribution" title="Permanent link">&para;</a></h2>
-<p>Teams often keep plugins in the same repository as their RTL or verification
-support packages. Because the <code>command</code> field accepts arbitrary import paths,
-you can point to:</p>
-<ul>
-<li>Local modules inside your working tree (when running inside that repository).</li>
-<li>Versioned Python packages installed alongside <code>socx-cli</code>.</li>
-<li>Entry points exposed by other teams that follow the same pattern.</li>
-</ul>
-<p>For broader distribution, publish your plugin as a package on an internal index.
-Consumers install it with <code>pip</code> or <code>uv</code> and add the dotted import path to their
-configuration—no changes to <code>socx-cli</code> are required.</p>
-<h2 id="disabling-or-replacing-plugins">Disabling or Replacing Plugins<a class="headerlink" href="#disabling-or-replacing-plugins" title="Permanent link">&para;</a></h2>
-<p>Because plugin metadata lives in Dynaconf settings, you can disable commands on
-CI machines or developer laptops without code changes:</p>
-<div class="language-yaml highlight"><span class="filename">YAML</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">plugins</span><span class="p">:</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">convert</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.convert:cli&quot;</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${ENABLE_CONVERT:false}</span>
-</span></code></pre></div>
-<p>Mixing user and repository configuration lets you ship an opinionated default
-set while still allowing individuals to toggle experimental tooling.</p>
+</div>
+<div class="admonition question inline end">
+<p class="admonition-title"><strong>Question</strong>: why do I need a <code>.socx.yaml</code> file?</p>
+<p><code>socx.yaml</code> tells <code>socx</code> where the root of your project is, and allows it
+to operate properly inside your project, so make sure to create it at your
+project's root (which is usually where your <code>.git</code> directory is located or at
+the parent directory of it if your project is made up of multiple
+repositories.</p>
+</div>
+<p>To add our hello world script, we start off by creating a <code>.socx.yaml</code> file if
+you don't already have an existing one.</p>
+<p>Next up, open up <code>.socx.yaml</code> in an editor, and add the following snippet:</p>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">.socx.yaml</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1">1</a></span>
+<span class="normal"><a href="#__codelineno-0-2">2</a></span>
+<span class="normal"><a href="#__codelineno-0-3">3</a></span>
+<span class="normal"><a href="#__codelineno-0-4">4</a></span>
+<span class="normal"><a href="#__codelineno-0-5">5</a></span>
+<span class="normal"><a href="#__codelineno-0-6">6</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="nn">---</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="nt">plugins</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3"></a><span class="w">    </span><span class="nt">hello_world</span><span class="p">:</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="w">        </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my first `socx` plugin!</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="w">        </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="w">            </span><span class="no">/bin/echo &#39;hello world!&#39;</span>
+</span></code></pre></div></td></tr></table></div>
+<p>Congrats!
+You have just created your first plugin.</p>
+<p>Continue reading below to discover the full strengh of plugins and additional
+features you may add to them such as running with specific environment
+variables, importing other python modules, etc.</p>
+<h2 id="plugin-schema">Plugin Schema<a class="headerlink" href="#plugin-schema" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">name</th>
+<th style="text-align: left;">type</th>
+<th style="text-align: center;">description</th>
+<th style="text-align: center;">required</th>
+<th style="text-align: center;">default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">env</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">dict</span></code></td>
+<td style="text-align: center;">Environment variables that should be present when the command/script is invoked</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="p p-Indicator">{}</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">fresh_env</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">bool</span></code></td>
+<td style="text-align: center;">An optional boolean that specifies whether or not the current environment should be copied into the plugin's subprocess when running the plugin.<br><br>If this is set to true, when the plugin is started, it will run in a new subprocess with no environment variables other than what is specified under the plugin's <code>env</code> field.<br><br>If this is set to false, the current environment variables will be copied into the new subprocess when the command is invoked, along with the variable definitions defined under <code>env</code>.</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">false</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">script</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">str</span></code></td>
+<td style="text-align: center;">A shell command, script, or executable to run when the plugin is invoked.<br><br>If your plugin is a <ins><strong>shell script</strong></ins>, command, or executable - then use the <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">script</span></code> field.<br><br>Otherwise, if it is a <ins><strong>python</strong></ins> <code class="language-py highlight"><span class="n">script</span></code>(e.g. <code class="language-py highlight"><span class="n">script</span><span class="o">.</span><span class="n">py</span></code>), <code class="language-py highlight"><span class="nb">callable</span></code>, <code class="language-py highlight"><span class="n">module</span></code>, or <code class="language-py highlight"><span class="n">package</span></code> use <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">command</span></code> instead.</td>
+<td style="text-align: center;">only if <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">command</span></code> is empty</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="s">&quot;&quot;</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">command</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">str</span></code></td>
+<td style="text-align: center;">A filesystem path or module path to a callable (i.e. function or method) python symbol to execute when the plugin is invoked.<br><br>A <ins>module path</ins> is written in the form of: <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">foo.bar:bazz</span></code><br>A <ins>filesystem path</ins> is written in the form of: <code class="language-yaml highlight"><span class="s">&quot;foo/bar.py:bazz&quot;</span></code><br><br>if your python module checks for<br><code class="language-py highlight"><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span></code><br>or if your package contains a dedicated <code>__main__.py</code> file, and you wish for that module/package to be executed directly, then you may also specify the raw file/module path without the trailing <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">:symbol</span></code> postfix (e.g. <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">foo.bar.bazz</span></code> or <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">foo/bar/bazz.py</span></code>).</td>
+<td style="text-align: center;">only if <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">script</span></code> is empty</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="s">&quot;&quot;</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">enabled</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">bool</span></code></td>
+<td style="text-align: center;">Whether or not to enable this plugin as a sub-command</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">true</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">panel</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">str</span></code></td>
+<td style="text-align: center;">Specify a title for the help section panel of the command's help text in the parent command's help menu.<br><br>This is the panel where the command and its one-liner <code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">short_help</span></code> text will be shown when the parent command is invoked with the <code>-h</code>/<code>--help</code> flag.</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">Commands</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">short_help</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">str</span></code></td>
+<td style="text-align: center;">A short one-liner help text for the plugin that will be used to render the one-liner help text in the parent command's help menu when the parent command is invoked with the <code>-h</code>/<code>--help</code> flag.</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="s">&quot;&quot;</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">epilog</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">str</span></code></td>
+<td style="text-align: center;">Help text shown at the bottom/end of the help menu.<br><br>This is usually usful for providing references, such as a url to a documentation site.</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="s">&quot;&quot;</span></code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code class="language-yaml highlight"><span class="l l-Scalar l-Scalar-Plain">help</span></code></td>
+<td style="text-align: left;"><code class="language-py highlight"><span class="nb">str</span></code></td>
+<td style="text-align: center;">Plugin help text to show when running the plugin command with the <code>-h</code>/<code>--help</code> flag.<br><br>Note that markdown is supported, and is the recommended format for documenting plugin commands.<br><br>To see an example for how markdown is later rendered in the terminal, check out the GIF image for the <code>socx git help</code> command in the quickstart section.</td>
+<td style="text-align: center;">no</td>
+<td style="text-align: center;"><code class="language-yaml highlight"><span class="s">&quot;&quot;</span></code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="plugin-example">Plugin Example<a class="headerlink" href="#plugin-example" title="Permanent link">&para;</a></h2>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-1-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-1-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-1-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-1-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-1-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-1-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-1-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-1-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-1-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-1-10">10</a></span>
+<span class="normal"><a href="#__codelineno-1-11">11</a></span>
+<span class="normal"><a href="#__codelineno-1-12">12</a></span>
+<span class="normal"><a href="#__codelineno-1-13">13</a></span>
+<span class="normal"><a href="#__codelineno-1-14">14</a></span>
+<span class="normal"><a href="#__codelineno-1-15">15</a></span>
+<span class="normal"><a href="#__codelineno-1-16">16</a></span>
+<span class="normal"><a href="#__codelineno-1-17">17</a></span>
+<span class="normal"><a href="#__codelineno-1-18">18</a></span>
+<span class="normal"><a href="#__codelineno-1-19">19</a></span>
+<span class="normal"><a href="#__codelineno-1-20">20</a></span>
+<span class="normal"><a href="#__codelineno-1-21">21</a></span>
+<span class="normal"><a href="#__codelineno-1-22">22</a></span>
+<span class="normal"><a href="#__codelineno-1-23">23</a></span>
+<span class="normal"><a href="#__codelineno-1-24">24</a></span>
+<span class="normal"><a href="#__codelineno-1-25">25</a></span>
+<span class="normal"><a href="#__codelineno-1-26">26</a></span>
+<span class="normal"><a href="#__codelineno-1-27">27</a></span>
+<span class="normal"><a href="#__codelineno-1-28">28</a></span>
+<span class="normal"><a href="#__codelineno-1-29">29</a></span>
+<span class="normal"><a href="#__codelineno-1-30">30</a></span>
+<span class="normal"><a href="#__codelineno-1-31">31</a></span>
+<span class="normal"><a href="#__codelineno-1-32">32</a></span>
+<span class="normal"><a href="#__codelineno-1-33">33</a></span>
+<span class="normal"><a href="#__codelineno-1-34">34</a></span>
+<span class="normal"><a href="#__codelineno-1-35">35</a></span>
+<span class="normal"><a href="#__codelineno-1-36">36</a></span>
+<span class="normal"><a href="#__codelineno-1-37">37</a></span>
+<span class="normal"><a href="#__codelineno-1-38">38</a></span>
+<span class="normal"><a href="#__codelineno-1-39">39</a></span>
+<span class="normal"><a href="#__codelineno-1-40">40</a></span>
+<span class="normal"><a href="#__codelineno-1-41">41</a></span>
+<span class="normal"><a href="#__codelineno-1-42">42</a></span>
+<span class="normal"><a href="#__codelineno-1-43">43</a></span>
+<span class="normal"><a href="#__codelineno-1-44">44</a></span>
+<span class="normal"><a href="#__codelineno-1-45">45</a></span>
+<span class="normal"><a href="#__codelineno-1-46">46</a></span>
+<span class="normal"><a href="#__codelineno-1-47">47</a></span>
+<span class="normal"><a href="#__codelineno-1-48">48</a></span>
+<span class="normal"><a href="#__codelineno-1-49">49</a></span>
+<span class="normal"><a href="#__codelineno-1-50">50</a></span>
+<span class="normal"><a href="#__codelineno-1-51">51</a></span>
+<span class="normal"><a href="#__codelineno-1-52">52</a></span>
+<span class="normal"><a href="#__codelineno-1-53">53</a></span>
+<span class="normal"><a href="#__codelineno-1-54">54</a></span>
+<span class="normal"><a href="#__codelineno-1-55">55</a></span>
+<span class="normal"><a href="#__codelineno-1-56">56</a></span>
+<span class="normal"><a href="#__codelineno-1-57">57</a></span>
+<span class="normal"><a href="#__codelineno-1-58">58</a></span>
+<span class="normal"><a href="#__codelineno-1-59">59</a></span>
+<span class="normal"><a href="#__codelineno-1-60">60</a></span>
+<span class="normal"><a href="#__codelineno-1-61">61</a></span>
+<span class="normal"><a href="#__codelineno-1-62">62</a></span>
+<span class="normal"><a href="#__codelineno-1-63">63</a></span>
+<span class="normal"><a href="#__codelineno-1-64">64</a></span>
+<span class="normal"><a href="#__codelineno-1-65">65</a></span>
+<span class="normal"><a href="#__codelineno-1-66">66</a></span>
+<span class="normal"><a href="#__codelineno-1-67">67</a></span>
+<span class="normal"><a href="#__codelineno-1-68">68</a></span>
+<span class="normal"><a href="#__codelineno-1-69">69</a></span>
+<span class="normal"><a href="#__codelineno-1-70">70</a></span>
+<span class="normal"><a href="#__codelineno-1-71">71</a></span>
+<span class="normal"><a href="#__codelineno-1-72">72</a></span>
+<span class="normal"><a href="#__codelineno-1-73">73</a></span>
+<span class="normal"><a href="#__codelineno-1-74">74</a></span>
+<span class="normal"><a href="#__codelineno-1-75">75</a></span>
+<span class="normal"><a href="#__codelineno-1-76">76</a></span>
+<span class="normal"><a href="#__codelineno-1-77">77</a></span>
+<span class="normal"><a href="#__codelineno-1-78">78</a></span>
+<span class="normal"><a href="#__codelineno-1-79">79</a></span>
+<span class="normal"><a href="#__codelineno-1-80">80</a></span>
+<span class="normal"><a href="#__codelineno-1-81">81</a></span>
+<span class="normal"><a href="#__codelineno-1-82">82</a></span>
+<span class="normal"><a href="#__codelineno-1-83">83</a></span>
+<span class="normal"><a href="#__codelineno-1-84">84</a></span>
+<span class="normal"><a href="#__codelineno-1-85">85</a></span>
+<span class="normal"><a href="#__codelineno-1-86">86</a></span>
+<span class="normal"><a href="#__codelineno-1-87">87</a></span>
+<span class="normal"><a href="#__codelineno-1-88">88</a></span>
+<span class="normal"><a href="#__codelineno-1-89">89</a></span>
+<span class="normal"><a href="#__codelineno-1-90">90</a></span>
+<span class="normal"><a href="#__codelineno-1-91">91</a></span>
+<span class="normal"><a href="#__codelineno-1-92">92</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="nn">---</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="c1"># Required - this will cause the definitions below to be merged into the</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3"></a><span class="c1"># current `plugins` configuration.</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4"></a><span class="nt">plugins</span><span class="p">:</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="w">    </span><span class="c1"># Required - define a new plugin called &quot;my_plugin&quot;. It can be invoked</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7"></a><span class="w">    </span><span class="c1"># later by running `socx my_plugin` in a terminal</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8"></a><span class="w">    </span><span class="nt">my_plugin</span><span class="p">:</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10"></a><span class="w">        </span><span class="c1"># Optional - Define variables `FOO`, `BAR`, and `bazz` in the new</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11"></a><span class="w">        </span><span class="c1"># subprocess environment where the plugin is invoked.</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12"></a><span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13"></a><span class="w">            </span><span class="nt">FOO</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;VALUE&quot;</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14"></a><span class="w">            </span><span class="nt">BAR</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;VALUE1/VALUE2&quot;</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15"></a><span class="w">            </span><span class="nt">bazz</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;value3:value4:value5&quot;</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16"></a>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17"></a><span class="w">        </span><span class="c1"># Optional - do/do-not copy environment variables from the environment</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18"></a><span class="w">        </span><span class="c1"># of the current process into the plugin&#39;s subprocess.</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19"></a><span class="w">        </span><span class="c1">#</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20"></a><span class="w">        </span><span class="c1"># The default value is false, which means to copy the variables from</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21"></a><span class="w">        </span><span class="c1"># the current environment instead of using a fresh one.</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22"></a><span class="w">        </span><span class="nt">fresh_env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23"></a>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24"></a><span class="w">        </span><span class="c1"># Required - this is later translated into something like:</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25"></a><span class="w">        </span><span class="c1">#</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26"></a><span class="w">        </span><span class="c1">#   def my_plugin():</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27"></a><span class="w">        </span><span class="c1">#       from my_package.my_subpackage import my_function</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28"></a><span class="w">        </span><span class="c1">#       tmp = sys.argv.pop(0)</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29"></a><span class="w">        </span><span class="c1">#       try:</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30"></a><span class="w">        </span><span class="c1">#           rv = my_function()</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31"></a><span class="w">        </span><span class="c1">#       finally:</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32"></a><span class="w">        </span><span class="c1">#           sys.argv.insert(0, tmp)</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33"></a><span class="w">        </span><span class="c1">#       return rv</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34"></a><span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_package.my_subpackage:my_function</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35"></a>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36"></a><span class="w">        </span><span class="c1"># Optional - enable/disable the plugin, this is true by default.</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37"></a><span class="w">        </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38"></a>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39"></a><span class="w">        </span><span class="c1"># Optional - will place command in a separate panel in the parent</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40"></a><span class="w">        </span><span class="c1"># command&#39;s help menu with a custom &quot;Plugin Commands&quot; title.</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41"></a><span class="w">        </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Plugin Commands</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42"></a>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43"></a><span class="w">        </span><span class="c1"># Optional - additional aliases/shortcuts to set that can be used</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44"></a><span class="w">        </span><span class="c1"># to invoke the sub-command, in addition to the current name</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45"></a><span class="w">        </span><span class="c1"># &#39;my_command&#39; defined at the top of this snippet.</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46"></a><span class="w">        </span><span class="nt">aliases</span><span class="p">:</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my_cmd</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">myc</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49"></a>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50"></a><span class="w">        </span><span class="c1"># Optional - a short version of the help text that will be used to</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51"></a><span class="w">        </span><span class="c1"># render the one-liner help text in the parent command&#39;s help menu</span>
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52"></a><span class="w">        </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-1-53"><a id="__codelineno-1-53" name="__codelineno-1-53"></a><span class="w">            </span><span class="no">My short one-liner help text.</span>
+</span><span id="__span-1-54"><a id="__codelineno-1-54" name="__codelineno-1-54"></a>
+</span><span id="__span-1-55"><a id="__codelineno-1-55" name="__codelineno-1-55"></a><span class="w">        </span><span class="c1"># Optional - help text shown at the bottom/end of the help menu.</span>
+</span><span id="__span-1-56"><a id="__codelineno-1-56" name="__codelineno-1-56"></a><span class="w">        </span><span class="c1">#</span>
+</span><span id="__span-1-57"><a id="__codelineno-1-57" name="__codelineno-1-57"></a><span class="w">        </span><span class="c1"># This is usually usful for providing references, such as a url to</span>
+</span><span id="__span-1-58"><a id="__codelineno-1-58" name="__codelineno-1-58"></a><span class="w">        </span><span class="c1"># a documentation site.</span>
+</span><span id="__span-1-59"><a id="__codelineno-1-59" name="__codelineno-1-59"></a><span class="w">        </span><span class="nt">epilog</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-1-60"><a id="__codelineno-1-60" name="__codelineno-1-60"></a><span class="w">            </span><span class="no">Visit [link]https://my_awesome_website.com/documentation[/link]</span>
+</span><span id="__span-1-61"><a id="__codelineno-1-61" name="__codelineno-1-61"></a><span class="w">            </span><span class="no">for additional info about &#39;my_plugin&#39;.</span>
+</span><span id="__span-1-62"><a id="__codelineno-1-62" name="__codelineno-1-62"></a>
+</span><span id="__span-1-63"><a id="__codelineno-1-63" name="__codelineno-1-63"></a><span class="w">        </span><span class="c1"># Optional - plugin help text to show when running the command</span>
+</span><span id="__span-1-64"><a id="__codelineno-1-64" name="__codelineno-1-64"></a><span class="w">        </span><span class="c1"># with the -h or --help flag.</span>
+</span><span id="__span-1-65"><a id="__codelineno-1-65" name="__codelineno-1-65"></a><span class="w">        </span><span class="c1">#</span>
+</span><span id="__span-1-66"><a id="__codelineno-1-66" name="__codelineno-1-66"></a><span class="w">        </span><span class="c1"># Note that markdown is supported, and is the recommended format</span>
+</span><span id="__span-1-67"><a id="__codelineno-1-67" name="__codelineno-1-67"></a><span class="w">        </span><span class="c1"># for documenting plugin commands.</span>
+</span><span id="__span-1-68"><a id="__codelineno-1-68" name="__codelineno-1-68"></a><span class="w">        </span><span class="c1">#</span>
+</span><span id="__span-1-69"><a id="__codelineno-1-69" name="__codelineno-1-69"></a><span class="w">        </span><span class="c1"># To see an example for how markdown is later rendered in the</span>
+</span><span id="__span-1-70"><a id="__codelineno-1-70" name="__codelineno-1-70"></a><span class="w">        </span><span class="c1"># terminal, check out the GIF image for the `socx git help`</span>
+</span><span id="__span-1-71"><a id="__codelineno-1-71" name="__codelineno-1-71"></a><span class="w">        </span><span class="c1"># command in the quickstart section.</span>
+</span><span id="__span-1-72"><a id="__codelineno-1-72" name="__codelineno-1-72"></a><span class="w">        </span><span class="nt">help</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-1-73"><a id="__codelineno-1-73" name="__codelineno-1-73"></a><span class="w">            </span><span class="no"># My Plugin</span>
+</span><span id="__span-1-74"><a id="__codelineno-1-74" name="__codelineno-1-74"></a>
+</span><span id="__span-1-75"><a id="__codelineno-1-75" name="__codelineno-1-75"></a><span class="w">            </span><span class="no">My longer descriptive and helpful help text.</span>
+</span><span id="__span-1-76"><a id="__codelineno-1-76" name="__codelineno-1-76"></a>
+</span><span id="__span-1-77"><a id="__codelineno-1-77" name="__codelineno-1-77"></a><span class="w">            </span><span class="no">## My Plugin Subtitle</span>
+</span><span id="__span-1-78"><a id="__codelineno-1-78" name="__codelineno-1-78"></a>
+</span><span id="__span-1-79"><a id="__codelineno-1-79" name="__codelineno-1-79"></a><span class="w">            </span><span class="no">**Lorem Ipsum** - Lorem ipsum dolor sit amet, consectetur</span>
+</span><span id="__span-1-80"><a id="__codelineno-1-80" name="__codelineno-1-80"></a><span class="w">            </span><span class="no">adipiscing elit.</span>
+</span><span id="__span-1-81"><a id="__codelineno-1-81" name="__codelineno-1-81"></a>
+</span><span id="__span-1-82"><a id="__codelineno-1-82" name="__codelineno-1-82"></a><span class="w">            </span><span class="no">Aenean laoreet faucibus tincidunt. Integer nec magna at nunc</span>
+</span><span id="__span-1-83"><a id="__codelineno-1-83" name="__codelineno-1-83"></a><span class="w">            </span><span class="no">posuere tincidunt.</span>
+</span><span id="__span-1-84"><a id="__codelineno-1-84" name="__codelineno-1-84"></a>
+</span><span id="__span-1-85"><a id="__codelineno-1-85" name="__codelineno-1-85"></a><span class="w">            </span><span class="no">&gt; ---</span>
+</span><span id="__span-1-86"><a id="__codelineno-1-86" name="__codelineno-1-86"></a><span class="w">            </span><span class="no">&gt; ***TIP***:</span>
+</span><span id="__span-1-87"><a id="__codelineno-1-87" name="__codelineno-1-87"></a><span class="w">            </span><span class="no">&gt;</span>
+</span><span id="__span-1-88"><a id="__codelineno-1-88" name="__codelineno-1-88"></a><span class="w">            </span><span class="no">&gt; Class aptent taciti sociosqu ad litora torquent per conubia</span>
+</span><span id="__span-1-89"><a id="__codelineno-1-89" name="__codelineno-1-89"></a><span class="w">            </span><span class="no">&gt; nostra, per inceptos himenaeos. Cras sollicitudin et massa</span>
+</span><span id="__span-1-90"><a id="__codelineno-1-90" name="__codelineno-1-90"></a><span class="w">            </span><span class="no">&gt; in efficitur.</span>
+</span><span id="__span-1-91"><a id="__codelineno-1-91" name="__codelineno-1-91"></a><span class="w">            </span><span class="no">&gt;</span>
+</span><span id="__span-1-92"><a id="__codelineno-1-92" name="__codelineno-1-92"></a><span class="w">            </span><span class="no">&gt; ---</span>
+</span></code></pre></div></td></tr></table></div>
+<h2 id="real-examples">Real Examples<a class="headerlink" href="#real-examples" title="Permanent link">&para;</a></h2>
+<p>Below are the configurations used for <code>socx</code> builtin plugins:</p>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><th colspan="2" class="filename"><span class="filename">YAML</span></th></tr><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-2-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-2-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-2-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-2-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-2-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-2-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-2-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-2-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-2-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-2-10">10</a></span>
+<span class="normal"><a href="#__codelineno-2-11">11</a></span>
+<span class="normal"><a href="#__codelineno-2-12">12</a></span>
+<span class="normal"><a href="#__codelineno-2-13">13</a></span>
+<span class="normal"><a href="#__codelineno-2-14">14</a></span>
+<span class="normal"><a href="#__codelineno-2-15">15</a></span>
+<span class="normal"><a href="#__codelineno-2-16">16</a></span>
+<span class="normal"><a href="#__codelineno-2-17">17</a></span>
+<span class="normal"><a href="#__codelineno-2-18">18</a></span>
+<span class="normal"><a href="#__codelineno-2-19">19</a></span>
+<span class="normal"><a href="#__codelineno-2-20">20</a></span>
+<span class="normal"><a href="#__codelineno-2-21">21</a></span>
+<span class="normal"><a href="#__codelineno-2-22">22</a></span>
+<span class="normal"><a href="#__codelineno-2-23">23</a></span>
+<span class="normal"><a href="#__codelineno-2-24">24</a></span>
+<span class="normal"><a href="#__codelineno-2-25">25</a></span>
+<span class="normal"><a href="#__codelineno-2-26">26</a></span>
+<span class="normal"><a href="#__codelineno-2-27">27</a></span>
+<span class="normal"><a href="#__codelineno-2-28">28</a></span>
+<span class="normal"><a href="#__codelineno-2-29">29</a></span>
+<span class="normal"><a href="#__codelineno-2-30">30</a></span>
+<span class="normal"><a href="#__codelineno-2-31">31</a></span>
+<span class="normal"><a href="#__codelineno-2-32">32</a></span>
+<span class="normal"><a href="#__codelineno-2-33">33</a></span>
+<span class="normal"><a href="#__codelineno-2-34">34</a></span>
+<span class="normal"><a href="#__codelineno-2-35">35</a></span>
+<span class="normal"><a href="#__codelineno-2-36">36</a></span>
+<span class="normal"><a href="#__codelineno-2-37">37</a></span>
+<span class="normal"><a href="#__codelineno-2-38">38</a></span>
+<span class="normal"><a href="#__codelineno-2-39">39</a></span>
+<span class="normal"><a href="#__codelineno-2-40">40</a></span>
+<span class="normal"><a href="#__codelineno-2-41">41</a></span>
+<span class="normal"><a href="#__codelineno-2-42">42</a></span>
+<span class="normal"><a href="#__codelineno-2-43">43</a></span>
+<span class="normal"><a href="#__codelineno-2-44">44</a></span>
+<span class="normal"><a href="#__codelineno-2-45">45</a></span>
+<span class="normal"><a href="#__codelineno-2-46">46</a></span>
+<span class="normal"><a href="#__codelineno-2-47">47</a></span>
+<span class="normal"><a href="#__codelineno-2-48">48</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1"></a><span class="nn">---</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2"></a><span class="nt">plugins</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3"></a><span class="w">  </span><span class="nt">git</span><span class="p">:</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.git:cli&quot;</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8"></a><span class="w">    </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run `git` commands in parallel on multiple repositories.</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9"></a>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10"></a><span class="w">  </span><span class="nt">rgr</span><span class="p">:</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.rgr:cli&quot;</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15"></a><span class="w">    </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Perform various regression related actions.</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16"></a>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17"></a><span class="w">  </span><span class="nt">init</span><span class="p">:</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21"></a>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22"></a><span class="w">  </span><span class="nt">plugin</span><span class="p">:</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.plugin:cli&quot;</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27"></a><span class="w">    </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Add, create, inspect, and manage extension plugins.</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28"></a>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29"></a><span class="w">  </span><span class="nt">config</span><span class="p">:</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.config:cli&quot;</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34"></a><span class="w">    </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get, set, list, or modify settings configuration values.</span>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35"></a>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36"></a><span class="w">  </span><span class="nt">convert</span><span class="p">:</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.convert:cli&quot;</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41"></a><span class="w">    </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Perform a conversion based on current configurations.</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42"></a>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43"></a><span class="w">  </span><span class="nt">version</span><span class="p">:</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44"></a><span class="w">    </span><span class="nt">panel</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Commands</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46"></a><span class="w">    </span><span class="nt">aliases</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47"></a><span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;socx_plugins.version:version&quot;</span>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48"></a><span class="w">    </span><span class="nt">short_help</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Print version information and exit.</span>
+</span></code></pre></div></td></tr></table></div>
+<h2 id="plugins-deep-dive-advanced">Plugins Deep Dive (Advanced)<a class="headerlink" href="#plugins-deep-dive-advanced" title="Permanent link">&para;</a></h2>
+<p>Every subcommand you see when running <code>socx</code> is actually a plugin. Even the
+<code>socx plugin</code> command is in itself a plugin.</p>
+<!--
+Even more, `socx` itself, as a standalone tool, is actually just a plugin
+management tool.
+
+It may sometimes seem like `socx` provides a whole bunch of features and
+a giant infrastructure but the truth is that all of those features are mostly
+made up of small simple scripts and patches of various common simple functions
+usually written in python or shell scripts.
+
+Since `socx` makes it so simple to add almost any command, shell, or python
+script as a new plugin, it makes it super easy to populate it with a whole bunch
+of common snippets and scripts that usually remain hidden and only used by
+yourself and turn them into a tool that is you can effortlessly share with
+your team through an elegant modern highly customizable command line
+interface.
+
+take all of those common callable functions and scripts that you use all the time in your source code all the time but remain hidden since they are too common to be a part of the library API.
+a plugin management tool
+Plugins Adding your own plugin is as simple as adding
+a couple of lines
+
+shipping a
+callable that returns a [`click.Command`](https://click.palletsprojects.com/) or
+`click.Group`, then referencing it in configuration.
+-->
 
 
 
@@ -1089,6 +1708,44 @@ set while still allowing individuals to toggle experimental tooling.</p>
         <footer class="md-footer">
   
     
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="quickstart.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quickstart">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Quickstart
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="configuration.html" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Configuration
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -1190,10 +1847,10 @@ set while still allowing individuals to toggle experimental tooling.</p>
       
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["toc.follow","header.autohide","navigation.top","navigation.path","navigation.prune","navigation.header","navigation.footer","navigation.instant","navigation.indexes","navigation.sections","navigation.tracking","navigation.tabs.sticky","navigation.instant.preview","navigation.instant.prefetch","navigation.instant.progress","search.suggest","search.highlight","announce.dismiss","content.tabs.link","content.action.edit","content.action.view","content.tooltips","content.footnote.tooltips","content.code.copy","content.code.select","content.code.annotate"],"search":"../assets/javascripts/workers/search.5df7522c.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["toc.follow","header.autohide","navigation.top","navigation.path","navigation.prune","navigation.header","navigation.footer","navigation.instant","navigation.indexes","navigation.sections","navigation.tracking","navigation.tabs.sticky","navigation.instant.preview","navigation.instant.prefetch","navigation.instant.progress","search.suggest","search.highlight","announce.dismiss","content.tabs.link","content.action.edit","content.action.view","content.tooltips","content.footnote.tooltips","content.code.copy","content.code.select","content.code.annotate"],"search":"../assets/javascripts/workers/search.1bfe1b73.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
-      <script src="../assets/javascripts/bundle.21aa498e.min.js"></script>
+      <script src="../assets/javascripts/bundle.6008f134.min.js"></script>
       
     
   </body>
