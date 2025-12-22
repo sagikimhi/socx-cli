@@ -3,12 +3,6 @@ plugins:
       help: my first `socx` plugin!
       script: /bin/echo -n "hello world!"
 
-  # init:
-  #   script: |
-  #     @jinja {{this.paths.APP_ROOT_DIR}}/bin/setup
-  #   help: |
-  #     Initialize and setup `socx-cli` on your local user.
-
   # Required - define a new plugin called "my_plugin". It can be invoked
   # later by running `socx my_plugin` in a terminal
   my_plugin:

@@ -57,15 +57,30 @@ def list_():
 
 
 @cli.command()
-def debug():
+@click.argument(
+    "field",
+    type=click.STRING,
+    default=None,
+    required=False,
+    metavar="<field>",
+    help="The configuration field to debug.",
+)
+def debug(field: str | None):
     """Dump cli debug info and modification history."""
-    console.print(settings.get_debug_info(verbosity=2))
+    console.print(settings.get_debug_info(key=field, verbosity=2))
 
 
 @cli.command()
-def history():
+@click.argument(
+    "limit",
+    help="Limits the maximum number of history entries to list.",
+    default=0,
+    required=False,
+    type=click.INT,
+)
+def history(limit: int):
     """Dump cli debug info and modification history."""
-    console.print(settings.get_history())
+    console.print(settings.get_history(limit))
 
 
 @cli.command()
@@ -118,7 +133,9 @@ Some available fields:
 
 """.strip().format(
     "\n".join(
-        f"- {key.lower()}" for key in settings if "dynaconf" not in key.lower()
+        f"- {key}"
+        for key in settings.raw
+        if "dynaconf" not in key and not key.startswith("_")
     )
 )
 

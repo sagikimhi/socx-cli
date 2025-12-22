@@ -18,6 +18,7 @@ from socx.config.metadata import __directory__
 # Functions
 # -----------------------------------------------------------------------------
 
+
 def find_project_root(lookup_path: str | Path | None = None) -> Path | None:
     """Find the root directory of a `socx` project.
 
@@ -46,7 +47,7 @@ def find_project_root(lookup_path: str | Path | None = None) -> Path | None:
     if lookup_path.is_file():
         lookup_path = lookup_path.parent
 
-    while lookup_path != Path('/'):
+    while lookup_path != Path("/"):
         cfg = lookup_path / LOCAL_CONFIG_FILENAME
         if cfg.exists() and cfg.is_file():
             rv = lookup_path
@@ -147,7 +148,7 @@ APP_CONFIG_FILE: Path = APP_CONFIG_DIR / APP_CONFIG_FILENAME
 # Project Paths
 # -----------------------------------------------------------------------------
 
-PROJECT_ROOT_DIR: Path = find_project_root(Path.cwd()) or Path.cwd()
+PROJECT_ROOT_DIR: Path = find_project_root() or Path.cwd()
 """Path to project root directory if such exists, otherwise None."""
 
 PROJECT_ROOT_CFG: Path = PROJECT_ROOT_DIR / LOCAL_CONFIG_FILENAME
@@ -159,4 +160,3 @@ The file will only exist if `socx init` was invoked, or if it were created
 manually, therefore any writes or reads should check for existence via
 `PROJECT_CONFIG_FILE.exists()`.
 """
-

@@ -153,7 +153,7 @@ _user_settings = get_settings(user_overrides=True)
 
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
 
-settings = LocalProxy(
+settings: LocalProxy[Settings] = LocalProxy(
     _settings_cv,
     unbound_message=dedent("""
         Working outside of application context.
@@ -165,6 +165,4 @@ settings = LocalProxy(
 
 _settings_cv.set(_default_settings)
 
-_tok = _settings_cv.set(_global_settings)
-
-settings.update({"_VAULT_TOKEN": _tok})
+_settings_cv.set(_global_settings)
