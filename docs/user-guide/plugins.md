@@ -147,7 +147,7 @@ executed.
 | `#!yaml enabled` | `#!py bool` | Whether or not to enable this plugin as a sub-command | no | `#!yaml true` |
 | `#!yaml panel` | `#!py str` | Specify a title for the help section panel of the command's help text in the parent command's help menu.<br><br>This is the panel where the command and its one-liner `#!yaml short_help` text will be shown when the parent command is invoked with the `-h`/`--help` flag. | no | `#!yaml Commands` |
 | `#!yaml short_help` | `#!py str` | A short one-liner help text for the plugin that will be used to render the one-liner help text in the parent command's help menu when the parent command is invoked with the `-h`/`--help` flag. | no | `#!yaml ""` |
-| `#!yaml epilog` | `#!py str` | Help text shown at the bottom/end of the help menu.<br><br>This is usually usful for providing references, such as a url to a documentation site. | no | `#!yaml ""` |
+| `#!yaml epilog` | `#!py str` | Help text shown at the bottom/end of the help menu.<br><br>This is usually useful for providing references, such as a url to a documentation site. | no | `#!yaml ""` |
 | `#!yaml help` | `#!py str` | Plugin help text to show when running the plugin command with the `-h`/`--help` flag.<br><br>Note that markdown is supported, and is the recommended format for documenting plugin commands.<br><br>To see an example for how markdown is later rendered in the terminal, check out the GIF image for the `socx git help` command in the quickstart section. | no | `#!yaml ""` |
 
 
