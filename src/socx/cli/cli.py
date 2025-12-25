@@ -7,7 +7,7 @@ from pathlib import Path
 import rich_click as click
 
 from socx.cli._cli import socx
-from socx.config._paths import PROJECT_ROOT_DIR, LOCAL_CONFIG_FILENAME
+from socx.config._paths import LOCAL_CONFIG_FILENAME
 from socx.cli import params
 from socx.config._config import settings
 
@@ -24,21 +24,21 @@ def cli(ctx: click.Context):
         ctx.exit()
 
 
-@params.command()
+@params.command(parent=cli)
 @params.opts()
 @click.argument(
-    "path",
+    "project_root",
     nargs=1,
-    default=PROJECT_ROOT_DIR,
+    default=Path.cwd(),
     required=False,
-    metavar="[directory]",
+    metavar="[<directory>]",
     help="Path to directory to initialize as a `socx` project",
     type=click.Path(
         exists=True, file_okay=False, dir_okay=True, path_type=Path
     ),
 )
 @params.option_panels()
-def init(path: Path):
+def init(project_root: Path):
     """Initialize a `socx` project at the current directory.
 
     # `socx init`
@@ -55,4 +55,4 @@ def init(path: Path):
     members.
 
     """
-    (path / LOCAL_CONFIG_FILENAME).touch()
+    (project_root / LOCAL_CONFIG_FILENAME).touch()
