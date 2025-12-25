@@ -24,11 +24,11 @@ class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
     def __init__(
         self,
         *args: Any,
-        data_model: Regression | None = None,
+        model: Regression | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
-        self._model = data_model or Regression("", [])
+        self._model = model or Regression("", [])
         self.cursor_type = "row"
         self.zebra_stripes = True
 
