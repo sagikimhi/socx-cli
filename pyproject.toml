@@ -74,7 +74,6 @@ dependencies = [
     "rich-click",
     "platformdirs",
     "textual-speedups",
-    "universal-pathlib",
     "python-box[ruamel.yaml,toml]~=7.0",
 ]
 
