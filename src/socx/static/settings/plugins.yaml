@@ -35,13 +35,6 @@ plugins:
     command: "socx_plugins.config:cli"
     short_help: Get, set, list, or modify settings configuration values.
 
-  convert:
-    panel: Commands
-    enabled: true
-    aliases: []
-    command: "socx_plugins.convert:cli"
-    short_help: Perform a conversion based on current configurations.
-
   version:
     panel: Commands
     enabled: true
