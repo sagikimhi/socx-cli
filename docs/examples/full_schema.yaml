@@ -53,7 +53,7 @@ plugins:
 
     # Optional - help text shown at the bottom/end of the help menu.
     #
-    # This is usually usful for providing references, such as a url to
+    # This is usually useful for providing references, such as a url to
     # a documentation site.
     epilog: |
       Visit [link]https://my_awesome_website.com/documentation[/link]

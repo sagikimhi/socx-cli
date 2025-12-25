@@ -31,7 +31,7 @@ def cli(ctx: click.Context):
     nargs=1,
     default=Path.cwd(),
     required=False,
-    metavar="[<directory>]",
+    metavar="[directory]",
     help="Path to directory to initialize as a `socx` project",
     type=click.Path(
         exists=True, file_okay=False, dir_okay=True, path_type=Path
