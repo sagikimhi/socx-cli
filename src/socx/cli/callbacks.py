@@ -47,6 +47,7 @@ def configure_cb(ctx: Context, param: Parameter, value: str) -> str:
 @log_it(logger=logger)
 def verbosity_cb(_: Context, param: Parameter, value: str) -> str:
     """Update the global log level while respecting existing overrides."""
-    log.set_level(log.Level[value])
-    settings.cli.params.update({param.name: log.get_level().name})
+    log.set_level(log.Level[value.upper()])
+    logging.basicConfig(level=log.Level[value.upper()].value)
+    settings.cli.params.update({param.name: value})
     return settings.cli.params.get(param.name)

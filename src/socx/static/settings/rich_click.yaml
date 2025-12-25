@@ -136,7 +136,7 @@ rich_click:
   style_commands_panel_border: ~
 
   # type: NotRequired[bool]
-  panel_inline_help_in_title: ~
+  panel_inline_help_in_title: true
 
   # type: NotRequired[str]
   panel_inline_help_delimiter: ~
@@ -216,7 +216,6 @@ rich_click:
   # type: NotRequired["StyleType"]
   style_padding_epilog: ~
 
-
   # type: NotRequired[int]
   panel_title_padding: ~
 
@@ -224,13 +223,13 @@ rich_click:
   width: ~
 
   # type: NotRequired[Optional[int]]
-  max_width: ~
+  max_width: 120
 
   # type: NotRequired[Optional[Literal["auto", "standard", "256", "truecolor", "windows"]]]
-  color_system: ~
+  color_system: "auto"
 
   # type: NotRequired[Optional[bool]]
-  force_terminal: true
+  force_terminal: false
 
   # type: NotRequired[List["OptionColumnType"]]
   options_table_column_types: ~
@@ -248,9 +247,16 @@ rich_click:
   header_text: ~
 
   # type: NotRequired[Optional[Union[str, "Text"]]]
-  footer_text: |
-    Documentation is available at <https://sagikimhi.github.io/socx-cli>
-
+  footer_text: "@jinja
+    > ---\n
+    > - **User Guide**: *[https://sagikimhi.github.io/socx-cli]()*\n
+    > \n
+    > - **Project Root**: *{{this.paths.project_root_dir | abspath}}*\n
+    > \n
+    > - **Project Config**: *{{this.paths.project_root_config | abspath}}*\n
+    > \n
+    > ---\n
+    "
   # type: NotRequired[str]
   panel_title_string: ~
 
@@ -384,7 +390,7 @@ rich_click:
   use_markdown_emoji: true
 
   # type: NotRequired[Optional[bool]]
-  use_rich_markup: ~
+  use_rich_markup: true
 
   # type: NotRequired[Dict[str, List[CommandGroupDict]]]
   command_groups: ~

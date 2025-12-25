@@ -3,25 +3,69 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, cast
+from collections import ChainMap
 from collections.abc import Callable
 
 from pydantic import ValidationError
 import rich_click as click
 
 from socx.config import settings
-from socx.cli.types import Decorator
-from socx.cli.types import AnyCallable
-from socx.cli.callbacks import debug_cb
-from socx.cli.callbacks import verbosity_cb
-from socx.cli.callbacks import configure_cb
-from socx.utils.decorators import join_decorators
 from socx.config.schema.plugin import PluginModel
+from socx.cli.types import Decorator, GroupType, CommandType, AnyCallable
+from socx.cli.callbacks import debug_cb, verbosity_cb, configure_cb
+from socx.utils.decorators import join_decorators
 
-group: Decorator[AnyCallable] = click.command(**settings.cli.group)
 
-command: Decorator[AnyCallable] = click.command(**settings.cli.command)
+def command(
+    name: str | AnyCallable | None = None,
+    cls: type[CommandType] | None = None,
+    parent: click.Group | None = None,
+    **kwargs: Any,
+) -> CommandType | Callable[[AnyCallable], CommandType | click.Command]:
+    cls = cls or cast(type[CommandType], click.Command)
+    kwargs = dict(ChainMap(kwargs, settings.cli.command))
 
-debug: Decorator[AnyCallable] = click.option(
+    def decorator(func: AnyCallable) -> CommandType:
+        cmd = click.command(
+            name=name if not callable(name) else name.__name__,
+            cls=cls,
+            **kwargs,
+        )(func)
+
+        if parent is not None:
+            parent.add_command(cmd)
+
+        return cmd
+
+    return decorator if not callable(name) else decorator(name)
+
+
+def group(
+    name: str | AnyCallable | None = None,
+    cls: type[GroupType] | None = None,
+    parent: GroupType | None = None,
+    **kwargs: Any,
+) -> GroupType | Callable[[AnyCallable], GroupType | click.Group]:
+    cls = cls or cast(type[GroupType], click.Group)
+    kwargs = dict(ChainMap(kwargs, settings.cli.group))
+
+    def decorator(func: AnyCallable) -> GroupType | click.Group:
+        cmd = click.group(
+            name=name if not callable(name) else name.__name__,
+            cls=cls,
+            **kwargs,
+        )(func)
+
+        if parent is not None:
+            parent.add_command(cmd)
+
+        return cmd
+
+    return decorator if not callable(name) else decorator(name)
+
+
+debug: Decorator = click.option(
     "--debug",
     "-d",
     "debug",
@@ -37,7 +81,7 @@ debug: Decorator[AnyCallable] = click.option(
 )
 
 
-verbosity: Decorator[AnyCallable] = click.option(
+verbosity: Decorator = click.option(
     "--verbosity",
     "-v",
     "verbosity",
@@ -45,7 +89,7 @@ verbosity: Decorator[AnyCallable] = click.option(
     help="set the logging verbosity to the specified level.",
     envvar="SOCX_VERBOSITY",
     default="INFO",
-    is_eager=False,
+    is_eager=True,
     show_envvar=True,
     show_choices=True,
     show_default=True,
@@ -57,9 +101,9 @@ verbosity: Decorator[AnyCallable] = click.option(
     callback=verbosity_cb,
 )
 
-configure: Decorator[AnyCallable] = click.option(
-    "--config/--no-config",
-    "configure",
+configure: Decorator = click.option(
+    "--configure/--no-configure",
+    "-c/-nc",
     help="specifies whether or not user configurations should be loaded.",
     envvar="SOCX_CONFIGURE",
     default=True,

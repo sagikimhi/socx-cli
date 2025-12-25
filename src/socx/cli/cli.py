@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import rich_click as click
 
 from socx.cli._cli import socx
-from socx.config._paths import PROJECT_ROOT_CFG
+from socx.config._paths import PROJECT_ROOT_DIR, LOCAL_CONFIG_FILENAME
 from socx.cli import params
 from socx.config._config import settings
 
@@ -22,29 +24,35 @@ def cli(ctx: click.Context):
         ctx.exit()
 
 
-@cli.command()
+@params.command()
 @params.opts()
-def init():
+@click.argument(
+    "path",
+    nargs=1,
+    default=PROJECT_ROOT_DIR,
+    required=False,
+    metavar="[<directory>]",
+    help="Path to directory to initialize as a `socx` project",
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, path_type=Path
+    ),
+)
+@params.option_panels()
+def init(path: Path):
     """Initialize a `socx` project at the current directory.
+
+    # `socx init`
+
+    Initialize a `socx` project at the current directory.
 
     Initializing a `socx` project will create a .socx.yaml file at the root of
     your project.
 
-    This file will contain all your project-specific configurations that
-    should be shared among other team members.
-
-    Most of the management of this file is done automatically and you need not
-    modify it on your own.
-
-    This does not mean that you shouldn't, the `socx` configuration interface
-    is a powerfull feature and can achieve great things, if you feel like you
-    know what you are doing, or just wish to experiment, you are encouraged to
-    do so and can refer to the docs at any point if issues arrise.
-
-    Docs are available at https://sagikimhi.github.io/socx-cli/
+    This file will contain all your project-specific configurations and it is
+    recommended that you include this file in your revision control system
+    (i.e. add it with `git add`) to allow sharing different plugins of tools
+    and scripts related to your project with the rest of the project's team
+    members.
 
     """
-    root_cfg = PROJECT_ROOT_CFG
-    if not root_cfg.exists():
-        root_cfg.touch()
-        # root_cfg.write_text()
+    (path / LOCAL_CONFIG_FILENAME).touch()

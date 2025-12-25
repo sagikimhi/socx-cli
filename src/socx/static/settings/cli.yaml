@@ -11,14 +11,12 @@ cli:
 
   group:
     context_settings: *socx-cli-context-settings
-    no_args_is_help: true
-    options_metavar: "[<options>]"
-    subcommand_metavar: "[<subcommand>] [<args>...]"
-    invoke_without_command: true
+    options_metavar: "[options]"
+    subcommand_metavar: "<subcommand> [args]..."
 
   command:
     context_settings: *socx-cli-context-settings
-    options_metavar: "[<options>]"
+    options_metavar: "[options]"
 
   params:
     debug: false

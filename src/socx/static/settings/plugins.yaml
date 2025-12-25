@@ -18,6 +18,8 @@ plugins:
     panel: Commands
     enabled: true
     aliases: []
+    command: "socx.cli.cli:init"
+    short_help: Initialize a `socx` project at the current directory.
 
   plugin:
     panel: Commands
