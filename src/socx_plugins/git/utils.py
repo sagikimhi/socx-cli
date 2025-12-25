@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from glob import has_magic
+from typing import TYPE_CHECKING, cast
 from pathlib import Path
-from contextlib import suppress
 from collections.abc import Generator, Iterable
 
 import git
+from socx import settings
 from rich.text import Text
+from dynaconf.utils.files import glob, deduplicate
 
 
 def get_repo(path: str | Path) -> git.Repo | None:
@@ -119,54 +120,84 @@ def is_git_dir(path: str | Path) -> bool:
 def iter_repositories(
     root: Path, recursive: bool = False
 ) -> Generator[git.Repo]:
-    for root_dir, dirs, _ in root.walk():
-        if is_git_dir(root_dir):
-            yield git.Repo(root_dir)
+    if root.is_dir() and is_git_dir(root):
+        yield git.Repo(root)
 
-        for name in dirs:
-            if is_git_dir(root_dir / name):
-                yield git.Repo(root_dir / name)
-
-        if not recursive:
-            break
+    for path in root.iterdir():
+        if recursive:
+            yield from iter_repositories(path, recursive)
+        elif path.is_dir() and is_git_dir(path):
+            yield git.Repo(path)
 
 
 def find_repositories(
-    directory: Path | None,
+    root: Path | None,
     includes: Iterable[str | Path] | None = None,
     excludes: Iterable[str | Path] | None = None,
 ) -> Generator[git.Repo]:
     """Yield repositories discovered directly underneath ``directory``."""
-    directory = directory or Path.cwd()
+    root = root or settings.paths.project_root_dir
 
-    def try_get_paths_set(paths: Iterable[str | Path]) -> set[Path]:
-        rv = set()
+    if TYPE_CHECKING:
+        root = cast(Path, root)
 
-        for path in paths:
-            if isinstance(path, Path):
-                if path.is_dir():
-                    rv.add(path.resolve())
-                continue
+    def deduplicate_paths(paths: Iterable[Path]) -> list[Path]:
+        return list(map(Path, deduplicate([str(p) for p in paths])))
 
-            if has_magic(path):
-                with suppress(ValueError):
-                    rv.update(directory.glob(path))
-                continue
+    def match_directories(
+        root: Path,
+        patterns: Iterable[str | Path],
+        recursive: bool = True,
+        include_hidden: bool = False,
+    ) -> list[Path]:
+        if not root.is_dir():
+            return []
 
-            with suppress(OSError):
-                rv.add(Path(path).resolve())
+        rv = [root]
+        kwargs = {
+            "root_dir": root,
+            "recursive": recursive,
+            "include_hidden": include_hidden,
+        }
 
-        if rv:
-            rv = set(filter(is_git_dir, rv))
+        for pattern in map(str, patterns):
+            if not pattern.endswith("/"):
+                pattern += "/"
+
+            paths = [
+                (root / path).relative_to(Path.cwd(), walk_up=True)
+                for path in glob(pattern, **kwargs)
+            ]
+            rv.extend(filter(Path.is_dir, paths))
 
         return rv
 
-    dirs = [get_repo_dir(repo) for repo in iter_repositories(directory)]
-    dirs = {*dirs, *try_get_paths_set(includes or [])}
-    dirs = list(dirs.difference(try_get_paths_set(excludes or [])))
-    dirs.sort(key=lambda x: Path(x).name.casefold())
+    def match_repos(
+        root: Path, patterns: Iterable[str | Path], deduplicate: bool = False
+    ) -> list[Path]:
+        dirs = filter(is_git_dir, match_directories(root, patterns))
+        return deduplicate_paths(dirs) if deduplicate else list(dirs)
+
+    dirs = match_repos(root, ["*/"])
+
+    includes = (
+        [includes] if isinstance(includes, str) else list(includes or [])
+    )
+
+    if includes:
+        dirs.extend(match_repos(root=root, patterns=includes))
+
+    if excludes:
+        excludes = {
+            str(p.resolve()) for p in match_repos(root=root, patterns=excludes)
+        }
+        dirs = [d for d in dirs if str(d.resolve()) not in excludes]
+
+    dirs = deduplicate_paths(dirs)
+    dirs.sort(key=lambda x: Path(x).name.lower())
     dirs.sort(key=lambda x: len(Path(x).name))
 
     for d in dirs:
-        if repo := get_repo(d):
+        repo = get_repo(d)
+        if repo:
             yield repo
