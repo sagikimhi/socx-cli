@@ -29,29 +29,26 @@ def find_project_root(lookup_path: str | Path | None = None) -> Path | None:
     root '.socx.yaml' configuration file.
 
     """
-    rv = None
 
-    lookup_path = Path(lookup_path) if lookup_path else Path.cwd()
+    def has_local_config(path: Path) -> bool:
+        cfg = path / LOCAL_CONFIG_FILENAME
+        return cfg.exists() and cfg.is_file()
 
-    if not lookup_path.exists():
-        try:
-            lookup_path = lookup_path.resolve()
-        except OSError as e:
-            err = f"Invalid lookup path: {e}"
-            raise FileNotFoundError(err) from None
+    rv = Path.cwd()
+    lookup_path = lookup_path or LOCAL_CONFIG_FILE.parent
 
-        if not lookup_path.exists():
-            err = f"Invalid lookup path: path '{lookup_path}' does not exist."
-            raise FileNotFoundError(err) from None
+    if isinstance(lookup_path, str):
+        lookup_path = Path(lookup_path)
 
     if lookup_path.is_file():
         lookup_path = lookup_path.parent
 
-    while lookup_path != Path("/"):
-        cfg = lookup_path / LOCAL_CONFIG_FILENAME
-        if cfg.exists() and cfg.is_file():
-            rv = lookup_path
-        lookup_path = lookup_path.parent
+    if has_local_config(lookup_path):
+        rv = lookup_path
+
+    for parent in lookup_path.parents:
+        if has_local_config(parent):
+            rv = parent
 
     return rv
 

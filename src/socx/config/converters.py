@@ -38,10 +38,9 @@ from socx.config.schema.plugin import PluginModel
 
 AnyCallableT = TypeVar("AnyCallableT", bound=Callable[..., Any])
 
-logger = logging.getLogger(__name__)
-
-
 _validate = validate_call(config=ConfigDict(arbitrary_types_allowed=True))
+
+logger = logging.getLogger(__name__)
 
 
 class Converter[TI, TO](abc.ABC):
@@ -355,10 +354,10 @@ class CommandConverter(
     @singledispatchmethod
     def _run_shell_script(
         self,
-        value: str | sh.Command | PluginModel,
-        *args: Any,
-        env: dict[str, str] | None = None,
-        **kwargs: Any,
+        value,
+        *args,
+        env,
+        **kwargs,
     ) -> int: ...
 
     @_run_shell_script.register
@@ -434,15 +433,26 @@ class CommandConverter(
             return None
 
         rv = {}
-        path, _, symbol = value.partition(":")
+        ctx = click.get_current_context(silent=True)
+        path, _, symbol = value.rpartition(":")
         argv = sys.argv.copy()
         syspath = sys.path.copy()
         environ = os.environ.copy()
 
-        sys.argv = sys.argv[1:]
+        if ctx:
+            name = ctx.command.name
+        elif symbol:
+            name = symbol
+        elif path:
+            name = Path(path).stem
+        else:
+            err = "Could not infer command name"
+            raise RuntimeError(err)
 
-        while sys.argv and sys.argv[0].startswith("-"):
+        while sys.argv and sys.argv[0] != name:
             sys.argv.pop(0)
+
+        sys.argv[0] = f"socx {sys.argv[0]}"
 
         if env:
             os.environ.clear()
@@ -461,8 +471,9 @@ class CommandConverter(
                     rv = obj()
             elif symbol:
                 rv = None
-                obj = None
-                rv = runpy.run_path(path).get(symbol, noop)()
+                obj = runpy.run_path(path).get(symbol, noop)
+                if callable(obj):
+                    rv = obj()
             else:
                 rv = runpy.run_path(path, run_name=_detect_program_name())
         except Exception as exc:
@@ -615,9 +626,7 @@ class ShConverter(
         return self.convert(value)
 
     @singledispatchmethod
-    def convert(
-        self, value: str | sh.Command | PluginModel
-    ) -> str | Lazy | sh.Command: ...
+    def convert(self, value) -> str | Lazy | sh.Command: ...
 
     @convert.register
     def _(self, value: str) -> str | sh.Command:

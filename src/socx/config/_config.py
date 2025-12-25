@@ -102,8 +102,10 @@ def get_user_config_files() -> list[Path]:
 
 def get_settings(
     path: str | Path | None = None,
+    /,
     user_overrides: bool = False,
     local_overrides: bool = False,
+    extra_overrides: list[str | Path] | None = None,
     **kwargs: Any,
 ) -> Settings:
     """Create a configured ``Settings`` instance, including overrides."""
@@ -119,11 +121,14 @@ def get_settings(
     settings_file = ensure_a_list(path)
     includes = []
 
+    if user_overrides:
+        includes.extend(get_user_config_files())
+
     if local_overrides:
         includes.extend(get_local_config_files())
 
-    if user_overrides:
-        includes.extend(get_user_config_files())
+    if extra_overrides:
+        includes.extend(extra_overrides)
 
     kwargs = dict(
         ChainMap(
