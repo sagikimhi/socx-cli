@@ -1,5 +1,6 @@
 """Console script entry point for the SoCX command line interface."""
 
+import sys
 from socx import cli as cli
 
 
@@ -9,4 +10,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
