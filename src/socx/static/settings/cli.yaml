@@ -21,12 +21,12 @@ cli:
   params:
     debug: false
     configure: true
-    verbosity: INFO
+    verbosity: ERROR
 
   option-panels:
     - name: Options
       options:
-        - --help
-        - --debug
+        - --configure
         - --verbosity
-        - --configure/--no-configure
+        - --debug
+        - --help

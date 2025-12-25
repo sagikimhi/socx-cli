@@ -88,7 +88,7 @@ verbosity: Decorator = click.option(
     nargs=1,
     help="set the logging verbosity to the specified level.",
     envvar="SOCX_VERBOSITY",
-    default="INFO",
+    default=settings.get("cli.params.verbosity", "ERROR"),
     is_eager=True,
     show_envvar=True,
     show_choices=True,
@@ -117,7 +117,7 @@ configure: Decorator = click.option(
 )
 
 
-def opts() -> Callable[..., Decorator[AnyCallable]]:
+def opts() -> Decorator:
     """Apply the standard set of global SoCX CLI options."""
     return join_decorators(configure, debug, verbosity)
 
