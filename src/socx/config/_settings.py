@@ -267,9 +267,9 @@ class Settings(LazySettings):
                 "num_keys": len(data),
             }
             for i, (metadata, data) in enumerate(
-                self._loaded_by_loaders.items()
+                reversed(self._loaded_by_loaders.items())
             )
-            if limit >= 0 and limit <= i
+            if i < limit or limit == 0
         ]
 
     def get_debug_info(

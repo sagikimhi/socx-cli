@@ -25,28 +25,23 @@ def opts() -> Decorator:
 
 
 def args() -> Decorator:
-    return join_decorators(arguments.git_cmd(), arguments.git_args())
-
-
-def option_panels() -> Decorator:
     return join_decorators(
-        *[
-            click.option_panel(**panel)
-            for panel in settings.git.cli.option_panels
-        ]
+        arguments.git_command_arg(), arguments.git_arguments_arg()
     )
 
 
 @click.group(**settings.git.cli.group)
-@opts()
-@args()
-@option_panels()
+@arguments.io_opts()
+@arguments.manifest_opts()
+@arguments.git_command_arg()
+@arguments.git_arguments_arg()
+@arguments.option_panels()
 @click.pass_context
 def cli(
     ctx: click.Context,
     pager: bool,
     git_cmd: str,
-    git_options_and_args: list[str],
+    git_args: list[str],
 ) -> None:
     """Run `git` commands in parallel on multiple repositories."""
     if TYPE_CHECKING:
@@ -55,7 +50,7 @@ def cli(
     cmd = ctx.command.get_command(ctx, git_cmd)
 
     if cmd is not None:
-        ctx.invoke(cmd, git_options_and_args)
+        ctx.invoke(cmd, git_args)
     else:
         mfest = Manifest(
             root=settings.git.manifest.root,
@@ -63,8 +58,8 @@ def cli(
             excludes=settings.git.manifest.excludes,
             cmd_timeout=settings.git.manifest.cmd_timeout,
         )
-        flags = settings.git.get(git_cmd, {}).get("flags", [])
-        outputs = mfest.git(git_cmd, *flags, *git_options_and_args)
+        git_options = settings.get(f"git.{git_cmd}.flags", [])
+        outputs = mfest.git(git_cmd, *git_options, *git_args)
         print_command_outputs(outputs, pager, f"Git {git_cmd.title()}")
 
 

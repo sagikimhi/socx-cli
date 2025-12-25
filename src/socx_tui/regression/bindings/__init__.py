@@ -4,5 +4,5 @@
 __all__ = ("VimMode",)
 
 
-# from socx_tui.bindings.vim import Vim as Vim
-from socx_tui.bindings.vim import VimMode as VimMode
+# from socx_tui.regression.bindings.vim import Vim as Vim
+from socx_tui.regression.bindings.vim import VimMode as VimMode

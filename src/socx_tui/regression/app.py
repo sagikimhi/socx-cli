@@ -7,7 +7,6 @@ from typing import ClassVar
 from collections.abc import Iterable
 from collections.abc import Callable
 
-from hoptex import hoptex
 from textual.app import App
 from textual.app import ComposeResult
 from textual.app import SystemCommand
@@ -16,9 +15,10 @@ from textual.widgets import Header
 from textual.widgets import Footer
 from textual.binding import Binding
 from textual.binding import BindingType
+from hoptex.decorator import hoptex
 
-from socx_tui.screens import TemplateView
-from socx_tui.screens import RegressionView
+from socx_tui.regression.screens import TemplateView
+from socx_tui.regression.screens import RegressionView
 
 
 @hoptex()
@@ -36,18 +36,24 @@ class SoCX(App[int]):
     }
 
     MODES: ClassVar[dict[str, str | Callable[[], Screen[None]]]] = {
-        "default": "template",
-        "regression": RegressionView,
+        "default": "regression",
+        "template": TemplateView,
     }
+
+    INLINE_PADDING = 0
+
+    ALLOW_IN_MAXIMIZED_VIEW = ""
 
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
-        yield Header()
-        yield Footer()
+        yield Header(show_clock=True, name="app_header")
+        footer = Footer(classes="-ansi-colors")
+        footer.compact = True
+        yield footer
 
     async def on_mount(self) -> None:
         """Run any startup logic once the app attaches to the event loop."""
-        pass
+        self.call_later(self.push_screen("regression"))
 
     def get_system_commands(
         self, screen: Screen[None]
@@ -59,3 +65,7 @@ class SoCX(App[int]):
             "Print the current DOM Tree to dev log",
             lambda: self.log.info(self.tree),
         )
+
+
+if __name__ == "__main__":
+    app: App = SoCX(inline=True)

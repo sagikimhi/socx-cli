@@ -29,7 +29,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.9.0"
+version = "0.10.0"
 license = "Apache-2.0 OR MIT"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -70,14 +70,12 @@ dependencies = [
     "pydantic",
     "dynaconf",
     "paramiko",
+    "werkzeug>=3.1.4",
     "gitpython",
     "rich-click",
     "platformdirs",
     "textual-speedups",
-    "universal-pathlib",
-    "copier-template-extensions>=0.3.3",
     "python-box[ruamel.yaml,toml]~=7.0",
-    "werkzeug>=3.1.4",
 ]
 
 [project.urls]
@@ -110,7 +108,9 @@ docs = [
     "mkdocs",
     "zensical",
     "pygments",
-    "markdown-exec",
+    "mkdocs-click>=0.9.0",
+    "mkdocs-redirects>=1.2.2",
+    "markdown-exec[ansi]",
     "markdown-include",
     "markdown-callouts",
     "pymdown-extensions",
@@ -121,6 +121,7 @@ docs = [
     "mkdocstrings-python",
     "mkdocs-material[imaging]",
     "mkdocs-section-index",
+    "griffe-typingdoc>=0.3.0",
     "mkdocs-material-extensions",
     "mkdocs-git-revision-date-localized-plugin",
     "tomli>=2.0; python_version < '3.11'",

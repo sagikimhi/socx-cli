@@ -24,7 +24,7 @@ def edit(target_path: Path | None = None):
     settings = get_settings()
     file_choices = {
         path.stem: path
-        for path in settings.includes
+        for path in map(Path, settings.includes)
         if path.exists() and path.stem in settings
     }
     editor_choices = ["vim", "gvim", "nano"]

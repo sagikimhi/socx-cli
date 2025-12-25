@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from functools import cached_property, wraps
+from functools import cached_property
 import inspect
 import logging
 from collections.abc import Callable
+from typing import Any
 
 from pydantic import ValidationError
 import rich_click as click
 
+from socx.cli import params
 from socx.config import settings, CommandConverter, ShConverter
 from socx.cli.types import AnyCallable
 from socx.config.schema.plugin import PluginModel
@@ -22,11 +24,11 @@ class _CmdLine(click.RichGroup):
     """Custom Click group that loads plugin commands on demand."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("context_settings", settings.cli.context_settings)
-        super().__init__(*args, **kwargs)
+        self._plugins = {}
         self._sh_converter = ShConverter()
         self._cmd_converter = CommandConverter()
-        self._plugins = {}
+        self._cmd_converter._patch_theme()
+        super().__init__(*args, **kwargs)
 
     @cached_property
     def plugins(self) -> dict[str, PluginModel]:
@@ -97,19 +99,6 @@ class _CmdLine(click.RichGroup):
                 cmd.panel = plugin.panel or cmd.panel
 
 
-def socx(**kwargs) -> Callable[[AnyCallable], _CmdLine]:
+def socx(**kwargs: Any) -> Callable[[AnyCallable], click.Group]:
     """Decorate a callable as the root SoCX CLI group."""
-
-    def decorator(app: AnyCallable):
-        @wraps(app)
-        def group(name, cls, **attrs):
-            return click.group(name=name, cls=cls, **attrs)(app)
-
-        return group(
-            "socx",
-            cls=_CmdLine,
-            **kwargs,
-            **settings.cli.group,
-        )
-
-    return decorator
+    return params.group(name="socx", cls=_CmdLine, **kwargs)

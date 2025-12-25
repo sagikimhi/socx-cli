@@ -10,7 +10,7 @@
 # from textual.coordinate import Coordinate
 # from textual.widget import Widget
 #
-# from socx_tui.bindings.vim.mode import Mode
+# from socx_tui.regression.bindings.vim.mode import Mode
 #
 #
 # class Mixin(Widget):
