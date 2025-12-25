@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from socx import settings
-
-import rich_click as click
+from socx import group
 
 
-@click.group(context_settings=settings.cli.context_settings)
+@group()
 def cli():
     """Add, create, inspect, and manage extension plugins."""
 

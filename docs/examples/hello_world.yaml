@@ -1,0 +1,4 @@
+plugins:
+  hello_world:
+      help: my first `socx` plugin!
+      script: /bin/echo "hello world!"

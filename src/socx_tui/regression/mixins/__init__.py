@@ -3,4 +3,4 @@
 __all__ = ("Composable",)
 
 
-from socx_tui.mixins.composable import Composable as Composable
+from socx_tui.regression.mixins.composable import Composable as Composable

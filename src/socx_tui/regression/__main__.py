@@ -3,12 +3,10 @@
 from .app import SoCX
 
 
-app = SoCX()
-
-
 def main() -> int:
     """Start the TUI application and return the process exit status."""
-    return app.run() or 0
+    app = SoCX()
+    return app.run(inline=True)
 
 
 if __name__ == "__main__":

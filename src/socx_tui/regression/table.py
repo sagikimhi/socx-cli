@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import override
+from typing import override, Any
 from dataclasses import fields
 from dataclasses import asdict
 
@@ -11,36 +11,36 @@ from socx import Test
 from socx import Visitor
 from socx import TestBase
 from socx import Regression
-from socx import settings
 from textual.widgets import DataTable
 
-from socx_tui.bindings.vim.mode import VimMode
+from socx_tui.regression.bindings.vim.mode import VimMode
 
 
 class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
     """Interactive table widget that displays regression test results."""
 
-    __slots__ = ("_data_model",)
-
     BINDINGS = DataTable.BINDINGS + VimMode.Normal.value
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        data_model: Regression | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
+        self._model = data_model or Regression("", [])
+        self.cursor_type = "row"
+        self.zebra_stripes = True
 
     @property
     def model(self) -> TestBase:
         """Return the regression model currently bound to the table."""
-        return self._data_model
+        return self._model
 
     @model.setter
     def model(self, model: TestBase) -> None:
         """Update the underlying regression model reference."""
-        self._data_model = model
-
-    @property
-    def settings(self):
-        """Expose the regression-related application settings."""
-        return settings.regression
+        self._model = model
 
     def accept(self, visitor: Visitor[Table | Regression | TestBase]) -> None:
         """Allow a visitor to traverse the bound regression model."""
@@ -51,9 +51,7 @@ class Table(DataTable[TestBase], can_focus=True, inherit_bindings=True):
         """Populate the table from a serialized regression results file."""
         if isinstance(file, str):
             file = Path(file).resolve()
-        model = Regression.from_lines(
-            "table_model", file.read_text().splitlines()
-        )
+        model = Regression.from_lines(file.stem, file.read_text().splitlines())
         self.model = model
 
 
@@ -72,6 +70,11 @@ class TableVisitor(Visitor[Table | TestBase]):
             self.visit_regression(n)
         elif isinstance(n, Test):
             self.visit_test(n)
+        elif isinstance(n, Table):
+            self._table.set_loading(True)
+            self._table = n
+            self.visit(self._table.model)
+            self._table.set_loading(False)
 
     def visit_regression(self, n: Regression) -> None:
         """Add regression-level information such as column headers."""

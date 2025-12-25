@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from pathlib import Path
+from textwrap import dedent
 
 import rich_click as click
-from socx import Decorator, settings
+from socx import settings, join_decorators, Decorator
 
 from socx_plugins.git.callbacks import summary_cb, manifest_cb, manifest_lst_cb
 
 
 __all__ = (
-    "git_cmd",
-    "git_args",
+    "option_panels",
+    "io_opts",
+    "manifest_opts",
+    "git_command_arg",
+    "git_arguments_arg",
     "excludes",
     "includes",
     "timeout",
@@ -22,24 +26,47 @@ __all__ = (
 )
 
 
-def git_cmd() -> Decorator:
+def option_panels() -> Decorator:
+    return join_decorators(
+        *[
+            click.option_panel(**panel)
+            for panel in settings.git.cli.option_panels
+        ]
+    )
+
+
+def io_opts() -> Decorator:
+    """Return a decorator that adds all I/O options to a command."""
+    return join_decorators(pager())
+
+
+def manifest_opts() -> Decorator:
+    """Return a decorator that adds all git manifest options to a command."""
+    return join_decorators(
+        root(),
+        timeout(),
+        includes(),
+        excludes(),
+    )
+
+
+def git_command_arg() -> Decorator:
     return click.argument(
         "git_cmd",
-        nargs=1,
-        required=False,
+        required=True,
         type=click.UNPROCESSED,
-        metavar="[<git_command>]",
+        metavar="<git-command>",
         help="Git command to call for all repos found under the root",
     )
 
 
-def git_args() -> Decorator:
+def git_arguments_arg() -> Decorator:
     return click.argument(
-        "git_options_and_args",
+        "git_args",
         nargs=-1,
         required=False,
         type=click.UNPROCESSED,
-        metavar="[<git_args>...]",
+        metavar="[git-args]...",
         help="Options and arguments to pass with the git command",
     )
 
@@ -70,19 +97,25 @@ def excludes() -> Decorator:
         "excludes",
         type=click.STRING,
         nargs=1,
-        help=(
-            "relative, absolute, or glob path of one or more repositories to "
-            "exclude from the manifest."
-        ),
+        help=dedent("""
+            Path or glob expression of a repository to include into the
+            manifest.
+
+            Paths and glob expressions must be either absolute or relative to
+            the manifest `--root` directory.
+
+            Note that this option can be passed multiple times in order to
+            provide multiple paths to include from the command line.
+        """),
         multiple=True,
         required=False,
         callback=manifest_lst_cb,
         envvar="SOCX_GIT_EXCLUDES",
         show_envvar=True,
         default=settings.git.manifest.excludes or [],
-        is_eager=True,
+        is_eager=False,
         show_default=True,
-        metavar="<path_or_glob>",
+        metavar="<path> | <glob_expr>",
         expose_value=False,
     )
 
@@ -92,21 +125,27 @@ def includes() -> Decorator:
         "--include",
         "-i",
         "includes",
-        nargs=1,
-        metavar="<path_or_glob>",
-        multiple=True,
-        help=(
-            "relative or absolute path of one or more repositories to "
-            "include into the manifest."
-        ),
         type=click.STRING,
-        default=settings.git.manifest.includes or [],
-        is_eager=True,
-        show_default=True,
-        show_envvar=True,
-        envvar="SOCX_GIT_INCLUDES",
+        nargs=1,
+        help=dedent("""
+            Path or glob expression of a repository to include into the
+            manifest.
+
+            Paths and glob expressions must be either absolute or relative to
+            the manifest `--root` directory.
+
+            Note that this option can be passed multiple times in order to
+            provide multiple paths to include from the command line.
+        """),
+        multiple=True,
         required=False,
         callback=manifest_lst_cb,
+        envvar="SOCX_GIT_INCLUDES",
+        show_envvar=True,
+        default=settings.git.manifest.includes or [],
+        is_eager=False,
+        show_default=True,
+        metavar="<path> | <glob_expr>",
         expose_value=False,
     )
 
@@ -123,7 +162,7 @@ def timeout() -> Decorator:
         ),
         type=click.FLOAT,
         default=settings.git.manifest.cmd_timeout,
-        metavar="<timeout_in_seconds>",
+        metavar="<float>",
         is_eager=True,
         required=False,
         show_default=True,
@@ -154,7 +193,7 @@ def root() -> Decorator:
         nargs=1,
         required=False,
         envvar="SOCX_GIT_ROOT",
-        metavar="<root_search_path>",
+        metavar="<directory>",
         is_eager=True,
         callback=manifest_cb,
         default=settings.git.manifest.root or Path.cwd(),

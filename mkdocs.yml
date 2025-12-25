@@ -1,43 +1,28 @@
-docs_dir: docs
-site_dir: site
-edit_uri: edit/main/docs/
-dev_addr: "localhost:3000"
-repo_name: sagikimhi/socx-cli
-repo_url: https://github.com/sagikimhi/socx-cli
-site_url: https://sagikimhi.dev/socx-cli
+# Site Info
 site_name: socx-cli
+site_url: https://sagikimhi.dev/socx-cli/
 site_description: >-
   System on chip verification and tooling infrastructure.
-
-copyright: Copyright &copy; 2025 Sagi Kimhi
-favicon: "assets/images/Hamsta.png"
 use_directory_urls: true
 
+# Repository Info
+repo_name: sagikimhi/socx-cli
+repo_url: https://github.com/sagikimhi/socx-cli
+edit_uri: https://github.com/sagikimhi/socx-cli/edit/main/docs/
+
+# Copyright
+copyright: "&copy; 2025 Sagi Kimhi <sagi.kim5@gmail.com>"
+
+# Validation
 validation:
   omitted_files: warn
   absolute_links: warn
   unrecognized_links: warn
 
-nav:
-  - Overview:
-      - user-guide/overview.md
-      - user-guide/quickstart.md
-  - User Guide:
-      - user-guide/plugins.md
-      - user-guide/configuration.md
-  - Reference:
-      - reference/api.md
-      - reference/configuration.md
-  - Development:
-      - development/license.md
-      - development/credits.md
-      - development/changelog.md
-      - development/contributing.md
-      - development/code_of_conduct.md
-
+# Configuration
 theme:
-  # name: material
-  logo: assets/images/Hamsta.png
+  name: material
+  custom_dir: docs/.overrides
   font:
     text: Inter
     code: Jetbrains Mono
@@ -52,11 +37,11 @@ theme:
   highlightjs: true
   features:
     - toc.follow
-    # - toc.integrate
-    - header.autohide
+    - search.suggest
+    - search.highlight
+    - announce.dismiss
     - navigation.top
     - navigation.path
-    - navigation.prune
     - navigation.header
     - navigation.footer
     - navigation.instant
@@ -67,112 +52,115 @@ theme:
     - navigation.instant.preview
     - navigation.instant.prefetch
     - navigation.instant.progress
-    - search.suggest
-    - search.highlight
-    - announce.dismiss
+    - content.tooltips
     - content.tabs.link
     - content.action.edit
     - content.action.view
-    - content.tooltips
     - content.footnote.tooltips
     - content.code.copy
     - content.code.select
     - content.code.annotate
-  custom_dir: docs/.overrides
-  extra_css:
-    - css/material.css
-    - css/mkdocstrings.css
-  extra_javascript:
-    - js/mathjax.js
-    - js/feedback.js
-    - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
   palette:
-    # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
       toggle:
-        icon: material/brightness-auto
-        # icon: lucide/sun-moon
-        name: Switch to light mode
+        icon: lucide/sun-moon
+        name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: teal
+      primary: indigo
+      accent: indigo
       toggle:
-        icon: material/weather-night
-        # icon: lucide/moon
-        name: Switch to system preference
+        icon: lucide/moon-star
+        name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: teal
+      primary: indigo
+      accent: indigo
       toggle:
-        icon: material/weather-sunny
-        # icon: lucide/sun
-        name: Switch to dark mode
+        icon: lucide/sun
+        name: Switch to system preference
+  logo: assets/images/Hamsta.png
+  favicon: "assets/images/Hamsta.png"
+  icon:
+    tag:
+      default: lucide/hash
 
-markdown_extensions:
-  - toc:
-      title: On this page
-      permalink: true
-      toc_depth: 5
-      slugify: !!python/object/apply:pymdownx.slugs.slugify
-          kwds:
-            case: lower
-  - abbr
-  - tables
-  - admonition
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.caret
-  - pymdownx.tilde
-  - pymdownx.emoji:
-      emoji_index: !!python/name:zensical.extensions.emoji.twemoji
-      emoji_generator: !!python/name:zensical.extensions.emoji.to_svg
-  - pymdownx.details
-  - pymdownx.snippets
-  - pymdownx.tabbed:
-      alternate_style: true
-      combine_header_slug: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.highlight:
-      linenums: true
-      auto_title: true
-      line_spans: __span
-      anchor_linenums: true
-      pygments_lang_class: true
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
-  - pymdownx.betterem:
-      smart_enable: all
-  - pymdownx.magiclink
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.inlinehilite
-  - pymdownx.smartsymbols
-  - pymdownx.blocks.caption
+extra_css:
+  - css/extra.css
+  - css/material.css
+  - css/mkdocstrings.css
+extra_javascript:
+  - js/mathjax.js
+  - js/feedback.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra:
+  version:
+    provider: mike
+    default: latest
+    alias: true
+  status:
+    new: Recently added
+    deprecated: Deprecated
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sagikimhi
+    - icon: fontawesome/brands/discord
+      link: https://discord.com/users/335750831146270721
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/socx-cli/
+    - icon: fontawesome/brands/gitter
+      link: https://gitter.im/socx-cli/community
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/sagi-kimhi
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:sagi.kim5@gmail.com
+  tags:
+    default: default
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Let us know how we can improve this page.
+          extra:
+
+nav:
+  - index.md
+  - user-guide/quickstart.md
+  - User Guide:
+      - user-guide/plugins.md
+      - user-guide/configuration.md
+  - Reference:
+      - reference/api.md
+      - reference/configuration.md
+  - Development:
+      - development/license.md
+      - development/credits.md
+      - development/changelog.md
+      - development/contributing.md
+      - development/code_of_conduct.md
 
 plugins:
-  - tags: {}
-  - offline: {}
-  - search: {}
-  - social: {}
-  - macros: {}
-  - autorefs: {}
-  - section-index: {}
-  - markdown-exec: {}
-  - mike:
-      alias_type: copy
-      canonical_version: latest
-  - git-revision-date-localized:
-      type: date
-      strict: false
-      fallback_to_build_date: true
+  - tags
+  - offline
+  - search
+  - markdown-exec:
+      ansi: required
+  - social
+  - macros
+  - autorefs
+  - typeset
+  - macros:
+      include_yaml: []
+  - redirects:
+      redirect_maps: {}
   - llmstxt:
       full_output: llms-full.txt
       sections:
@@ -180,6 +168,14 @@ plugins:
           - index.md
         API:
           - reference/api.md
+  - section-index
+  - git-revision-date-localized:
+      type: date
+      strict: false
+      fallback_to_build_date: true
+  - mike:
+      alias_type: copy
+      canonical_version: latest
   - mkdocstrings:
       handlers:
         python:
@@ -211,38 +207,85 @@ plugins:
               ignore_init_summary: true
           inventories:
             - url: https://docs.python.org/3/objects.inv
-            - url: https://docs.python-requests.org/en/master/objects.inv
               domains: [std, py]
-extra:
-  social:
-    - icon: fontawesome/solid/paper-plane
-      link: mailto:sagi.kim5@gmail.com
-    - icon: fontawesome/brands/github
-      link: https://github.com/sagikimhi
-    - icon: fontawesome/brands/gitter
-      link: https://gitter.im/socx-cli/community
-    - icon: fontawesome/brands/python
-      link: https://pypi.org/project/socx-cli/
-    - icon: fontawesome/brands/linkedin
-      link: https://linkedin.com/in/sagi-kimhi
-    - icon: fontawesome/brands/discord
-      link: https://discord.com/users/335750831146270721
 
-  analytics:
-    feedback:
-      title: Was this page helpful?
-      ratings:
-        - icon: material/emoticon-happy-outline
-          name: This page was helpful
-          data: 1
-          note: Thanks for your feedback!
-        - icon: material/emoticon-sad-outline
-          name: This page could be improved
-          data: 0
-          note: Let us know how we can improve this page.
-          extra:
-
-  version:
-    provider: mike
-    default: latest
-    alias: true
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      toc_depth: 5
+      permalink: true
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:zensical.extensions.emoji.to_svg
+      emoji_index: !!python/name:zensical.extensions.emoji.twemoji
+  - pymdownx.details
+  - pymdownx.keys
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: py
+          class: py
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: sh
+          class: sh
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: bash
+          class: bash
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: pycon
+          class: pycon
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: python
+          class: python
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: console
+          class: console
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: pyodide
+          class: pyodide
+          validator: !!python/name:markdown_exec.validator
+          format: !!python/name:markdown_exec.formatter
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.blocks.details
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: sagikimhi
+      repo: socx-cli
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.mark
+  - pymdownx.inlinehilite
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.blocks.admonition
+  - pymdownx.blocks.tab:
+      alternate_style: True
+  - pymdownx.blocks.caption
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde

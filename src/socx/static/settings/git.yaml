@@ -1,7 +1,7 @@
 ---
 git:
   manifest:
-    root: "@path ."
+    root: "@jinja {{this.paths.project_root_dir}}"
     includes: []
     excludes: []
     references: {}
@@ -90,23 +90,10 @@ git:
   cli:
     group:
       help: Run `git` commands in parallel on multiple repositories.
-      epilog: |
-        > ---
-
-        > ***TIP:***
-
-        >
-
-        > *run `socx git help` to print the full help manual, with real working
-        examples of commands to try out for yourself.*
-
-        >
-
-        > ---
       no_args_is_help: true
       invoke_without_command: true
-      options_metavar: "[<options>]"
-      subcommand_metavar: "\n[<options>] [<subcommand>] [<args>...]"
+      options_metavar: "[options]"
+      subcommand_metavar: "\n[options] <command> [args]..."
       context_settings:
         help_option_names:
           - -h
@@ -120,18 +107,16 @@ git:
         options:
           - --help
           - --pager
-
       - name: Git Options
         options:
           - --root
           - --timeout
           - --include
           - --exclude
-
       - name: Git Arguments
         options:
           - git_cmd
-          - git_options_and_args
+          - git_args
 
     help: |
       # `socx git`

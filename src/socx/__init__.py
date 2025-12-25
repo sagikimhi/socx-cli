@@ -27,8 +27,6 @@ __all__ = (
     "get_handler_names",
     # CLI
     "cli",
-    "cli_cfg",
-    "opts",
     "Decorator",
     "AnyCallable",
     # Util
@@ -51,9 +49,10 @@ __all__ = (
     "LOCAL_CONFIG_FILE",
     "USER_LOG_FILENAME",
     "USER_CONFIG_FILENAME",
+    "LOCAL_CONFIG_FILE",
     "LOCAL_CONFIG_FILENAME",
     "PROJECT_ROOT_DIR",
-    "PROJECT_ROOT_CFG",
+    "PROJECT_ROOT_CONFIG",
     "APP_ROOT_DIR",
     "APP_STATIC_DIR",
     "APP_CONFIG_DIR",
@@ -117,7 +116,6 @@ from socx.io import remove_handler as remove_handler
 from socx.io import get_handler_names as get_handler_names
 
 from socx.cli import cli as cli
-from socx.cli import cfg as cli_cfg
 from socx.cli import opts as opts
 from socx.cli import group as group
 from socx.cli import command as command
@@ -152,7 +150,7 @@ from socx.config import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
 from socx.config import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
 from socx.config import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
 from socx.config import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
-from socx.config import PROJECT_ROOT_CFG as PROJECT_ROOT_CFG
+from socx.config import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CONFIG
 from socx.config import APP_ROOT_DIR as APP_ROOT_DIR
 from socx.config import APP_STATIC_DIR as APP_STATIC_DIR
 from socx.config import APP_CONFIG_DIR as APP_CONFIG_DIR

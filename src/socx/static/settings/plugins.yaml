@@ -18,6 +18,8 @@ plugins:
     panel: Commands
     enabled: true
     aliases: []
+    command: "socx.cli.cli:init"
+    short_help: Initialize a `socx` project at the current directory.
 
   plugin:
     panel: Commands
@@ -32,13 +34,6 @@ plugins:
     aliases: []
     command: "socx_plugins.config:cli"
     short_help: Get, set, list, or modify settings configuration values.
-
-  convert:
-    panel: Commands
-    enabled: true
-    aliases: []
-    command: "socx_plugins.convert:cli"
-    short_help: Perform a conversion based on current configurations.
 
   version:
     panel: Commands

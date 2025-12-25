@@ -9,6 +9,14 @@ from rich_click import Command, Group
 
 FuncType = TypeVar("FuncType", bound=Callable[..., Any] | Command | Group)
 
-Decorator = Callable[[FuncType], FuncType]
+GroupType = TypeVar("GroupType", bound=Group)
 
-AnyCallable = Callable[..., Any]
+CommandType = TypeVar("CommandType", bound=Command)
+
+AnyCallable = TypeVar("AnyCallable", bound=Callable[..., Any])
+
+Decorator = Callable[[AnyCallable], FuncType]
+
+GroupDecorator = Callable[[AnyCallable], GroupType]
+
+CommandDecorator = Callable[[AnyCallable], CommandType]

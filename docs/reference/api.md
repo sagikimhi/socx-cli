@@ -1,8 +1,10 @@
 ---
 icon: lucide/file-code
+hide:
+    - toc
 ---
 
-# API Reference
+# :lucide-file-code: API Reference
 
 
 <div class="grid cards" markdown>
@@ -32,12 +34,6 @@ icon: lucide/file-code
 <div class="grid cards" markdown>
 
 -   ### ::: socx_plugins.config
-
-</div>
-
-<div class="grid cards" markdown>
-
--   ### ::: socx_plugins.convert
 
 </div>
 
