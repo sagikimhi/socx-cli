@@ -5,18 +5,17 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-import rich_click as click
-from socx import settings
+from socx import settings, group, command
 
 from socx_plugins.rgr._rgr import options, _run_from_file
 
 
-@click.group("rgr", **settings.cli.group)
+@group()
 def cli() -> None:
     """Perform various regression related actions."""
 
 
-@cli.command()
+@command(parent=cli)
 def tui() -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
     from socx_tui import SoCX as SoCX
@@ -24,12 +23,9 @@ def tui() -> None:
     SoCX().run(inline=True)
 
 
-@cli.command(
-    **settings.cli.command, no_args_is_help=True, add_help_option=True
-)
+@command(parent=cli, no_args_is_help=True)
 @options()
-@click.pass_context
-def run(ctx: click.Context, input: Path, output: Path):  # noqa: A002
+def run(input: Path, output: Path):  # noqa: A002
     r"""Run a regression of multiple tests defined in FILE.
 
     The FILE argument is a file containing a list of test commands to be ran.
@@ -46,8 +42,8 @@ def run(ctx: click.Context, input: Path, output: Path):  # noqa: A002
     If your command does not contain such flag, you can simply append a
     shell comment to the end of the command, e.g.
 
-    ```sh
-        make -C /foo/bar/bazz clean test  # --test bazz_test
+    ```console
+    $ make -C /foo/bar/bazz clean test  # --test bazz_test
     ```
     """
     try:

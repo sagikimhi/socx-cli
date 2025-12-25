@@ -1,7 +1,7 @@
 """Click command group that exposes configuration management workflows."""
 
 from __future__ import annotations
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from box import SBox
 import rich
@@ -9,19 +9,15 @@ from rich.syntax import Syntax
 from rich.json import JSON
 import rich_click as click
 
-from socx import console, settings, TreeFormatter, get_logger
+from socx import console, settings, TreeFormatter, get_logger, group
 
 
 logger = get_logger(__name__)
 
 
-@click.group(**settings.cli.group)
+@group()
 def cli():
     """Get, set, inspect, or debug configuration settings."""
-
-
-if TYPE_CHECKING:
-    cli = cast(click.Group, cli)
 
 
 @cli.command()
@@ -44,42 +40,86 @@ def edit(user: bool):
 
 
 @cli.command()
-def tree():
+@click.option(
+    "--pager",
+    "-p",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Display the output in a pager.",
+)
+def tree(pager: bool):
     """Print a pretty tree structure of all loaded configurations."""
     formatter = TreeFormatter()
-    console.print(formatter(settings.raw, "Settings"))
+    output = formatter(settings.raw, "Settings")
+    if pager:
+        with console.pager(styles=True, links=True):
+            console.print(output)
+    else:
+        console.print(output)
 
 
 @cli.command("list")
-def list_():
+@click.option(
+    "--pager",
+    "-p",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Display the output in a pager.",
+)
+def list_(pager: bool):
     """Print a list of all current configuration values."""
-    console.print(settings.raw)
+    if pager:
+        with console.pager(styles=True, links=True):
+            console.print(settings.raw)
+    else:
+        console.print(settings.raw)
 
 
 @cli.command()
+@click.option(
+    "--pager",
+    "-p",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Display the output in a pager.",
+)
 @click.argument(
     "field",
     type=click.STRING,
     default=None,
     required=False,
-    metavar="<field>",
+    metavar="[field]",
     help="The configuration field to debug.",
 )
-def debug(field: str | None):
+@click.pass_context
+def debug(ctx: click.Context, pager: bool, field: str | None):
     """Dump cli debug info and modification history."""
-    console.print(settings.get_debug_info(key=field, verbosity=2))
+    if field and field not in settings:
+        ctx.fail(f"No such field: {field}")
+
+    output = settings.get_debug_info(key=field, verbosity=2)
+
+    if pager:
+        with console.pager(styles=True, links=True):
+            console.print(output)
+    else:
+        console.print(output)
 
 
 @cli.command()
 @click.argument(
     "limit",
-    help="Limits the maximum number of history entries to list.",
     default=0,
     required=False,
     type=click.INT,
+    help="Limits the maximum number of history entries to list.",
+    metavar="[integer]",
 )
 def history(limit: int):
-    """Dump cli debug info and modification history."""
+    """Print configuration settings modification history."""
     console.print(settings.get_history(limit))
 
 
@@ -100,6 +140,14 @@ def inspect():
 
 
 @cli.command(no_args_is_help=True)
+@click.option(
+    "--pager",
+    "-p",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Display the output in a pager.",
+)
 @click.argument(
     "field",
     type=click.STRING,
@@ -108,21 +156,19 @@ def inspect():
     help="The configuration field to be read.",
 )
 @click.pass_context
-def get(ctx: click.Context, field: str):
-    """Get the current value of a configuration field.
-
-    > ***TIP***
-    >
-    > - Run `socx config list` to print a list of available config fields
-    > - Run `socx config tree` to print a tree of available config fields
-
-    """
+def get(ctx: click.Context, pager: bool, field: str):
+    """Get the value of a configuration field in a pretty tree format."""
     if field not in settings:
         ctx.fail(f"Invalid field: '{field}'")
 
     formatter = TreeFormatter()
     value = settings.get_raw(field)
-    console.print(formatter(obj=value, label=field))
+    output = formatter(obj=value, label=field)
+    if pager:
+        with console.pager(styles=True, links=True):
+            console.print(output)
+    else:
+        console.print(output)
 
 
 get.help = """
@@ -142,15 +188,31 @@ Some available fields:
 
 @cli.command(**settings.cli.command)
 @click.option(
+    "--indent-guides",
+    "--guides",
+    "-i",
+    "guides",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Show indentation guides in the output.",
+)
+@click.option(
+    "--pager",
+    "-p",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Display the output in a pager.",
+)
+@click.option(
     "--format",
     "-f",
     "format_",
     nargs=1,
     type=click.Choice(["yaml", "toml", "json"]),
     help="Specify a format for dumping configrations.",
-    envvar="SOCX_CONFIG_DUMP_FORMAT",
     default="yaml",
-    show_envvar=True,
     show_default=True,
 )
 @click.argument(
@@ -164,6 +226,8 @@ Some available fields:
 @click.pass_context
 def dump(
     ctx: click.Context,
+    pager: bool,
+    guides: bool,
     format_: str,
     field: str | None,
 ) -> None:
@@ -180,6 +244,11 @@ def dump(
         format_,
         tab_size=2,
         theme="ansi_dark",
-        padding=1,
+        indent_guides=guides,
     )
-    console.print(syntax)
+
+    if pager:
+        with console.pager(styles=True, links=True):
+            console.print(syntax)
+    else:
+        console.print(syntax)
