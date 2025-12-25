@@ -103,22 +103,20 @@ git:
         allow_interspersed_args: true
 
     option-panels:
-      - name: Git Arguments
+      - name: I/O Options
         options:
-          - git_cmd
-          - git_args
-
+          - --help
+          - --pager
       - name: Git Options
         options:
           - --root
           - --timeout
           - --include
           - --exclude
-
-      - name: I/O Options
+      - name: Git Arguments
         options:
-          - --help
-          - --pager
+          - git_cmd
+          - git_args
 
     help: |
       # `socx git`
