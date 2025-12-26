@@ -57,29 +57,4 @@ icon: lucide/file-cog
         ---8<-- "src/socx/static/settings/regression.yaml"
         ```
 
-    === "`lang`"
-
-
-        Will be deprecated in a future release or moved to a separate external package
-        with an opt-in feature option.
-
-        For now, unless you have some issue you are trying to debug, it is best to be
-        avoided.
-
-        ```yaml title="lang.yaml"
-        ---8<-- "src/socx/static/settings/lang.yaml"
-        ```
-
-    === "`convert`"
-
-        Will be deprecated in a future release or moved to a separate external package
-        with an opt-in feature option.
-
-        For now, unless you have some issue you are trying to debug, it is best to be
-        avoided.
-
-        ```yaml title="convert.yaml"
-        ---8<-- "src/socx/static/settings/convert.yaml"
-        ```
-
 </div>
