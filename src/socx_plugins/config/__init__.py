@@ -9,7 +9,15 @@ from rich.syntax import Syntax
 from rich.json import JSON
 import rich_click as click
 
-from socx import console, settings, TreeFormatter, get_logger, group
+from socx import (
+    group,
+    console,
+    print_with_pager,
+    settings,
+    get_logger,
+    print_outputs,
+    TreeFormatter,
+)
 
 
 logger = get_logger(__name__)
@@ -50,13 +58,7 @@ def edit(user: bool):
 )
 def tree(pager: bool):
     """Print a pretty tree structure of all loaded configurations."""
-    formatter = TreeFormatter()
-    output = formatter(settings.raw, "Settings")
-    if pager:
-        with console.pager(styles=True, links=True):
-            console.print(output)
-    else:
-        console.print(output)
+    print_outputs({"config tree": settings.raw}, pager=pager, title="Tree")
 
 
 @cli.command("list")
@@ -70,11 +72,10 @@ def tree(pager: bool):
 )
 def list_(pager: bool):
     """Print a list of all current configuration values."""
-    if pager:
-        with console.pager(styles=True, links=True):
-            console.print(settings.raw)
-    else:
+    if not pager:
         console.print(settings.raw)
+    else:
+        print_with_pager(settings.raw)
 
 
 @cli.command()
@@ -101,12 +102,10 @@ def debug(ctx: click.Context, pager: bool, field: str | None):
         ctx.fail(f"No such field: {field}")
 
     output = settings.get_debug_info(key=field, verbosity=2)
-
-    if pager:
-        with console.pager(styles=True, links=True):
-            console.print(output)
-    else:
+    if not pager:
         console.print(output)
+    else:
+        print_with_pager(output)
 
 
 @cli.command()
@@ -114,13 +113,24 @@ def debug(ctx: click.Context, pager: bool, field: str | None):
     "limit",
     default=0,
     required=False,
-    type=click.INT,
+    type=click.IntRange(min=0),
     help="Limits the maximum number of history entries to list.",
     metavar="[integer]",
 )
-def history(limit: int):
+@click.option(
+    "--pager",
+    "-p",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="Display the output in a pager.",
+)
+def history(limit: int, pager: bool):
     """Print configuration settings modification history."""
-    console.print(settings.get_history(limit))
+    if not pager:
+        console.print(settings.get_history(limit))
+    else:
+        print_with_pager(settings.get_history(limit))
 
 
 @cli.command()
@@ -162,13 +172,11 @@ def get(ctx: click.Context, pager: bool, field: str):
         ctx.fail(f"Invalid field: '{field}'")
 
     formatter = TreeFormatter()
-    value = settings.get_raw(field)
-    output = formatter(obj=value, label=field)
-    if pager:
-        with console.pager(styles=True, links=True):
-            console.print(output)
+    outputs = formatter(obj=settings.get_raw(field), label=field)
+    if not pager:
+        console.print(outputs)
     else:
-        console.print(output)
+        print_with_pager(outputs)
 
 
 get.help = """
@@ -237,8 +245,10 @@ def dump(
 
     raw_box = SBox(settings.as_box(field))
     text = getattr(raw_box, format_)
+
     if format_ == "json":
         text = JSON(text).text.plain
+
     syntax = Syntax(
         cast(str, text),
         format_,
@@ -247,8 +257,7 @@ def dump(
         indent_guides=guides,
     )
 
-    if pager:
-        with console.pager(styles=True, links=True):
-            console.print(syntax)
-    else:
+    if not pager:
         console.print(syntax)
+    else:
+        print_with_pager(syntax)
