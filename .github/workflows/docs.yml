@@ -20,9 +20,11 @@ jobs:
       - name: Setup uv and python
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.x"
-      - run: make sync
-      - run: zensical build --clean
+          python-version: "3.14"
+      - run: |
+          uv venv
+          make sync
+          uv run zensical build --clean
       - uses: actions/upload-pages-artifact@v4
         with:
           path: site
