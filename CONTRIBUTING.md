@@ -120,3 +120,7 @@ git push -f
 ```
 
 If this seems all too complicated, you can push or force-push each new commit, and we will squash them ourselves if needed, before merging.
+
+## Releasing
+
+For maintainers: see [Publishing to PyPI](docs/publish-to-pypi.md) for instructions on how to publish a new release.
