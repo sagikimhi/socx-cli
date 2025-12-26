@@ -13,8 +13,6 @@ __all__ = (
     # Functions
     "log_it",
     "logger",
-    "console",
-    "get_console",
     "get_level",
     "set_level",
     "get_logger",
@@ -26,6 +24,12 @@ __all__ = (
     "is_enabled_for",
     "remove_handler",
     "get_handler_names",
+    # console
+    "console",
+    "get_console",
+    "print_outputs",
+    "print_with_pager",
+    "print_command_outputs",
 )
 
 from socx.io import log as log
@@ -50,5 +54,8 @@ from socx.io.log import get_handler_names as get_handler_names
 
 from socx.io.console import console as console
 from socx.io.console import get_console as get_console
+from socx.io.console import print_outputs as print_outputs
+from socx.io.console import print_with_pager as print_with_pager
+from socx.io.console import print_command_outputs as print_command_outputs
 
 from socx.io.decorators import log_it as log_it

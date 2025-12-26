@@ -112,7 +112,7 @@ def is_branch(head: git.HEAD | git.Head) -> bool:
     return not head.is_detached
 
 
-def is_git_dir(path: str | Path) -> bool:
+def is_repo(path: str | Path) -> bool:
     """Return ``True`` if ``path`` points to a git repository."""
     return bool(get_repo(path))
 
@@ -120,13 +120,13 @@ def is_git_dir(path: str | Path) -> bool:
 def iter_repositories(
     root: Path, recursive: bool = False
 ) -> Generator[git.Repo]:
-    if root.is_dir() and is_git_dir(root):
+    if root.is_dir() and is_repo(root):
         yield git.Repo(root)
 
     for path in root.iterdir():
         if recursive:
             yield from iter_repositories(path, recursive)
-        elif path.is_dir() and is_git_dir(path):
+        elif path.is_dir() and is_repo(path):
             yield git.Repo(path)
 
 
@@ -175,7 +175,7 @@ def find_repositories(
     def match_repos(
         root: Path, patterns: Iterable[str | Path], deduplicate: bool = False
     ) -> list[Path]:
-        dirs = filter(is_git_dir, match_directories(root, patterns))
+        dirs = filter(is_repo, match_directories(root, patterns))
         return deduplicate_paths(dirs) if deduplicate else list(dirs)
 
     dirs = match_repos(root, ["*/"])

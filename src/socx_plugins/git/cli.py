@@ -5,11 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 import rich_click as click
-from socx import join_decorators, settings, Decorator
+from socx import (
+    join_decorators,
+    settings,
+    console,
+    Decorator,
+    print_command_outputs,
+)
 from rich.markdown import Markdown
 
-import socx_plugins.git.arguments as arguments
-from socx_plugins.git._cli import console, print_command_outputs
+from socx_plugins.git import arguments
 from socx_plugins.git.summary import Summary
 from socx_plugins.git.manifest import Manifest
 

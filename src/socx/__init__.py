@@ -4,19 +4,22 @@ __all__ = (
     # core
     "Serializer",
     # I/O
-    "log",
     "DEFAULT_LEVEL",
     "DEFAULT_FORMAT",
     "DEFAULT_HANDLERS",
     "DEFAULT_TIME_FORMAT",
     "Level",
-    "logger",
+    "log",
     "log_it",
+    "logger",
     "console",
     "get_level",
     "set_level",
     "get_logger",
     "get_console",
+    "print_outputs",
+    "print_with_pager",
+    "print_command_outputs",
     "add_filter",
     "remove_filter",
     "add_handler",
@@ -32,7 +35,6 @@ __all__ = (
     # Util
     "join_decorators",
     # Config
-    "settings",
     "__author__",
     "__project__",
     "__version__",
@@ -72,6 +74,10 @@ __all__ = (
     "Validator",
     "ValidationError",
     "validate_all",
+    "PluginModel",
+    "SETTINGS_DEFAULTS",
+    "Settings",
+    "settings",
     # Mixins
     "UIDMixin",
     "PtrMixin",
@@ -106,6 +112,9 @@ from socx.io import get_level as get_level
 from socx.io import set_level as set_level
 from socx.io import get_logger as get_logger
 from socx.io import get_console as get_console
+from socx.io import print_outputs as print_outputs
+from socx.io import print_with_pager as print_with_pager
+from socx.io import print_command_outputs as print_command_outputs
 from socx.io import add_filter as add_filter
 from socx.io import remove_filter as remove_filter
 from socx.io import add_handler as add_handler
@@ -131,6 +140,7 @@ from socx.utils import join_decorators as join_decorators
 
 from socx.config import PluginModel as PluginModel
 from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS
+from socx.config import Settings as Settings
 from socx.config import settings as settings
 from socx.config import __author__ as __author__
 from socx.config import __project__ as __project__

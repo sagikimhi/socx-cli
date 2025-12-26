@@ -41,7 +41,7 @@ init` command which will create it for you.
 
 ??? question "Why do I need a `.socx.yaml` configuration file? (click to expand)"
 
-    `socx.yaml` is how `socx` identifies the root directory of
+    `.socx.yaml` is how `socx` identifies the root directory of
     a project.
 
     In addition, it also provides local definitions of project-specific
@@ -141,7 +141,7 @@ executed.
 | name | type | description | required | default |
 | :--: | :--: | :---------: | :------: | :-----: |
 | `#!yaml env` | `#!py dict` | Environment variables that should be present when the command/script is invoked | no | `#!yaml {}` |
-| `#!yaml fresh_env` | `#!py bool` | An optional boolean that specifies whether or not the current environment should be copied into the plugin's subprocess when running the plugin.<br><br>If this is set to true, when the plugin is started, it will run in a new subprocess with no environment variables other than what is specified under the plugin's `env` field.<br><br>If this is set to false, the current environment variables will be copied into the new subprocess when the command is invoked, along with the variable definitions defined under `env`. | no | `#!yaml false` |
+| `#!yaml fresh_env` | `#!py bool` | An optional boolean that specifies whether or not the current environment should be copied into the plugin's environment when it is invoked.<br><br>If this is set to true, when the plugin is started, it will run in a new subprocess with no environment variables other than what is specified under the plugin's `env` field.<br><br>If this is set to false, the current environment variables will be copied into the new subprocess when the command is invoked, along with the variable definitions defined under `env`. | no | `#!yaml false` |
 | `#!yaml script` | `#!py str` | A shell command, script, or executable to run when the plugin is invoked.<br><br>If your plugin is a ^^**shell script**^^, command, or executable - then use the `#!yaml script` field.<br><br>Otherwise, if it is a ^^**python**^^ `#!py script`(e.g. `#!py script.py`), `#!py callable`, `#!py module`, or `#!py package` use `#!yaml command` instead. | only if `#!yaml command` is empty | `#!yaml ""` |
 | `#!yaml command` | `#!py str` | A filesystem path or module path to a callable (i.e. function or method) python symbol to execute when the plugin is invoked.<br><br>A ^^module path^^ is written in the form of: `#!yaml foo.bar:bazz`<br>A ^^filesystem path^^ is written in the form of: `#!yaml "foo/bar.py:bazz"`<br><br>if your python module checks for<br>`#!py if __name__ == "__main__"`<br>or if your package contains a dedicated `__main__.py` file, and you wish for that module/package to be executed directly, then you may also specify the raw file/module path without the trailing `#!yaml :symbol` postfix (e.g. `#!yaml foo.bar.bazz` or `#!yaml foo/bar/bazz.py`). | only if `#!yaml script` is empty | `#!yaml ""` |
 | `#!yaml enabled` | `#!py bool` | Whether or not to enable this plugin as a sub-command | no | `#!yaml true` |
