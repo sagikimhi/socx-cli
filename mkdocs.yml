@@ -15,9 +15,32 @@ copyright: "&copy; 2025 Sagi Kimhi <sagi.kim5@gmail.com>"
 
 # Validation
 validation:
-  omitted_files: warn
-  absolute_links: warn
-  unrecognized_links: warn
+  links:
+    absolute_links: relative_to_docs
+    not_found: warn
+    anchors: warn
+    unrecognized_links: warn
+  nav:
+    not_found: warn
+    omitted_files: warn
+    absolute_links: warn
+
+nav:
+  - Home:
+      - Getting Started: getting-started.md
+  - User Guide:
+      - Plugins Guide: user-guide/plugins.md
+      - Configuration Guide: user-guide/configuration.md
+  - Reference:
+      - Library API: reference/api.md
+      - Configurations: reference/configuration.md
+      - Command-Line-Interface: reference/cli.md
+  - Development:
+      - License: development/license.md
+      - Credits: development/credits.md
+      - Changelog: development/changelog.md
+      - Contributing: development/contributing.md
+      - Code of Conduct: development/code_of_conduct.md
 
 # Configuration
 theme:
@@ -37,6 +60,7 @@ theme:
   highlightjs: true
   features:
     - toc.follow
+    - toc.integrate
     - search.suggest
     - search.highlight
     - announce.dismiss
@@ -44,14 +68,14 @@ theme:
     - navigation.path
     - navigation.header
     - navigation.footer
-    - navigation.instant
     - navigation.indexes
     - navigation.sections
     - navigation.tracking
     - navigation.tabs.sticky
+    - navigation.instant
     - navigation.instant.preview
-    - navigation.instant.prefetch
     - navigation.instant.progress
+    - navigation.instant.prefetch
     - content.tooltips
     - content.tabs.link
     - content.action.edit
@@ -86,129 +110,15 @@ theme:
       default: lucide/hash
 
 extra_css:
-  - css/extra.css
-  - css/material.css
-  - css/mkdocstrings.css
+  - stylesheets/extra.css
+  - stylesheets/material.css
+  - stylesheets/mkdocstrings.css
 extra_javascript:
-  - js/mathjax.js
-  - js/feedback.js
+  - javascript/mathjax.js
+  - javascript/feedback.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
-extra:
-  version:
-    provider: mike
-    default: latest
-    alias: true
-  status:
-    new: Recently added
-    deprecated: Deprecated
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/sagikimhi
-    - icon: fontawesome/brands/discord
-      link: https://discord.com/users/335750831146270721
-    - icon: fontawesome/brands/python
-      link: https://pypi.org/project/socx-cli/
-    - icon: fontawesome/brands/gitter
-      link: https://gitter.im/socx-cli/community
-    - icon: fontawesome/brands/linkedin
-      link: https://linkedin.com/in/sagi-kimhi
-    - icon: fontawesome/solid/paper-plane
-      link: mailto:sagi.kim5@gmail.com
-  tags:
-    default: default
-  analytics:
-    feedback:
-      title: Was this page helpful?
-      ratings:
-        - icon: material/emoticon-happy-outline
-          name: This page was helpful
-          data: 1
-          note: Thanks for your feedback!
-        - icon: material/emoticon-sad-outline
-          name: This page could be improved
-          data: 0
-          note: Let us know how we can improve this page.
-          extra:
-
-nav:
-  - index.md
-  - user-guide/quickstart.md
-  - User Guide:
-      - user-guide/plugins.md
-      - user-guide/configuration.md
-  - Reference:
-      - reference/api.md
-      - reference/configuration.md
-  - Development:
-      - development/license.md
-      - development/credits.md
-      - development/changelog.md
-      - development/contributing.md
-      - development/code_of_conduct.md
-
-plugins:
-  - tags
-  - offline
-  - search
-  - markdown-exec:
-      ansi: required
-  - social
-  - macros
-  - autorefs
-  - typeset
-  - macros:
-      include_yaml: []
-  - redirects:
-      redirect_maps: {}
-  - llmstxt:
-      full_output: llms-full.txt
-      sections:
-        Usage:
-          - index.md
-        API:
-          - reference/api.md
-  - section-index
-  - git-revision-date-localized:
-      type: date
-      strict: false
-      fallback_to_build_date: true
-  - mike:
-      alias_type: copy
-      canonical_version: latest
-  - mkdocstrings:
-      handlers:
-        python:
-          paths: [src]
-          options:
-            summary: true
-            backlinks: tree
-            filters: ["!^_"]
-            heading_level: 3
-            show_bases: true
-            show_source: true
-            allow_inspection: true
-            show_inheritance_diagram: true
-            show_root_full_path: true
-            show_root_members_full_path: true
-            signature_crossrefs: true
-            show_if_no_docstring: true
-            show_root_toc_entry: true
-            show_symbol_type_toc: true
-            show_root_heading: true
-            show_category_heading: true
-            show_symbol_type_heading: true
-            show_signature_annotations: true
-            inherited_members: true
-            separate_signature: true
-            merge_init_into_class: true
-            docstring_section_style: list
-            docstring_options:
-              ignore_init_summary: true
-          inventories:
-            - url: https://docs.python.org/3/objects.inv
-              domains: [std, py]
-
+# Markdown Extension Configurations
 markdown_extensions:
   - abbr
   - admonition
@@ -216,9 +126,6 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
-  - toc:
-      toc_depth: 5
-      permalink: true
   - pymdownx.emoji:
       emoji_generator: !!python/name:zensical.extensions.emoji.to_svg
       emoji_index: !!python/name:zensical.extensions.emoji.twemoji
@@ -289,3 +196,108 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+  - toc:
+      toc_depth: 3
+      permalink: true
+  - mkdocs-click
+
+# Plugin Configurations
+plugins:
+  - tags
+  - offline
+  - search
+  - social
+  - macros
+  - autorefs
+  - typeset
+  - section-index
+  - mike:
+      alias_type: copy
+      canonical_version: latest
+  - markdown-exec:
+      ansi: required
+  - macros:
+      include_yaml: []
+  - redirects:
+      redirect_maps:
+        index.md: overview.md
+  - llmstxt:
+      full_output: llms-full.txt
+      sections:
+        Usage:
+          - index.md
+        API:
+          - reference/api.md
+  - git-revision-date-localized:
+      type: date
+      strict: false
+      fallback_to_build_date: true
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            summary: true
+            backlinks: tree
+            filters: ["!^_"]
+            heading_level: 2
+            show_bases: true
+            show_source: true
+            allow_inspection: true
+            show_inheritance_diagram: true
+            show_root_full_path: true
+            show_root_members_full_path: true
+            signature_crossrefs: true
+            show_if_no_docstring: true
+            show_root_toc_entry: false
+            show_symbol_type_toc: true
+            show_root_heading: true
+            show_category_heading: true
+            show_symbol_type_heading: true
+            show_signature_annotations: true
+            inherited_members: true
+            separate_signature: true
+            merge_init_into_class: true
+            docstring_section_style: list
+            docstring_options:
+              ignore_init_summary: true
+          inventories:
+            - url: https://docs.python.org/3/objects.inv
+              domains: [std, py]
+
+extra:
+  version:
+    provider: mike
+    default: latest
+    alias: true
+  status:
+    new: Recently added
+    deprecated: Deprecated
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sagikimhi
+    - icon: fontawesome/brands/discord
+      link: https://discord.com/users/335750831146270721
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/socx-cli/
+    - icon: fontawesome/brands/gitter
+      link: https://gitter.im/socx-cli/community
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/sagi-kimhi
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:sagi.kim5@gmail.com
+  tags:
+    default: default
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Let us know how we can improve this page.
+          extra:
