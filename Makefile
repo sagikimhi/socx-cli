@@ -140,9 +140,8 @@ format: uv ## Run ruff formatter on project source code
 release: uv ## Release a new package version to github
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
-publish: build ## Publish project to private devpi index
-	$(HIDE)$(PUBLISHER) upload \
-		--verbose --no-vcs --only-latest --wheel $(wildcard $(BUILD_DIR)/*.whl)
+publish: uv build ## Publish project to private devpi index
+	$(HIDE)$(UV) publish
 
 coverage: uv ## Report coverage as text and HTML
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
