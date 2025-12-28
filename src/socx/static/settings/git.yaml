@@ -1,7 +1,6 @@
----
 git:
   manifest:
-    root: "@jinja {{this.paths.project_root_dir}}"
+    root: "@jinja {{this._root_path}}"
     includes: []
     excludes: []
     references: {}

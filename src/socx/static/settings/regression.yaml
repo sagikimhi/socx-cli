@@ -1,4 +1,3 @@
----
 regression:
   path: ~
   test_cls: "socx.regression.test:Test"

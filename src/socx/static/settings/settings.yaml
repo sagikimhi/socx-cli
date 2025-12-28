@@ -1,4 +1,3 @@
----
 dynaconf_include:
   - "@jinja {{this.paths.app_config_dir}}/rich_click.yaml"
   - "@jinja {{this.paths.app_config_dir}}/cli.yaml"
