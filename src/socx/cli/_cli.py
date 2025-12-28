@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from functools import cached_property
 import inspect
 import logging
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import ValidationError
 import rich_click as click
 
 from socx.cli import params
@@ -30,28 +28,25 @@ class _CmdLine(click.RichGroup):
         self._cmd_converter._patch_theme()
         super().__init__(*args, **kwargs)
 
-    @cached_property
+    @property
     def plugins(self) -> dict[str, PluginModel]:
         """Return the plugin metadata keyed by plugin name."""
-        if not self._plugins:
-            for name, value in settings.plugins.items():
-                try:
-                    self._plugins[name] = PluginModel(name=name, **value)
-                except ValidationError:
-                    continue
-        return self._plugins
+        return {
+            name: PluginModel(name=name, **value)
+            for name, value in settings.get("plugins", {}).items()
+        }
 
     def get_command(
         self, ctx: click.RichContext, cmd_name: str
     ) -> click.Command | None:
         """Resolve commands from core registrations or configured plugins."""
-        if cmd_name not in self.commands and cmd_name in self.plugins:
-            plugin = self.plugins[cmd_name]
+        if cmd_name not in self.commands:
+            plugin = self.plugins.get(cmd_name)
 
-            if not plugin.enabled:
+            if plugin is None or not plugin.enabled:
                 return None
 
-            cmd = self._cmd_converter(plugin)
+            cmd = self._cmd_converter(plugin, box_settings=settings)
 
             if isinstance(cmd, click.Command):
                 self._update_command_attrs(cmd, plugin)
