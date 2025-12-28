@@ -8,7 +8,7 @@ import rich_click as click
 
 from socx.cli import params
 from socx.cli._cli import socx
-from socx.config import LOCAL_CONFIG_FILENAME, settings
+from socx.config import LOCAL_CONFIG_FILENAME
 
 
 @socx()
@@ -17,7 +17,6 @@ from socx.config import LOCAL_CONFIG_FILENAME, settings
 @click.pass_context
 def cli(ctx: click.Context):
     """System on chip verification and tooling infrastructure."""
-    ctx.obj = settings
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         ctx.exit()
