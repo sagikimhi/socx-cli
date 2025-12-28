@@ -110,12 +110,8 @@ def get_console(
     traceback.install(
         console=console,
         suppress=[click, rich_click, dynaconf],
-        word_wrap=True,
-        code_width=88,
-        extra_lines=3,
         show_locals=True,
         locals_hide_sunder=True,
-        locals_hide_dunder=True,
     )
     return console
 
