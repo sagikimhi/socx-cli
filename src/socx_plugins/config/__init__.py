@@ -1,9 +1,10 @@
 """Click command group that exposes configuration management workflows."""
 
 from __future__ import annotations
-from typing import cast
 
-from box import SBox
+from textwrap import dedent
+
+from dynaconf.utils.boxing import DynaBox
 import rich
 from rich.syntax import Syntax
 from rich.json import JSON
@@ -11,12 +12,12 @@ import rich_click as click
 
 from socx import (
     group,
+    command,
     console,
     print_with_pager,
     settings,
     get_logger,
     print_outputs,
-    TreeFormatter,
 )
 
 
@@ -28,7 +29,7 @@ def cli():
     """Get, set, inspect, or debug configuration settings."""
 
 
-@cli.command()
+@command(parent=cli)
 @click.option(
     "--user",
     "-u",
@@ -47,7 +48,7 @@ def edit(user: bool):
     _edit(settings.paths.USER_CONFIG_FILE if user else None)
 
 
-@cli.command()
+@command(parent=cli)
 @click.option(
     "--pager",
     "-p",
@@ -61,24 +62,7 @@ def tree(pager: bool):
     print_outputs({"config tree": settings.raw}, pager=pager, title="Tree")
 
 
-@cli.command("list")
-@click.option(
-    "--pager",
-    "-p",
-    is_flag=True,
-    default=False,
-    show_default=True,
-    help="Display the output in a pager.",
-)
-def list_(pager: bool):
-    """Print a list of all current configuration values."""
-    if not pager:
-        console.print(settings.raw)
-    else:
-        print_with_pager(settings.raw)
-
-
-@cli.command()
+@command(parent=cli)
 @click.option(
     "--pager",
     "-p",
@@ -108,14 +92,30 @@ def debug(ctx: click.Context, pager: bool, field: str | None):
         print_with_pager(output)
 
 
-@cli.command()
-@click.argument(
+@command(parent=cli)
+@click.option(
+    "--limit",
+    "-n",
     "limit",
+    nargs=1,
     default=0,
     required=False,
     type=click.IntRange(min=0),
-    help="Limits the maximum number of history entries to list.",
-    metavar="[integer]",
+    metavar="integer range",
+    show_default=True,
+    help="""
+    Number of history entries to show. A value of 0 will show all entries.
+    """,
+)
+@click.option(
+    "--format",
+    "-f",
+    "format_",
+    nargs=1,
+    type=click.Choice(["yaml", "toml", "json"]),
+    help="Specify a format for dumping configrations.",
+    default="yaml",
+    show_default=True,
 )
 @click.option(
     "--pager",
@@ -125,15 +125,33 @@ def debug(ctx: click.Context, pager: bool, field: str | None):
     show_default=True,
     help="Display the output in a pager.",
 )
-def history(limit: int, pager: bool):
+@click.argument(
+    "key",
+    type=click.STRING,
+    required=False,
+    metavar="[key]",
+    help="""
+    An optional field to show history for.
+    If not provided, the full history will be shown.
+    """,
+)
+def history(limit: int, format_: str, pager: bool, key: str | None = None):
     """Print configuration settings modification history."""
-    if not pager:
-        console.print(settings.get_history(limit))
-    else:
-        print_with_pager(settings.get_history(limit))
+
+    def noop(*args, **kwargs):
+        return ""
+
+    history = []
+    entries = settings.encode(settings.get_history(key=key, limit=limit))
+    for entry in entries:
+        code = getattr(DynaBox(entry), f"to_{format_}", noop)()
+        if format_ == "json":
+            code = JSON(code).text.plain
+        history.append(Syntax(code=code, lexer=format_, theme="ansi_dark"))
+    print_outputs(*history, pager=pager, title="Settings History")
 
 
-@cli.command()
+@command(parent=cli)
 def inspect():
     """Inspect the current settings instance and print the results."""
     rich.inspect(
@@ -149,7 +167,25 @@ def inspect():
     )
 
 
-@cli.command(no_args_is_help=True)
+@command(
+    "get",
+    parent=cli,
+    no_args_is_help=True,
+    help=dedent("""
+    Get the current value of a configuration field.\b\n
+
+    > **Common Fields**:
+    {}
+    """).format(
+        "\n".join(
+            sorted(
+                f"> - {key.lower()}"
+                for key in settings
+                if not key.startswith("_") and "dynaconf" not in key.lower()
+            )
+        )
+    ),
+)
 @click.option(
     "--pager",
     "-p",
@@ -168,33 +204,14 @@ def inspect():
 @click.pass_context
 def get(ctx: click.Context, pager: bool, field: str):
     """Get the value of a configuration field in a pretty tree format."""
-    if field not in settings:
+    if field not in settings and not hasattr(settings, field):
         ctx.fail(f"Invalid field: '{field}'")
 
-    formatter = TreeFormatter()
-    outputs = formatter(obj=settings.get_raw(field), label=field)
-    if not pager:
-        console.print(outputs)
-    else:
-        print_with_pager(outputs)
+    obj = settings.get(field) or {field: getattr(settings, field)}
+    print_outputs(obj, pager=pager, title=field)
 
 
-get.help = """
-Get the current value of a configuration field.
-
-Some available fields:
-{}
-
-""".strip().format(
-    "\n".join(
-        f"- {key}"
-        for key in settings.raw
-        if "dynaconf" not in key and not key.startswith("_")
-    )
-)
-
-
-@cli.command(**settings.cli.command)
+@command(parent=cli)
 @click.option(
     "--indent-guides",
     "--guides",
@@ -240,24 +257,24 @@ def dump(
     field: str | None,
 ) -> None:
     """Dump the current settings configurations in the specified format."""
+
+    def noop(*args, **kwargs):
+        return ""
+
     if field and field not in settings:
         ctx.fail(f"No such field: {field}")
 
-    raw_box = SBox(settings.as_box(field))
-    text = getattr(raw_box, format_)
+    text = getattr(settings, f"to_{format_}", noop)(field)
 
     if format_ == "json":
         text = JSON(text).text.plain
 
     syntax = Syntax(
-        cast(str, text),
-        format_,
-        tab_size=2,
+        code=text,
+        lexer=format_,
         theme="ansi_dark",
+        tab_size=2,
         indent_guides=guides,
     )
 
-    if not pager:
-        console.print(syntax)
-    else:
-        print_with_pager(syntax)
+    print_outputs(syntax, pager=pager, title=field)

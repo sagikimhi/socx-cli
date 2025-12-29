@@ -38,8 +38,8 @@ def print_with_pager(
 
 
 def print_outputs(
-    outputs: dict[str, Any],
-    pager: bool = True,
+    *outputs: str | RenderableType | dict[str, Any],
+    pager: bool = False,
     title: str | None = None,
 ) -> None:
     """
@@ -56,11 +56,14 @@ def print_outputs(
     """
     title = title or ""
     formatter = TreeFormatter()
-    text = formatter(outputs, title)
-    if not pager:
-        console.print(text)
-    else:
-        print_with_pager(text)
+    for output in list(outputs):
+        if isinstance(output, dict):
+            output = formatter(output, title)
+
+        if not pager:
+            console.print(output)
+        else:
+            print_with_pager(output)
 
 
 def print_command_outputs(

@@ -113,12 +113,11 @@ def get_settings(
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer
 
-    path = path or paths.APP_CONFIG_FILE
-
     if isinstance(path, str):
         path = Path(path)
 
-    settings_file = ensure_a_list(path)
+    path = path or paths.APP_CONFIG_FILE
+
     includes = []
 
     if user_overrides:
@@ -128,35 +127,54 @@ def get_settings(
         includes.extend(get_local_config_files())
 
     if extra_overrides:
-        includes.extend(extra_overrides)
+        includes.extend(
+            Path(p) if isinstance(p, str) else p for p in extra_overrides
+        )
 
+    root = includes[-1].parent if includes else Path.cwd()
     kwargs = dict(
         ChainMap(
             kwargs,
             dict(
-                includes=includes,
-                settings_file=settings_file,
+                root_path=root,
+                preload=ensure_a_list(path),
+                settings_file=includes,
                 **ModuleSerializer.serialize(paths),
                 **ModuleSerializer.serialize(metadata),
             ),
         )
     )
-    return Settings(
-        **kwargs,
-    )
+    return Settings(**kwargs)
 
 
 converters.init()
 
-_default_settings = get_settings()
+_default_settings: Settings = get_settings()
 
-_global_settings = get_settings(user_overrides=True, local_overrides=True)
+try:
+    _local_settings: Settings = get_settings(local_overrides=True)
+except Exception:
+    _local_settings = _default_settings
 
-_local_settings = get_settings(local_overrides=True)
+try:
+    _user_settings: Settings = get_settings(user_overrides=True)
+except Exception:
+    _user_settings = _default_settings
 
-_user_settings = get_settings(user_overrides=True)
+try:
+    _global_settings: Settings = get_settings(
+        user_overrides=True, local_overrides=True
+    )
+except Exception:
+    _global_settings = _local_settings
+    _global_settings.update(_user_settings)
+
 
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
+
+_settings_cv.set(_default_settings)
+
+_settings_cv.set(_global_settings)
 
 settings: LocalProxy[Settings] = LocalProxy(
     _settings_cv,
@@ -167,7 +185,3 @@ settings: LocalProxy[Settings] = LocalProxy(
         be set. To solve this, set up an app context.
     """),
 )
-
-_settings_cv.set(_default_settings)
-
-_settings_cv.set(_global_settings)
