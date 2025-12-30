@@ -123,31 +123,31 @@ tags:
 
         === "`socx git`"
 
-            ![socx git](../assets/images/socx-git.svg){ width="800" loading=lazy }
+            ![socx git](assets/images/socx-git.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx git log`"
 
-            ![socx git log](../assets/images/socx-git-log.svg){ width="800" loading=lazy }
+            ![socx git log](assets/images/socx-git-log.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx git help`"
 
-            ![socx git](../assets/images/socx-git-help.svg){ width="800" loading=lazy }
+            ![socx git](assets/images/socx-git-help.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx git status`"
 
-            ![socx git status](../assets/images/socx-git-status.svg){ width="800" loading=lazy }
+            ![socx git status](assets/images/socx-git-status.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx git summary`"
 
-            ![socx git summary](../assets/images/socx-git-summary.svg){ width="800" loading=lazy }
+            ![socx git summary](assets/images/socx-git-summary.svg){ width="800" loading=lazy }
             /// caption
             ///
 
@@ -156,43 +156,43 @@ tags:
 
         === "`socx config`"
 
-            ![socx config](../assets/images/socx-config.svg){ width="800" loading=lazy }
+            ![socx config](assets/images/socx-config.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx config get`"
 
-            ![socx config get](../assets/images/socx-config-get.svg){ width="800" loading=lazy }
+            ![socx config get](assets/images/socx-config-get.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx config dump`"
 
-            ![socx config dump](../assets/images/socx-config-dump.svg){ width="800" loading=lazy }
+            ![socx config dump](assets/images/socx-config-dump.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx config list`"
 
-            ![socx config list](../assets/images/socx-config-list.svg){ width="800" loading=lazy }
+            ![socx config list](assets/images/socx-config-list.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx config tree`"
 
-            ![socx config tree](../assets/images/socx-config-tree.svg){ width="800" loading=lazy }
+            ![socx config tree](assets/images/socx-config-tree.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx config debug`"
 
-            ![socx config debug](../assets/images/socx-config-debug.svg){ width="800" loading=lazy }
+            ![socx config debug](assets/images/socx-config-debug.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx config inspect`"
 
-            ![socx config inspect](../assets/images/socx-config-inspect.svg){ width="800" loading=lazy }
+            ![socx config inspect](assets/images/socx-config-inspect.svg){ width="800" loading=lazy }
             /// caption
             ///
 
@@ -201,19 +201,19 @@ tags:
 
         === "`socx plugin`"
 
-            ![socx plugin](../assets/images/socx-plugin.svg){ width="800" loading=lazy }
+            ![socx plugin](assets/images/socx-plugin.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx plugin example`"
 
-            ![socx plugin example](../assets/images/socx-plugin-example.svg){ width="800" loading=lazy }
+            ![socx plugin example](assets/images/socx-plugin-example.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx plugin schema`"
 
-            ![socx plugin schema](../assets/images/socx-plugin-schema.svg){ width="800" loading=lazy }
+            ![socx plugin schema](assets/images/socx-plugin-schema.svg){ width="800" loading=lazy }
             /// caption
             ///
 
@@ -221,13 +221,13 @@ tags:
 
         === "`socx rgr`"
 
-            ![socx rgr](../assets/images/socx-rgr.svg){ width="800" loading=lazy }
+            ![socx rgr](assets/images/socx-rgr.svg){ width="800" loading=lazy }
             /// caption
             ///
 
         === "`socx rgr run`"
 
-            ![socx rgr run](../assets/images/socx-rgr-run.svg){ width="800" loading=lazy }
+            ![socx rgr run](assets/images/socx-rgr-run.svg){ width="800" loading=lazy }
             /// caption
             ///
 
