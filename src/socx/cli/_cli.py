@@ -42,6 +42,11 @@ class _CmdLine(click.RichGroup):
         if cmd_name not in self.commands:
             plugin = self.plugins.get(cmd_name)
 
+            if plugin is None:
+                for k, v in self.plugins.items():
+                    if cmd_name in v.aliases:
+                        return self.get_command(ctx, k)
+
             if plugin is None or not plugin.enabled:
                 return None
 
@@ -50,8 +55,9 @@ class _CmdLine(click.RichGroup):
             if isinstance(cmd, click.Command):
                 self._update_command_attrs(cmd, plugin)
                 self.add_command(cmd)
+                return cmd
 
-        return super().get_command(ctx, cmd_name)
+        return click.RichGroup.get_command(self, ctx, cmd_name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
         """List command names including dynamically loaded plugins."""
@@ -66,6 +72,12 @@ class _CmdLine(click.RichGroup):
         ]
         rv.sort(key=get_cmd_order)
         return rv
+
+    def resolve_command(
+        self, ctx: click.Context, args: list[str]
+    ) -> tuple[str | None, click.Command | None, list[str]]:
+        _, cmd, args = super().resolve_command(ctx, args)
+        return cmd and cmd.name, cmd, args
 
     def _update_command_attrs(
         self, cmd: click.Command, plugin: PluginModel
