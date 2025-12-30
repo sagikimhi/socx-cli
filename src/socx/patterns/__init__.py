@@ -5,6 +5,7 @@ __all__ = (
     "Visitor",
     "PtrMixin",
     "UIDMixin",
+    "ProxyMixin",
     "Structure",
     "Traversal",
     "Singleton",
@@ -16,6 +17,7 @@ __all__ = (
 
 from socx.patterns.mixins import PtrMixin as PtrMixin
 from socx.patterns.mixins import UIDMixin as UIDMixin
+from socx.patterns.mixins import ProxyMixin as ProxyMixin
 
 from socx.patterns.visitor import Node as Node
 from socx.patterns.visitor import Visitor as Visitor

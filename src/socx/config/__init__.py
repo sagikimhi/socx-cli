@@ -48,6 +48,11 @@ __all__ = (
     "IncludeConverter",
     "add_converters",
     "get_converters",
+    # Encoders
+    "SettingsEncoder",
+    # Serializers
+    "ModuleSerializer",
+    "SettingsSerializer",
     # Validators
     "Validator",
     "ValidationError",
@@ -107,6 +112,11 @@ from socx.config.converters import CommandConverter as CommandConverter
 from socx.config.converters import IncludeConverter as IncludeConverter
 from socx.config.converters import add_converters as add_converters
 from socx.config.converters import get_converters as get_converters
+
+from socx.config.encoders import SettingsEncoder as SettingsEncoder
+
+from socx.config.serializers import ModuleSerializer as ModuleSerializer
+from socx.config.serializers import SettingsSerializer as SettingsSerializer
 
 from socx.config.validators import Validator as Validator
 from socx.config.validators import ValidationError as ValidationError

@@ -2,6 +2,7 @@
 
 __all__ = (
     # core
+    "Encoder",
     "Serializer",
     # I/O
     "DEFAULT_LEVEL",
@@ -71,6 +72,9 @@ __all__ = (
     "SymbolConverter",
     "add_converters",
     "get_converters",
+    "SettingsEncoder",
+    "ModuleSerializer",
+    "SettingsSerializer",
     "Validator",
     "ValidationError",
     "validate_all",
@@ -81,6 +85,7 @@ __all__ = (
     # Mixins
     "UIDMixin",
     "PtrMixin",
+    "ProxyMixin",
     # Patterns
     "Node",
     "Visitor",
@@ -128,12 +133,15 @@ from socx.cli import cli as cli
 from socx.cli import opts as opts
 from socx.cli import group as group
 from socx.cli import command as command
+from socx.cli import color as color
 from socx.cli import debug as debug
 from socx.cli import configure as configure
 from socx.cli import verbosity as verbosity
+from socx.cli import config_files as config_files
 from socx.cli import Decorator as Decorator
 from socx.cli import AnyCallable as AnyCallable
 
+from socx.core import Encoder as Encoder
 from socx.core import Serializer as Serializer
 
 from socx.utils import join_decorators as join_decorators
@@ -171,8 +179,8 @@ from socx.config import get_settings as get_settings
 from socx.config import (
     get_local_config_files as get_local_config_files,
 )
+from socx.config import Validator as Validator
 from socx.config import Formatter as Formatter
-from socx.config import TreeFormatter as TreeFormatter
 from socx.config import Converter as Converter
 from socx.config import ShConverter as ShConverter
 from socx.config import PathConverter as PathConverter
@@ -181,7 +189,10 @@ from socx.config import ImportConverter as ImportConverter
 from socx.config import CompileConverter as CompileConverter
 from socx.config import add_converters as add_converters
 from socx.config import get_converters as get_converters
-from socx.config import Validator as Validator
+from socx.config import TreeFormatter as TreeFormatter
+from socx.config import SettingsEncoder as SettingsEncoder
+from socx.config import ModuleSerializer as ModuleSerializer
+from socx.config import SettingsSerializer as SettingsSerializer
 from socx.config import ValidationError as ValidationError
 from socx.config import validate_all as validate_all
 
@@ -191,6 +202,7 @@ from socx.patterns import Structure as Structure
 from socx.patterns import Traversal as Traversal
 from socx.patterns import UIDMixin as UIDMixin
 from socx.patterns import PtrMixin as PtrMixin
+from socx.patterns import ProxyMixin as ProxyMixin
 from socx.patterns import Singleton as Singleton
 from socx.patterns import TopDownTraversal as TopDownTraversal
 from socx.patterns import BottomUpTraversal as BottomUpTraversal

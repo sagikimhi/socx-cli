@@ -5,7 +5,9 @@ from __future__ import annotations
 from types import ModuleType
 from typing import Any, override
 
+from pydantic_core import to_jsonable_python
 from dynaconf import LazySettings
+from dynaconf.utils.boxing import DynaBox
 
 from socx.core.serializer import Serializer
 
@@ -18,12 +20,11 @@ class ModuleSerializer(Serializer[ModuleType]):
     def serialize(
         cls, obj: ModuleType, *args: Any, **kwargs: Any
     ) -> dict[str, Any]:
-        shortname = obj.__name__.rpartition(".")[-1]
-        return {
-            shortname: {
-                k: getattr(obj, k) for k in getattr(obj, "__all__", ())
-            }
-        }
+        name = obj.__name__.rpartition(".")[-1]
+        attr_names = getattr(obj, "__all__", ())
+        attrs = {k: v for k, v in vars(obj).items() if k in attr_names}
+        attrs = to_jsonable_python(attrs)
+        return {name: attrs}
 
 
 class SettingsSerializer(Serializer[LazySettings]):
@@ -33,13 +34,11 @@ class SettingsSerializer(Serializer[LazySettings]):
         cls,
         obj: LazySettings,
         key: str | None = None,
+        merge: bool = False,
         *args: Any,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> DynaBox:
         """Serialize a ``LazySettings`` obj into a python ``dict``."""
-        from dynaconf.utils.inspect import inspect_settings
-
-        data = inspect_settings(
-            obj, key=key, history_limit=1, print_report=False
-        )
-        return data["current"]
+        if key is None:
+            return obj.to_dict()
+        return obj.get(key, cast=False, fresh=True)

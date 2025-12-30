@@ -39,7 +39,7 @@ def _to_panel(value: Any, title: str | None = None) -> Panel:
     )
 
 
-def _to_table(key: str | Text, value: Any) -> Table:
+def _to_table(label: str | Text, obj: Any) -> Table:
     """Render list or dict settings values inside a Rich table."""
     tbl = Table(
         box=box.ROUNDED,
@@ -50,43 +50,43 @@ def _to_table(key: str | Text, value: Any) -> Table:
         show_footer=False,
         title_justify="left",
     )
-    if isinstance(value, list | tuple | set):
-        tbl.title = _to_text(key)
+    if isinstance(obj, list | tuple | set):
+        tbl.title = _to_text(label)
         tbl.add_column("index")
-        for i, v in enumerate(value):
+        for i, v in enumerate(obj):
             tbl.add_row(_to_text(i).plain, _to_text(v).plain)
-    elif isinstance(value, dict):
-        for k in value:
+    elif isinstance(obj, dict):
+        for k in obj:
             tbl.add_column(_to_text(k, "yellow"))
-        tbl.add_row(*[_to_text(v) for v in value.values()])
+        tbl.add_row(*[_to_text(v) for v in obj.values()])
     else:
-        tbl.add_column(_to_text(key, "yellow"))
-        tbl.add_row(_to_text(value))
+        tbl.add_column(_to_text(label, "yellow"))
+        tbl.add_row(_to_text(obj))
     return tbl
 
 
-def _to_tree(key: RenderableType, value: Any) -> Tree:
+def _to_tree(label: RenderableType, obj: Any) -> Tree:
     """Convert nested settings structures into a Rich tree."""
     node: Tree | Table = Tree("", highlight=True)
 
-    if isinstance(value, list | set | tuple):
-        node.label = _to_text(key)
-        for i, v in enumerate(value):
-            k = _to_text(f"{key}[{i}]", style="bold italic")
+    if isinstance(obj, list | set | tuple):
+        node.label = _to_text(label)
+        for i, v in enumerate(obj):
+            k = _to_text(f"{label}[{i}]", style="bold italic")
             if not isinstance(v, dict):
                 node.add(_to_tree(k, v))
             else:
                 node.add(_to_table(k, v))
-    elif isinstance(value, dict):
-        node.label = _to_text(key)
-        for k, v in value.items():
+    elif isinstance(obj, dict):
+        node.label = _to_text(label)
+        for k, v in obj.items():
             k = _to_text(k, style="bold italic")
             if isinstance(v, dict | list | set | tuple):
                 node.add(_to_tree(k, v))
             else:
                 node.add(_to_table(k, v))
     else:
-        node.label = _to_table(_to_text(key, "italic"), _to_text(value))
+        node.label = _to_table(_to_text(label, "bold italic"), _to_text(obj))
     return node
 
 
@@ -98,8 +98,8 @@ class TreeFormatter(Formatter):
         return self.format(obj, label)
 
     def format(self, obj: Any, label: RenderableType | None = None) -> Columns:
-        label = Text.from_ansi(f"{label}") if label else ""
-        obj = _to_tree(key=label, value=obj)
+        label = _to_text(str(label or ""), "bold italic")
+        obj = _to_tree(label=label, obj=obj)
         columns = Columns(
             [_to_panel(obj)],
             align="left",

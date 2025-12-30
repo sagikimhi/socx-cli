@@ -19,6 +19,10 @@ from socx.config._paths import (
     USER_CONFIG_FILE,
 )
 from socx.config._settings import Settings
+from socx.patterns.mixins.proxy import ProxyMixin
+
+
+class SettingsProxy(ProxyMixin[Settings], Settings): ...
 
 
 logger = logging.getLogger(__name__)
@@ -113,13 +117,11 @@ def get_settings(
     from socx.config import metadata
     from socx.config.serializers import ModuleSerializer
 
-    path = path or paths.APP_CONFIG_FILE
-
     if isinstance(path, str):
         path = Path(path)
 
-    settings_file = ensure_a_list(path)
     includes = []
+    settings_file = ensure_a_list(path or paths.APP_CONFIG_FILE)
 
     if user_overrides:
         includes.extend(get_user_config_files())
@@ -128,37 +130,35 @@ def get_settings(
         includes.extend(get_local_config_files())
 
     if extra_overrides:
-        includes.extend(extra_overrides)
+        includes.extend(
+            Path(p) if isinstance(p, str) else p for p in extra_overrides
+        )
 
+    root = includes[-1].parent if includes else Path.cwd()
     kwargs = dict(
         ChainMap(
             kwargs,
             dict(
-                includes=includes,
-                settings_file=settings_file,
-                **ModuleSerializer.serialize(paths),
-                **ModuleSerializer.serialize(metadata),
+                root_path=root,
+                project_root=root,
+                preload=settings_file,
+                settings_file=[*includes],
             ),
-        )
+        ),
+        **ModuleSerializer.serialize(paths),
+        **ModuleSerializer.serialize(metadata),
     )
-    return Settings(
-        **kwargs,
-    )
+    rv = Settings(**kwargs)
+    return rv
 
 
 converters.init()
 
-_default_settings = get_settings()
-
-_global_settings = get_settings(user_overrides=True, local_overrides=True)
-
-_local_settings = get_settings(local_overrides=True)
-
-_user_settings = get_settings(user_overrides=True)
+_default_settings: Settings = get_settings()
 
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
 
-settings: LocalProxy[Settings] = LocalProxy(
+settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
     _settings_cv,
     unbound_message=dedent("""
         Working outside of application context.
@@ -168,6 +168,23 @@ settings: LocalProxy[Settings] = LocalProxy(
     """),
 )
 
-_settings_cv.set(_default_settings)
+try:
+    _user_settings: Settings = get_settings(user_overrides=True)
+except Exception:
+    _user_settings = _default_settings
+
+try:
+    _local_settings: Settings = get_settings(local_overrides=True)
+except Exception:
+    _local_settings = _default_settings
+    _local_settings.update(_user_settings)
+
+try:
+    _global_settings: Settings = get_settings(
+        user_overrides=True, local_overrides=True
+    )
+except Exception:
+    _global_settings = _default_settings
+    _global_settings.update(_local_settings)
 
 _settings_cv.set(_global_settings)

@@ -34,9 +34,8 @@ icon: lucide/plug
 -   ## Adding a "Hello World!" plugin
 
     In the following section, we will demonstrate how you can add your first
-    "hello world" plugin to your project in no longer than 30 seconds, all without
-    writing a single line of python code, and only 5 lines of YAML `#!yaml key:
-    value` configurations.
+    "hello world" plugin to your project with only 4 lines of yaml `#!yaml
+    key: value` configurations and not even a single line of python code.
 
     ### Declaring a plugin
 
@@ -74,7 +73,6 @@ icon: lucide/plug
     it.
 
     ```yaml linenums="1" title=".socx.yaml"
-    ---
     plugins:
         hello_world:
             script: echo 'Hello World!'
@@ -248,39 +246,38 @@ icon: lucide/plug
 
         === "`.socx.yaml`"
 
-            ```yaml linenums="1" hl_lines="11-12" title=".socx.yaml"
-            ---
-            plugins:            # (1)!
+            ``` { .yaml .linenums="1" .hl_lines="11-12" .title=".socx.yaml" .annotate }
+            plugins: # (1)!
 
-              my_plugin:        # (2)!
+              my_plugin: # (2)!
 
-                env:            # (3)!
+                env: # (3)!
                   FOO: "VALUE"
                   BAR: "VALUE1/VALUE2"
                   bazz: "value3:value4:value5"
 
-                command: >-     # (4)!
+                command: >- # (4)!
                     my_package/my_subpackage/my_script.py:my_function
 
-                enabled: true   # (5)!
+                enabled: true # (5)!
 
                 fresh_env: true # (6)!
 
-                aliases:        # (7)!
+                aliases: # (7)!
                   - my_cmd
                   - myc
 
-                panel: |        # (8)!
+                panel: | # (8)!
                     Plugin Commands
 
-                short_help: |   # (9)!
+                short_help: | # (9)!
                   My short one-liner help text.
 
-                epilog: |       # (10)!
+                epilog: | # (10)!
                   Visit [link]https://my_awesome_website.com/documentation[/link]
                   for additional info about 'my_plugin'.
 
-                help: |         # (11)!
+                help: | # (11)!
                   # My Plugin
 
                   My long descriptive and helpful help text.
@@ -304,52 +301,50 @@ icon: lucide/plug
                   posuere tincidunt.
             ```
 
-            1.   Required - this will cause the definitions below to be merged into the current `plugins` configuration.
-
-            2.   Required - define a new plugin called "my_plugin". It can be invoked later by running `socx my_plugin` in a terminal.
-
-            3.   Optional - Define variables `FOO`, `BAR`, and `bazz` in the new subprocess environment where the plugin is invoked.
-
-            4.   Required - this is translated into something like:
-
-                 ```py
-                 def my_plugin():
-                    from my_package.my_subpackage import my_function
-                    tmp = sys.argv.pop(0)
-                    try:
-                      rv = my_function()
-                    finally:
-                      sys.argv.insert(0, tmp)
-                    return rv
-                 ```
-
-            5.   Optional - enable/disable the plugin, this is true by default.
-
-            6.   Optional - do/do-not copy environment variables from the environment
-                 of the current process into the plugin's subprocess.
-
-                 The default value is false, which means to copy the variables from
-                 the current environment instead of using a fresh one.
-
-            7.   Optional - additional aliases/shortcuts to set that can be used to invoke the sub-command, in addition to the current name 'my_command' defined at the top of this snippet.
-
-            8.   Optional - will place command in a separate panel in the parent command's help menu with a custom "Plugin Commands" title.
-
-            9.   Optional - a short version of the help text that will be used to render the one-liner help text in the parent command's help menu.
-
-            10.  Optional - help text shown at the bottom/end of the help menu.
-
-                 This is usually useful for providing references, such as a url to a documentation site.
-
-            11.  Optional - plugin help text to show when running the command
-                 with the -h or --help flag.
-
-                 Note that markdown is supported, and is the recommended format
-                 for documenting plugin commands.
-
-                 To see an example for how markdown is later rendered in the
-                 terminal, check out the GIF image for the `socx git help`
-                 command in the quickstart section.
+            1. Required - this will cause the definitions below to be merged
+               into the current `plugins` configuration.
+            2. Required - define a new plugin called "my_plugin". It can be
+               invoked later by running `socx my_plugin` in a terminal.
+            3. Optional - Define variables `FOO`, `BAR`, and `bazz` in the
+               new subprocess environment where the plugin is invoked.
+            4. Required - this is translated into something like:<br>
+               ```py
+               def my_plugin():
+                  from my_package.my_subpackage import my_function
+                  tmp = sys.argv.pop(0)
+                  try:
+                    rv = my_function()
+                  finally:
+                    sys.argv.insert(0, tmp)
+                  return rv
+               ```
+            5. Optional - enable/disable the plugin, this is true by default.
+            6. Optional - do/do-not copy environment variables from the
+               environment of the current process into the plugin's
+               subprocess.
+               <br>
+               The default value is false, which means to copy the variables from
+               the current environment instead of using a fresh one.
+            7. Optional - additional aliases/shortcuts to set that can be
+               used to invoke the sub-command, in addition to the current
+               name 'my_command' defined at the top of this snippet.
+            8. Optional - will place command in a separate panel in the
+               parent command's help menu with a custom "Plugin Commands"
+               title.
+            9. Optional - a short version of the help text that will be used
+               to render the one-liner help text in the parent command's help
+               menu.
+            10. Optional - help text shown at the bottom/end of the help menu.
+                <br>
+                This is usually useful for providing references, such as a url
+                to a documentation site.
+            11. Optional - plugin help text to show when running the command
+                with the -h or --help flag.<br>
+                Note that markdown is supported, and is the recommended format
+                for documenting plugin commands.<br>
+                To see an example for how markdown is later rendered in the
+                terminal, check out the GIF image for the `socx git help`
+                command in the quickstart section.
 
     Now lets try to run `socx` to see if the plugin appears:
 

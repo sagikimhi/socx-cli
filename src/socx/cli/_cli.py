@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from functools import cached_property
 import inspect
 import logging
 from collections.abc import Callable
-from typing import Any
 
-from pydantic import ValidationError
 import rich_click as click
 
 from socx.cli import params
@@ -30,34 +27,37 @@ class _CmdLine(click.RichGroup):
         self._cmd_converter._patch_theme()
         super().__init__(*args, **kwargs)
 
-    @cached_property
+    @property
     def plugins(self) -> dict[str, PluginModel]:
         """Return the plugin metadata keyed by plugin name."""
-        if not self._plugins:
-            for name, value in settings.plugins.items():
-                try:
-                    self._plugins[name] = PluginModel(name=name, **value)
-                except ValidationError:
-                    continue
-        return self._plugins
+        return {
+            name: PluginModel(name=name, **value)
+            for name, value in settings.get("plugins", {}).items()
+        }
 
     def get_command(
         self, ctx: click.RichContext, cmd_name: str
     ) -> click.Command | None:
         """Resolve commands from core registrations or configured plugins."""
-        if cmd_name not in self.commands and cmd_name in self.plugins:
-            plugin = self.plugins[cmd_name]
+        if cmd_name not in self.commands:
+            plugin = self.plugins.get(cmd_name)
 
-            if not plugin.enabled:
+            if plugin is None:
+                for k, v in self.plugins.items():
+                    if cmd_name in v.aliases:
+                        return self.get_command(ctx, k)
+
+            if plugin is None or not plugin.enabled:
                 return None
 
-            cmd = self._cmd_converter(plugin)
+            cmd = self._cmd_converter(plugin, box_settings=settings)
 
             if isinstance(cmd, click.Command):
                 self._update_command_attrs(cmd, plugin)
                 self.add_command(cmd)
+                return cmd
 
-        return super().get_command(ctx, cmd_name)
+        return click.RichGroup.get_command(self, ctx, cmd_name)
 
     def list_commands(self, ctx: click.Context) -> list[str]:
         """List command names including dynamically loaded plugins."""
@@ -72,6 +72,12 @@ class _CmdLine(click.RichGroup):
         ]
         rv.sort(key=get_cmd_order)
         return rv
+
+    def resolve_command(
+        self, ctx: click.Context, args: list[str]
+    ) -> tuple[str | None, click.Command | None, list[str]]:
+        _, cmd, args = super().resolve_command(ctx, args)
+        return cmd and cmd.name, cmd, args
 
     def _update_command_attrs(
         self, cmd: click.Command, plugin: PluginModel
@@ -99,6 +105,11 @@ class _CmdLine(click.RichGroup):
                 cmd.panel = plugin.panel or cmd.panel
 
 
-def socx(**kwargs: Any) -> Callable[[AnyCallable], click.Group]:
+def socx() -> Callable[[AnyCallable], click.Group]:
     """Decorate a callable as the root SoCX CLI group."""
-    return params.group(name="socx", cls=_CmdLine, **kwargs)
+    return params.group(
+        name="socx",
+        cls=_CmdLine,
+        no_args_is_help=False,
+        invoke_without_command=True,
+    )

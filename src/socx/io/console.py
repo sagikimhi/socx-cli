@@ -2,24 +2,34 @@
 
 from __future__ import annotations
 
+import contextvars
 from typing import Any
 from collections import ChainMap
 from collections.abc import Iterable
 
 from sh import RunningCommand
-from rich import pretty
-from rich import traceback
-from rich.console import Console, RenderableType
 import click
 import dynaconf
 import rich_click
+from rich import traceback
+from rich.console import Console, RenderableType
+from werkzeug.local import LocalProxy
 
+from socx.config._config import settings
 from socx.config.formatters import TreeFormatter
+from socx.patterns.mixins import ProxyMixin
 
 
-__all__ = ("console", "get_console")
+__all__ = (
+    "console",
+    "get_console",
+    "print_outputs",
+    "print_command_outputs",
+    "print_with_pager",
+)
 
-_DEFAULTS = dict(tab_size=4, markup=True, highlight=True, record=False)
+
+class ConsoleProxy(ProxyMixin[Console], Console): ...
 
 
 def print_with_pager(
@@ -38,8 +48,8 @@ def print_with_pager(
 
 
 def print_outputs(
-    outputs: dict[str, Any],
-    pager: bool = True,
+    *outputs: str | RenderableType | dict[str, Any],
+    pager: bool = False,
     title: str | None = None,
 ) -> None:
     """
@@ -56,11 +66,14 @@ def print_outputs(
     """
     title = title or ""
     formatter = TreeFormatter()
-    text = formatter(outputs, title)
-    if not pager:
-        console.print(text)
-    else:
-        print_with_pager(text)
+    for output in list(outputs):
+        if isinstance(output, dict):
+            output = formatter(output, title)
+
+        if not pager:
+            console.print(output)
+        else:
+            print_with_pager(output)
 
 
 def print_command_outputs(
@@ -86,16 +99,12 @@ def print_command_outputs(
     print_outputs(cmd_outputs, pager=pager, title=title)
 
 
-def get_console(
-    *args: Any, indent_guides: bool = True, **kwargs: Any
-) -> Console:
+def get_console(*args: Any, **kwargs: Any) -> Console:
     """
     Create and configure a rich Console instance with custom settings.
 
     Parameters
     ----------
-    indent_guides: bool = True
-        Whether to show indent guides. Defaults to True.
     **kwargs: dict[str, Any]
         Additional keyword arguments for Console.
 
@@ -104,20 +113,28 @@ def get_console(
     Console:
         Configured Console instance.
     """
-    kwargs = dict(ChainMap(kwargs, _DEFAULTS))
+    kwargs = dict(ChainMap(kwargs, settings.console.init))
     console = Console(*args, **kwargs)
-    pretty.install(console, indent_guides=indent_guides)
     traceback.install(
         console=console,
         suppress=[click, rich_click, dynaconf],
-        word_wrap=True,
-        code_width=88,
-        extra_lines=3,
-        show_locals=True,
-        locals_hide_sunder=True,
-        locals_hide_dunder=True,
+        **(settings.console.traceback),
     )
     return console
 
 
-console: Console = get_console()
+_console: Console = get_console()
+
+_console_cv = contextvars.ContextVar[Console]("console")
+
+_console_cv.set(_console)
+
+console: ConsoleProxy = LocalProxy(  # type: ignore[assignment]
+    _console_cv,
+    unbound_message="""
+    Working outside of application context.
+
+    Attempted to use functionality that expected a current application to
+    be set. To solve this, set up an app context.
+    """,
+)
