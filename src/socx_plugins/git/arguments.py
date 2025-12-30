@@ -196,7 +196,7 @@ def root() -> Decorator:
         metavar="<directory>",
         is_eager=True,
         callback=manifest_cb,
-        default=settings.root,
+        default=settings.git.manifest.root or Path.cwd(),
         show_envvar=True,
         show_default=True,
         expose_value=False,
