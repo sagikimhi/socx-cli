@@ -112,7 +112,9 @@ sync: uv ## Refresh, sync and upgrade project dependencies (including 'dev')
 	$(HIDE)$(UV) sync --dev --refresh --upgrade --all-extras --all-groups --managed-python
 
 docs: uv ## Serve project documentation at http://127.0.0.1:8000
-	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
+	$(HIDE)$(UV) run zensical build --clean
+	zensical serve &
+	open http://localhost:8000
 
 test: uv ## Run project tests
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
