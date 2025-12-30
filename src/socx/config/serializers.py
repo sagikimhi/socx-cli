@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import pathlib
 from types import ModuleType
 from typing import Any, override
-from contextlib import contextmanager
-from collections.abc import Generator
 
 from pydantic_core import to_jsonable_python
 from dynaconf import LazySettings
@@ -17,16 +14,6 @@ from socx.core.serializer import Serializer
 
 class ModuleSerializer(Serializer[ModuleType]):
     """Serialize module globals into a Dynaconf-ready mapping."""
-
-    @classmethod
-    @contextmanager
-    def posixpath_encoder(cls) -> Generator:
-        tmp = pathlib.PosixPath
-        try:
-            pathlib.PosixPath = pathlib.WindowsPath
-            yield
-        finally:
-            pathlib.PosixPath = tmp
 
     @classmethod
     @override
@@ -52,7 +39,6 @@ class SettingsSerializer(Serializer[LazySettings]):
         **kwargs: Any,
     ) -> DynaBox:
         """Serialize a ``LazySettings`` obj into a python ``dict``."""
-        # return obj.get(key) if key else obj.to_dict()
         if key is None:
             return obj.to_dict()
         return obj.get(key, cast=False, fresh=True)

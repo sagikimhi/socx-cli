@@ -18,10 +18,6 @@ logger: Logger = get_logger(__name__)
 FormatType = Literal["yaml", "json", "toml"]
 
 
-def noop(*args, **kwargs):
-    return ""
-
-
 def edit(target_path: Path | None = None, format_: FormatType | None = None):
     """Launch the user's editor with the selected configuration snapshot."""
     format_ = format_ or "yaml"
