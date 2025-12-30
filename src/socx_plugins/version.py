@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import sys
-import shlex
 import logging
 
-import sh
+from plumbum import local, FG
 
 
 logger = logging.getLogger(__name__)
@@ -14,9 +12,5 @@ logger = logging.getLogger(__name__)
 
 def version() -> None:
     """Print version information and exit."""
-    import socx
-
-    command = sh.Command("/usr/bin/env").bake(
-        shlex.split(f"-S {sys.executable} -m pip show {socx.__project__}")
-    )
-    command(_fg=True)
+    version_cmd = local.python["-m", "uv", "version", "--package", "socx-cli"]
+    _ = version_cmd & FG
