@@ -117,7 +117,7 @@ rich_click:
   style_options_table_pad_edge: ~
 
   # type: NotRequired["PaddingDimensions"]
-  style_options_table_padding: [1, 2, 0, 0]
+  style_options_table_padding: [1, 1, 0, 0]
 
   # type: NotRequired[bool]
   style_options_table_expand: ~
@@ -313,7 +313,7 @@ rich_click:
 
   # type: NotRequired[Optional[Union[str, Text]]]
   errors_epilogue: >-
-    Documentation is available at [link]https://sagikimhi.dev/socx-cli[/link]
+    Documentation is available at https://sagikimhi.dev/socx-cli/
 
   # type: NotRequired[str]
   aborted_text: ~

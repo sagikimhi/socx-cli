@@ -6,13 +6,13 @@ import logging
 from io import StringIO
 from pathlib import Path
 from dataclasses import dataclass
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from typing import Literal
 
 from dynaconf.base import Lazy
 from git import Repo
 from rich.json import JSON
-from socx import AnyCallable, settings, get_console
+from socx import settings, get_console, console
 from rich.text import Text
 from rich.table import Table
 from rich.console import Console, ConsoleOptions, RenderResult
@@ -48,8 +48,8 @@ class Summary:
         self.columns = settings.git.summary.columns
         self.headers = Summary.get_headers(self.columns, self.style)
         self.records = Summary.get_records(self.columns, self.repos)
-        self.console = get_console(indent_guides=False)
-        self._formatters: dict[SummaryFormat, AnyCallable] = {
+        self.console = console
+        self._formatters = {
             "ref": self.as_short_refs,
             "json": self.as_json,
             "table": self.as_rich_table,
@@ -65,7 +65,7 @@ class Summary:
         return Text.from_markup(text=header, style=header_style)
 
     @classmethod
-    def get_column_func(cls, column: DynaBox) -> AnyCallable:
+    def get_column_func(cls, column: DynaBox) -> Callable[[Repo], str]:
         func = column.func
         if isinstance(func, str):
             func = apply_converter("@symbol", column.func, settings)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, cast
+from pathlib import Path
 from collections import ChainMap
 from collections.abc import Callable
 
@@ -13,7 +14,13 @@ import rich_click as click
 from socx.config import settings
 from socx.config.schema.plugin import PluginModel
 from socx.cli.types import Decorator, GroupType, CommandType, AnyCallable
-from socx.cli.callbacks import debug_cb, verbosity_cb, configure_cb
+from socx.cli.callbacks import (
+    debug_cb,
+    color_cb,
+    verbosity_cb,
+    configure_cb,
+    config_files_cb,
+)
 from socx.utils.decorators import join_decorators
 
 
@@ -47,7 +54,6 @@ def group(
     parent: GroupType | None = None,
     **kwargs: Any,
 ) -> GroupType | Callable[[AnyCallable], GroupType | click.Group]:
-    cls = cls or cast(type[GroupType], click.Group)
     kwargs = dict(ChainMap(kwargs, settings.cli.group))
 
     def decorator(func: AnyCallable) -> GroupType | click.Group:
@@ -62,7 +68,25 @@ def group(
 
         return cmd
 
-    return decorator if not callable(name) else decorator(name)
+    if callable(name):
+        return decorator(name)
+
+    return decorator
+
+
+color: Decorator = click.option(
+    "--color/--no-color",
+    "color",
+    help="Disable colored output.",
+    envvar="SOCX_COLOR",
+    default=settings.cli.params.color,
+    is_flag=True,
+    is_eager=False,
+    show_envvar=True,
+    show_default=False,
+    expose_value=False,
+    callback=color_cb,
+)
 
 
 debug: Decorator = click.option(
@@ -71,7 +95,7 @@ debug: Decorator = click.option(
     "debug",
     help="Enable debug mode and logging.",
     envvar="SOCX_DEBUG",
-    default=False,
+    default=settings.cli.params.debug,
     is_flag=True,
     is_eager=False,
     show_envvar=True,
@@ -88,7 +112,7 @@ verbosity: Decorator = click.option(
     nargs=1,
     help="set the logging verbosity to the specified level.",
     envvar="SOCX_VERBOSITY",
-    default=settings.get("cli.params.verbosity", "ERROR"),
+    default=settings.cli.params.verbosity,
     is_eager=False,
     show_envvar=True,
     show_choices=True,
@@ -103,23 +127,53 @@ verbosity: Decorator = click.option(
 
 configure: Decorator = click.option(
     "--configure/--no-configure",
-    "-c/-nc",
     "configure",
-    help="specifies whether or not user configurations should be loaded.",
+    help="Enable/disable loading of user and local configuration files.",
     envvar="SOCX_CONFIGURE",
-    default=True,
+    default=settings.cli.params.configure,
+    is_flag=True,
     is_eager=True,
-    flag_value=True,
     show_envvar=True,
-    show_default=True,
     expose_value=False,
     callback=configure_cb,
+)
+
+config_files: Decorator = click.option(
+    "--config-file",
+    "-f",
+    "config_files",
+    help="""
+    Additional configuration file(s) to load.
+
+    Supported file formats are:
+    - INI: ".ini"
+    - JSON: ".json"
+    - YAML: ".yml", ".yaml"
+    - TOML: ".toml"
+    - Python: ".py"
+    """,
+    nargs=1,
+    default=settings.cli.params.config_files,
+    type=click.Path(
+        exists=True,
+        writable=True,
+        readable=True,
+        dir_okay=False,
+        file_okay=True,
+        resolve_path=True,
+        path_type=Path,
+    ),
+    is_eager=False,
+    multiple=True,
+    metavar="<path>",
+    callback=config_files_cb,
+    expose_value=False,
 )
 
 
 def opts() -> Decorator:
     """Apply the standard set of global SoCX CLI options."""
-    return join_decorators(configure, debug, verbosity)
+    return join_decorators(configure, verbosity, debug, color, config_files)
 
 
 def panels():

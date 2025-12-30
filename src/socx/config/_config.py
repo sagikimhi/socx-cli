@@ -19,6 +19,10 @@ from socx.config._paths import (
     USER_CONFIG_FILE,
 )
 from socx.config._settings import Settings
+from socx.patterns.mixins.proxy import ProxyMixin
+
+
+class SettingsProxy(ProxyMixin[Settings], Settings): ...
 
 
 logger = logging.getLogger(__name__)
@@ -116,9 +120,8 @@ def get_settings(
     if isinstance(path, str):
         path = Path(path)
 
-    path = path or paths.APP_CONFIG_FILE
-
     includes = []
+    settings_file = ensure_a_list(path or paths.APP_CONFIG_FILE)
 
     if user_overrides:
         includes.extend(get_user_config_files())
@@ -137,46 +140,25 @@ def get_settings(
             kwargs,
             dict(
                 root_path=root,
-                preload=ensure_a_list(path),
-                settings_file=includes,
-                **ModuleSerializer.serialize(paths),
-                **ModuleSerializer.serialize(metadata),
+                project_root=root,
+                preload=settings_file,
+                settings_file=[*includes],
             ),
-        )
+        ),
+        **ModuleSerializer.serialize(paths),
+        **ModuleSerializer.serialize(metadata),
     )
-    return Settings(**kwargs)
+    rv = Settings(**kwargs)
+    return rv
 
 
 converters.init()
 
 _default_settings: Settings = get_settings()
 
-try:
-    _local_settings: Settings = get_settings(local_overrides=True)
-except Exception:
-    _local_settings = _default_settings
-
-try:
-    _user_settings: Settings = get_settings(user_overrides=True)
-except Exception:
-    _user_settings = _default_settings
-
-try:
-    _global_settings: Settings = get_settings(
-        user_overrides=True, local_overrides=True
-    )
-except Exception:
-    _global_settings = _local_settings
-    _global_settings.update(_user_settings)
-
-
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
 
-_settings_cv.set(_default_settings)
-
-_settings_cv.set(_global_settings)
-
-settings: LocalProxy[Settings] = LocalProxy(
+settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
     _settings_cv,
     unbound_message=dedent("""
         Working outside of application context.
@@ -185,3 +167,24 @@ settings: LocalProxy[Settings] = LocalProxy(
         be set. To solve this, set up an app context.
     """),
 )
+
+try:
+    _user_settings: Settings = get_settings(user_overrides=True)
+except Exception:
+    _user_settings = _default_settings
+
+try:
+    _local_settings: Settings = get_settings(local_overrides=True)
+except Exception:
+    _local_settings = _default_settings
+    _local_settings.update(_user_settings)
+
+try:
+    _global_settings: Settings = get_settings(
+        user_overrides=True, local_overrides=True
+    )
+except Exception:
+    _global_settings = _default_settings
+    _global_settings.update(_local_settings)
+
+_settings_cv.set(_global_settings)

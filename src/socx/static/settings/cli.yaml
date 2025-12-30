@@ -1,8 +1,15 @@
 cli:
   params:
+    color: true
     debug: false
     configure: true
     verbosity: ERROR
+    config_files: []
+
+  command:
+    options_metavar: "[options]"
+    context_settings:
+      allow_interspersed_args: true
 
   group:
     options_metavar: "[options]"
@@ -17,15 +24,15 @@ cli:
       ignore_unknown_options: true
       allow_interspersed_args: false
 
-  command:
-    options_metavar: "[options]"
-    context_settings:
-      allow_interspersed_args: true
-
   option_panels:
+    - name: Flags
+      options:
+        - --color
+        - --configure
+
     - name: Options
       options:
-        - --configure
-        - --verbosity
-        - --debug
         - --help
+        - --debug
+        - --verbosity
+        - --config-file

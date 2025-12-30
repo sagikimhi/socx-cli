@@ -59,6 +59,9 @@ class Settings(LazySettings):
     def __init__(self, wrapped=None, **kwargs: Any) -> None:
         kwargs = dict(ChainMap(kwargs, SETTINGS_DEFAULTS))
         LazySettings.__init__(self, wrapped=wrapped, **kwargs)
+        for file in self.dynaconf_include:
+            if file not in self.loaded_files:
+                self.load_file(path=file)
 
     def __contains__(self, key):
         return self.exists(key) or (
@@ -137,12 +140,7 @@ class Settings(LazySettings):
     @includes.setter
     def includes(self, value: str | Path | list[str | Path]) -> None:
         """Set the list of settings paths and glob expressions to load."""
-        includes = [str(v) for v in ensure_a_list(value)]
-        self.update(
-            {"DYNACONF_INCLUDE": includes},
-            merge=bool("merge" in includes),
-            tomlfy=True,
-        )
+        self.dynaconf_include = [*self.dynaconf_include, value]
         self.reload()
 
     @property
@@ -254,7 +252,7 @@ class Settings(LazySettings):
         return tuple(
             reversed(
                 [
-                    DynaBox(entry)
+                    DynaBox(self.encode(entry))
                     for i, entry in enumerate(get_history(obj=self, key=key))
                     if limit == 0 or i < limit
                 ]
@@ -271,7 +269,9 @@ class Settings(LazySettings):
     def encode(cls, obj: Any) -> Any:
         """Encode an object to a python serializable value."""
         rv = cls.transform(obj, cls._encode, skip_values=False)
-        return cls.transform(rv, cls._lowerfy, skip_values=True)
+        return cls.transform(
+            rv, cls._lowerfy, cls._normalize_key, skip_values=True
+        )
 
     @classmethod
     def transform(
@@ -340,3 +340,13 @@ class Settings(LazySettings):
             return obj.lower()
         else:
             return obj
+
+    @classmethod
+    def _normalize_key(cls, obj: Any):
+        if isinstance(obj, str):
+            return (
+                obj.lower()
+                .replace("_for_dynaconf", "")
+                .replace("dynaconf", "")
+            )
+        return obj

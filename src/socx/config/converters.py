@@ -498,12 +498,22 @@ class CommandConverter(
                 obj = self.importer(path)
                 obj = getattr(obj, symbol, noop)
                 if callable(obj):
-                    rv = obj()
+                    if isinstance(obj, click.Command):
+                        rv = obj.main(
+                            sys.argv[1:], sys.argv[0], standalone_mode=False
+                        )
+                    else:
+                        rv = obj()
             elif symbol:
                 rv = None
                 obj = runpy.run_path(path).get(symbol, noop)
                 if callable(obj):
-                    rv = obj()
+                    if isinstance(obj, click.Command):
+                        rv = obj.main(
+                            sys.argv[1:], sys.argv[0], standalone_mode=False
+                        )
+                    else:
+                        rv = obj()
             else:
                 rv = runpy.run_path(path, run_name=_detect_program_name())
         except Exception as exc:

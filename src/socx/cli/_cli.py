@@ -5,7 +5,6 @@ from __future__ import annotations
 import inspect
 import logging
 from collections.abc import Callable
-from typing import Any
 
 import rich_click as click
 
@@ -94,6 +93,11 @@ class _CmdLine(click.RichGroup):
                 cmd.panel = plugin.panel or cmd.panel
 
 
-def socx(**kwargs: Any) -> Callable[[AnyCallable], click.Group]:
+def socx() -> Callable[[AnyCallable], click.Group]:
     """Decorate a callable as the root SoCX CLI group."""
-    return params.group(name="socx", cls=_CmdLine, **kwargs)
+    return params.group(
+        name="socx",
+        cls=_CmdLine,
+        no_args_is_help=False,
+        invoke_without_command=True,
+    )

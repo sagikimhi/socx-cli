@@ -85,6 +85,7 @@ __all__ = (
     # Mixins
     "UIDMixin",
     "PtrMixin",
+    "ProxyMixin",
     # Patterns
     "Node",
     "Visitor",
@@ -132,9 +133,11 @@ from socx.cli import cli as cli
 from socx.cli import opts as opts
 from socx.cli import group as group
 from socx.cli import command as command
+from socx.cli import color as color
 from socx.cli import debug as debug
 from socx.cli import configure as configure
 from socx.cli import verbosity as verbosity
+from socx.cli import config_files as config_files
 from socx.cli import Decorator as Decorator
 from socx.cli import AnyCallable as AnyCallable
 
@@ -199,6 +202,7 @@ from socx.patterns import Structure as Structure
 from socx.patterns import Traversal as Traversal
 from socx.patterns import UIDMixin as UIDMixin
 from socx.patterns import PtrMixin as PtrMixin
+from socx.patterns import ProxyMixin as ProxyMixin
 from socx.patterns import Singleton as Singleton
 from socx.patterns import TopDownTraversal as TopDownTraversal
 from socx.patterns import BottomUpTraversal as BottomUpTraversal
