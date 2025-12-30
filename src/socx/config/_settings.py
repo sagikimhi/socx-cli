@@ -262,7 +262,7 @@ class Settings(LazySettings):
     def get_debug_info(
         self, key: str | None = None, verbosity: Literal[0, 1, 2] = 0
     ) -> dict[str, Any]:
-        """Get a dict of debugging information about the settings isntance."""
+        """Get a dict of debugging information about the settings instance."""
         return get_debug_info(settings=self, verbosity=verbosity, key=key)
 
     @classmethod

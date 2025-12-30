@@ -113,7 +113,7 @@ def debug(ctx: click.Context, pager: bool, field: str | None):
     "format_",
     nargs=1,
     type=click.Choice(["yaml", "toml", "json"]),
-    help="Specify a format for dumping configrations.",
+    help="Specify a format for dumping configurations.",
     default="yaml",
     show_default=True,
 )
