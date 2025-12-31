@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 @params.opts()
 @params.panels()
 @click.pass_context
-def cli(ctx: click.RichContext):
+def cli(ctx: click.RichContext) -> None:
     """System on chip verification and tooling infrastructure."""
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())

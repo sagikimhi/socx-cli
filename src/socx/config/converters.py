@@ -367,9 +367,8 @@ class CommandConverter(
             "args",
             nargs=-1,
             required=False,
-            expose_value=True,
             type=click.UNPROCESSED,
-            metavar="[<subcommand>] [<args>...]",
+            metavar="[args]...",
         )
         def cli(args):
             nonlocal value
@@ -482,7 +481,10 @@ class CommandConverter(
         while sys.argv and sys.argv[0] != name:
             sys.argv.pop(0)
 
-        sys.argv[0] = f"socx {sys.argv[0]}"
+        if sys.argv:
+            sys.argv[0] = f"socx {name}"
+        else:
+            sys.argv.append(f"socx {name}")
 
         if env:
             os.environ.clear()
@@ -544,24 +546,30 @@ class CommandConverter(
     ) -> dict[str, Any] | Any:
         if not value.command:
             return {}
+
         env = (
             value.env
             if value.fresh_env
             else {**os.environ.copy(), **value.env}
         )
+
         if "-h" in sys.argv or "--help" in sys.argv:
             ctx = click.get_current_context()
+
             if ctx:
                 if value.epilog:
                     ctx.command.epilog = ctx.command.epilog or value.epilog
+
                 if value.short_help:
                     ctx.command.short_help = (
                         ctx.command.short_help or value.short_help
                     )
+
                 if value.help:
                     ctx.command.help = ctx.command.help or value.help
                     click.echo(ctx.get_help())
                     ctx.exit()
+
         return self._run_from_pathspec(value.command, env=env)
 
     @classmethod

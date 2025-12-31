@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-import logging
-
 from plumbum import local, FG
 
-
-logger = logging.getLogger(__name__)
+__all__ = ("version",)
 
 
 def version() -> None:
