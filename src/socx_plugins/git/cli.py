@@ -6,10 +6,9 @@ from typing import TYPE_CHECKING, cast
 
 import rich_click as click
 from socx import (
-    join_decorators,
-    settings,
+    command,
     console,
-    Decorator,
+    settings,
     print_command_outputs,
 )
 from rich.markdown import Markdown
@@ -17,22 +16,6 @@ from rich.markdown import Markdown
 from socx_plugins.git import arguments
 from socx_plugins.git.summary import Summary
 from socx_plugins.git.manifest import Manifest
-
-
-def opts() -> Decorator:
-    return join_decorators(
-        arguments.root(),
-        arguments.pager(),
-        arguments.timeout(),
-        arguments.includes(),
-        arguments.excludes(),
-    )
-
-
-def args() -> Decorator:
-    return join_decorators(
-        arguments.git_command_arg(), arguments.git_arguments_arg()
-    )
 
 
 @click.group(**settings.git.cli.group)
@@ -72,8 +55,9 @@ if TYPE_CHECKING:
     cli = cast(click.Group, cli)
 
 
-@cli.command(**settings.cli.command)
-@arguments.format_()
+@command(parent=cli)
+@arguments.summary_opts()
+@arguments.manifest_opts()
 def summary():
     """Output a manifest of all git repositories found under a given path."""
     mfest = Manifest(
@@ -85,7 +69,7 @@ def summary():
     console.print(Summary(mfest.repos.values()))
 
 
-@cli.command("help", **settings.cli.command, add_help_option=False)
+@command("help", parent=cli, add_help_option=False)
 def help_():
     """Print the full help menu along with usage examples."""
     console.print(Markdown(settings.git.cli.help))
