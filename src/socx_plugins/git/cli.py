@@ -38,7 +38,7 @@ def cli(
     cmd = ctx.command.get_command(ctx, git_cmd)
 
     if cmd is not None:
-        ctx.invoke(cmd, git_args)
+        cmd.main(args=git_args, prog_name=f"{ctx.command_path} {cmd.name}")
     else:
         mfest = Manifest(
             root=settings.git.manifest.root,

@@ -27,6 +27,7 @@ from socx_plugins.git.utils import (
 
 SummaryFormat = Literal["table", "json", "ref"]
 
+
 logger = logging.getLogger(__name__)
 
 

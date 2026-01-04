@@ -9,6 +9,9 @@ cli:
   command:
     options_metavar: "[options]"
     context_settings:
+      help_option_names:
+        - -h
+        - --help
       allow_interspersed_args: true
 
   group:
