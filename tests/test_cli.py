@@ -108,7 +108,7 @@ class TestInitCommand:
         """Test that init command creates a config file."""
         result = runner.invoke(cli, ["init", str(temp_dir)])
         assert result.exit_code == 0
-        
+
         config_file = temp_dir / LOCAL_CONFIG_FILENAME
         assert config_file.exists()
 
@@ -118,7 +118,7 @@ class TestInitCommand:
             # Pass "." explicitly to use current directory
             result = runner.invoke(cli, ["init", "."])
             assert result.exit_code == 0
-            
+
             config_file = Path.cwd() / LOCAL_CONFIG_FILENAME
             assert config_file.exists()
 
@@ -126,7 +126,7 @@ class TestInitCommand:
         """Test that init command works with global options."""
         result = runner.invoke(cli, ["--debug", "init", str(temp_dir)])
         assert result.exit_code == 0
-        
+
         config_file = temp_dir / LOCAL_CONFIG_FILENAME
         assert config_file.exists()
 
