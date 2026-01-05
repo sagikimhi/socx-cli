@@ -249,15 +249,12 @@ class Settings(LazySettings):
 
             The returned entries are ordered from oldest to newest.
         """
-        return tuple(
-            reversed(
-                [
-                    DynaBox(self.encode(entry))
-                    for i, entry in enumerate(get_history(obj=self, key=key))
-                    if limit == 0 or i < limit
-                ]
-            )
-        )
+        rv = [
+            DynaBox(self.encode(entry))
+            for i, entry in enumerate(get_history(obj=self, key=key))
+        ]
+        rv.reverse()
+        return tuple(rv[: limit or -1])
 
     def get_debug_info(
         self, key: str | None = None, verbosity: Literal[0, 1, 2] = 0
