@@ -42,7 +42,7 @@ class Manifest(BaseModel):
         rv = {
             get_repo_name(repo): repo
             for repo in find_repositories(
-                self.root, self.includes, self.excludes
+                root=self.root, includes=self.includes, excludes=self.excludes
             )
         }
         return rv
