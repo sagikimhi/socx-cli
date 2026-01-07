@@ -15,6 +15,8 @@ __all__ = (
     "AnyCallable",
     "GroupDecorator",
     "CommandDecorator",
+    # funcs
+    "deduplicate",
     # paths
     "APP_ROOT_DIR",
     "APP_STATIC_DIR",
@@ -58,6 +60,8 @@ from socx.core.types import CommandType as CommandType
 from socx.core.types import AnyCallable as AnyCallable
 from socx.core.types import GroupDecorator as GroupDecorator
 from socx.core.types import CommandDecorator as CommandDecorator
+
+from socx.core.funcs import deduplicate as deduplicate
 
 from socx.core.paths import USER_LOG_DIR as USER_LOG_DIR
 from socx.core.paths import USER_DATA_DIR as USER_DATA_DIR

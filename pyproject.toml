@@ -78,6 +78,7 @@ dependencies = [
     "textual-speedups",
     "python-box[ruamel.yaml,toml]~=7.0",
     "prompt-toolkit>=3.0.52",
+    "pygit2>=1.18.2",
 ]
 
 [project.urls]
@@ -104,6 +105,8 @@ dev = [
     "duty>=1.6.3",
     "mypy>=1.18.2",
     "hatch-uvenv",
+    "objexplore>=1.6.3",
+    "ipython>=8.38.0",
 ]
 docs = [
     "mike",
