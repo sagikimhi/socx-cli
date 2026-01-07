@@ -13,7 +13,7 @@ from dynaconf.utils import ensure_a_list
 from werkzeug.local import LocalProxy
 
 from socx.config import converters
-from socx.config._paths import (
+from socx.core import (
     LOCAL_CONFIG_FILENAME,
     LOCAL_CONFIG_FILE,
     USER_CONFIG_FILE,
@@ -113,8 +113,8 @@ def get_settings(
     **kwargs: Any,
 ) -> Settings:
     """Create a configured ``Settings`` instance, including overrides."""
-    from socx.config import paths
-    from socx.config import metadata
+    from socx.core import paths
+    from socx.core import metadata
     from socx.config.serializers import ModuleSerializer
 
     if isinstance(path, str):
@@ -139,9 +139,8 @@ def get_settings(
         ChainMap(
             kwargs,
             dict(
-                root_path=root,
-                project_root=root,
                 preload=settings_file,
+                root_path=root,
                 settings_file=[*includes],
             ),
         ),

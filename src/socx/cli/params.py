@@ -11,9 +11,9 @@ from collections.abc import Callable
 from pydantic import ValidationError
 import rich_click as click
 
+from socx.core import Decorator, GroupType, CommandType, AnyCallable
 from socx.config import settings
 from socx.config.schema.plugin import PluginModel
-from socx.cli.types import Decorator, GroupType, CommandType, AnyCallable
 from socx.cli.callbacks import (
     debug_cb,
     color_cb,

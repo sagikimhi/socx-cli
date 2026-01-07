@@ -8,8 +8,8 @@ import rich_click as click
 
 from socx.io import get_logger
 from socx.cli import params
+from socx.core import LOCAL_CONFIG_FILENAME
 from socx.cli._cli import socx
-from socx.config import LOCAL_CONFIG_FILENAME
 
 
 logger = get_logger(__name__)

@@ -382,15 +382,6 @@ rich_click:
   # type: NotRequired[Optional[Literal["\n", "\n\n"]]]
   text_paragraph_linebreaks: "\n\n"
 
-  # type: NotRequired[Optional[bool]]
-  use_markdown: true
-
-  # type: NotRequired[Optional[bool]]
-  use_markdown_emoji: true
-
-  # type: NotRequired[Optional[bool]]
-  use_rich_markup: true
-
   # type: NotRequired[Dict[str, List[CommandGroupDict]]]
   command_groups: ~
 
