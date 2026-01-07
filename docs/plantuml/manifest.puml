@@ -1,0 +1,359 @@
+@startuml manifest.puml
+
+!procedure $global_styles()
+skinparam {
+  roundCorner 15
+  TitleFontSize 36
+  ArrowColor #b4b3fe
+  TitleFontColor #cdd6f4
+  BackgroundColor #1e1e2e
+}
+!endprocedure
+
+!procedure $style_it($what)
+skinparam $what {
+  FontColor #cdd6f4
+  BorderColor #b4b3fe
+  BorderThickness 1.5
+  BackgroundColor #11111b
+  AttributeFontColor #cdd6f4
+}
+!endprocedure
+
+!procedure $mix()
+allowmixing
+!endprocedure
+
+!procedure $styles_end()
+skinparam NoteBackgroundColor #2e2e3f
+!endprocedure
+
+!procedure $styles_begin()
+$global_styles()
+$style_it("arrow")
+!endprocedure
+
+!procedure $mixed_styles_begin()
+$mix()
+$styles_begin()
+!endprocedure
+
+'set separator ::
+set separator none
+title "Git Manifest Schema"
+'top to bottom direction
+'left to right direction
+skinparam linetype ortho
+'skinparam linetype polyline
+'skinparam groupInheritance 2
+$mixed_styles_begin()
+$style_it("note")
+$style_it("enum")
+$style_it("arrow")
+$style_it("class")
+$style_it("package")
+$style_it("diamond")
+$style_it("partition")
+$style_it("interface")
+$styles_end()
+
+
+together {
+  enum FileMode {
+    TREE = 0040000
+    BLOB = 0100644
+    LINK = 0120000
+    COMMIT = 0160000
+    UNREADABLE = 0000000
+    BLOB_EXECUTABLE = 0100755
+  }
+
+  enum SettingsFormat {
+    Ini = 1
+    Json = 2
+    Yaml = 3
+    Toml = 4
+    Python = 5
+  }
+
+  enum ObjectType {
+    Any = -2
+    Invalid = -1
+    Commit = 1
+    Tree = 2
+    Blob = 3
+    Tag = 4
+  }
+
+  enum BranchType {
+    Local = 1
+    Remote = 2
+    All = 3
+  }
+
+  enum ReferenceType {
+    Invalid = 0
+    Direct = 1
+    Symbolic = 2
+    All = 3
+  }
+
+  enum ReferenceFilter {
+    All = 0
+    Branches = 1
+    Tags = 2
+  }
+
+  enum VersionType {
+    Invalid = -1
+    Reference = 1
+    Branch = 2
+    Tag = 3
+    Commit = 4
+  }
+}
+
+
+together {
+  class Note {
+    --===="" Properties ""--
+
+    + id: Oid
+    + data: bytes
+    + message: str
+    + annotated_id: Oid
+
+    --===="" Methods ""--
+
+    + remove(author, committer, ref = "refs/notes/commits"): None
+  }
+
+  class Signature {
+    --===="" Properties ""--
+
+    + name: str
+    + email: str
+    + time: int
+    + offset: int
+    + encoding: str
+  }
+}
+
+together {
+  class ObjectBase {
+    --===="" Properties ""--
+
+    + oid: Oid
+    + name: str | None
+    + type: ObjectType
+    + tree: Tree
+    + author: Signature
+    + type_str: str
+    + short_id: str
+    + filemode: FileMode
+    + committer: Signature
+
+    --===="" Type Resolution ""--
+
+    + peel(type): Tag | Blob | Tree | Commit
+
+    --===="" Type Inquiries ""--
+
+    + is_tag(): bool
+    + is_blob(): bool
+    + is_tree(): bool
+    + is_commit(): bool
+  }
+
+  class Object extends ObjectBase {
+  }
+
+  class Tag extends Object {
+    --===="" Properties ""--
+
+    + name: str
+    + tagger: Signature
+    + target: Oid
+    + message: str
+
+    --===="" Methods ""--
+
+    + get_object(): Object
+  }
+
+  class Blob extends Object {
+    --===="" Properties ""--
+
+    + size: int
+    + data: bytes
+    + is_binary: bool
+  }
+
+  class Tree extends Object {
+    --===="" Methods ""--
+
+    + diff_to_workdir(flags, context_lines, interhunk_lines): Diff
+    + diff_to_index(index, flags, context_lines, interhunk_lines): Diff
+    + diff_to_tree(tree, flags, context_lines, interhunk_lines, swap): Diff
+  }
+
+  class Commit extends Object {
+    --===="" Properties ""--
+
+    + author: Signature
+    + message: str
+    + parents: list[Commit]
+    + committer: Signature
+    + parent_ids: list[Oid]
+    + commit_time: int
+    + gpg_signature: tuple[bytes, bytes]
+    + message_encoding: str
+    + message_trailers: dict[str, str]
+    + commit_time_offset: int
+    + tree: Tree
+    + tree_id: Oid
+  }
+
+  class Reference {
+    --===="" Properties ""--
+
+    + name: str
+    + type: ReferenceType
+    + target: Oid
+    + type_str: str
+    + shorthand: str
+
+    --===="" Methods ""--
+
+    + log(): Iterator[RefLogEntry]
+    + delete(): None
+    + rename(new_name): None
+    + set_target(target, message=None): None
+
+    --===="" Type Resolution ""--
+
+    + peel(type=None): Object
+    + resolve(): Reference
+  }
+
+  class Branch extends Reference {
+    --===="" Properties ""--
+
+    + upstream: Branch
+    + branch_name: str
+    + remote_name: str
+    + upstream_name: str
+
+    --===="" Methods ""--
+
+    + delete(): None
+    + rename(new_name): None
+
+    --===="" Inquiries ""--
+
+    + is_head(): bool
+    + is_checked_out(): bool
+  }
+}
+
+together {
+  class Remote {
+    --===="" Properties ""--
+
+    url: str
+    name: str
+    push_url: str
+    refspec_count: int
+    push_refspecs: RefSpec
+  }
+
+  class Repository {
+    --===="" Properties ""--
+
+    + path: str
+    + head: Reference
+    + workdir: str
+    + message: str
+    + remotes: dict[str, Remote]
+    + references: dict[str, Reference]
+    + branches: dict[str, Branch]
+    + default_signature: Signature
+    ...
+
+    --===="" Inquiries ""--
+
+    + is_bare(): bool
+    + is_empty(): bool
+    + is_shallow(): bool
+    + head_is_unborn(): bool
+    + head_is_detached(): bool
+    ...
+
+    --===="" Methods ""--
+
+    ...
+
+  }
+}
+
+together {
+  class Version {
+    --===="" Members ""--
+
+    + url: str
+    + name: str
+    + prefix: str
+    + target: str
+
+    --===="" Type Inquiries ""--
+
+    + is_tag(): bool
+    + is_branch(): bool
+    + is_commit(): bool
+
+    --===="" Type Resolution ""--
+
+    + peel(type=None): Object
+    + resolve(): Reference
+  }
+
+  class Manifest {
+    --===="" Properties ""--
+
+    + path: str
+    + format: SettingsFormat
+    + versions: dict[str, Version]
+  }
+}
+
+
+FileMode -[hidden]r- ReferenceFilter
+FileMode -[hidden]r- SettingsFormat
+FileMode -[hidden]d- ObjectType
+FileMode -[hidden]d- BranchType
+FileMode -[hidden]d- VersionType
+FileMode -[hidden]d- ReferenceType
+ObjectType -[hidden]r- BranchType
+BranchType -[hidden]r- VersionType
+VersionType -[hidden]r- ReferenceType
+FileMode -[hidden]r- Version
+/' ObjectType -[hidden]d- Version '/
+
+Manifest ||-d-|{ Version
+
+Version .d.> Repository
+
+Repository ||-r-o{ Remote
+Repository ||-d-o{ Reference
+Repository ||-r-o{ Branch
+
+Reference .d.> ObjectBase
+Blob -[hidden]r- Tag
+Commit -[hidden]r- Tag
+Tag -[hidden]r- Tree
+
+Tag ||-d--o| Note
+Tag |o-d-|| Signature
+Commit |o-d-|| Signature
+
+@enduml
