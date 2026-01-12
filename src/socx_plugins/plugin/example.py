@@ -5,7 +5,8 @@ from __future__ import annotations
 from rich.markdown import Markdown
 
 
-QUICKSTART: Markdown = Markdown("""
+QUICKSTART: Markdown = Markdown(
+    """
 # Plugin Example
 
 This is a quickstart example to show how simple it is to write and add your
@@ -22,10 +23,9 @@ Whatever it is you want your plugin to do, you need to have SOMETHING to do it,
 whether its a python script, bash script, another cli, you need something.
 
 For our purpose, a simple hello world would do:
-```python
-# hello_world.py
-import os
 
+```python
+import os
 
 def main():
     user = os.environ.get("USER")
@@ -42,4 +42,6 @@ otherwise, socx will use the function name as the name for the command:
 ```python
 socx plugin add --name say-hello /path/to/hello_world.py main
 ```
-""")
+""",
+    code_theme="material",
+)

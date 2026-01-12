@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from textwrap import dedent
 from typing import Any, cast
 from pathlib import Path
 from collections import ChainMap
@@ -11,10 +12,11 @@ from collections.abc import Callable
 from pydantic import ValidationError
 import rich_click as click
 
+from socx.core import Decorator, GroupType, CommandType, AnyCallable
 from socx.config import settings
 from socx.config.schema.plugin import PluginModel
-from socx.cli.types import Decorator, GroupType, CommandType, AnyCallable
 from socx.cli.callbacks import (
+    cwd_cb,
     debug_cb,
     color_cb,
     verbosity_cb,
@@ -73,6 +75,23 @@ def group(
 
     return decorator
 
+
+cwd: Decorator = click.option(
+    "--cwd",
+    "-C",
+    help="Run the command from another directory",
+    nargs=1,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, path_type=Path
+    ),
+    metavar="directory",
+    envvar="SOCX_CWD",
+    default=settings.cli.params.cwd,
+    show_envvar=True,
+    show_default=False,
+    expose_value=False,
+    callback=cwd_cb,
+)
 
 color: Decorator = click.option(
     "--color/--no-color",
@@ -142,16 +161,17 @@ config_files: Decorator = click.option(
     "--config-file",
     "-f",
     "config_files",
-    help="""
-    Additional configuration file(s) to load.
-
-    Supported file formats are:
-    - INI: ".ini"
-    - JSON: ".json"
-    - YAML: ".yml", ".yaml"
-    - TOML: ".toml"
-    - Python: ".py"
-    """,
+    help=dedent("""
+    Additional configuration file(s) to load in one of the supported formats
+    below.
+    | name | extensions |
+    | :--- | :--------- |
+    | INI | `.ini` |
+    | JSON | `.json` |
+    | YAML | `.yml`, `.yaml` |
+    | TOML | `.toml` |
+    | Python | `.py` |
+    """),
     nargs=1,
     default=settings.cli.params.config_files,
     type=click.Path(
@@ -165,7 +185,7 @@ config_files: Decorator = click.option(
     ),
     is_eager=False,
     multiple=True,
-    metavar="<path>",
+    metavar="path",
     callback=config_files_cb,
     expose_value=False,
 )
@@ -173,7 +193,9 @@ config_files: Decorator = click.option(
 
 def opts() -> Decorator:
     """Apply the standard set of global SoCX CLI options."""
-    return join_decorators(configure, verbosity, debug, color, config_files)
+    return join_decorators(
+        configure, verbosity, debug, color, cwd, config_files
+    )
 
 
 def panels():

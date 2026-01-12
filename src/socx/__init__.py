@@ -2,6 +2,40 @@
 
 __all__ = (
     # core
+    "enums",
+    "__author__",
+    "__project__",
+    "__version__",
+    "__appname__",
+    "__directory__",
+    "FuncType",
+    "Decorator",
+    "GroupType",
+    "CommandType",
+    "AnyCallable",
+    "GroupDecorator",
+    "CommandDecorator",
+    "USER_LOG_DIR",
+    "USER_DATA_DIR",
+    "USER_CACHE_DIR",
+    "USER_STATE_DIR",
+    "USER_CONFIG_DIR",
+    "USER_RUNTIME_DIR",
+    "USER_LOG_FILE",
+    "USER_CONFIG_FILE",
+    "LOCAL_CONFIG_FILE",
+    "USER_LOG_FILENAME",
+    "USER_CONFIG_FILENAME",
+    "LOCAL_CONFIG_FILE",
+    "LOCAL_CONFIG_FILENAME",
+    "PROJECT_ROOT_DIR",
+    "PROJECT_ROOT_CONFIG",
+    "APP_ROOT_DIR",
+    "APP_STATIC_DIR",
+    "APP_CONFIG_DIR",
+    "APP_TEMPLATES_DIR",
+    "APP_CONFIG_FILE",
+    "APP_CONFIG_FILENAME",
     "Encoder",
     "Serializer",
     # I/O
@@ -31,37 +65,12 @@ __all__ = (
     "get_handler_names",
     # CLI
     "cli",
-    "Decorator",
-    "AnyCallable",
-    # Util
+    # util
     "join_decorators",
-    # Config
-    "__author__",
-    "__project__",
-    "__version__",
-    "__appname__",
-    "__directory__",
-    "USER_LOG_DIR",
-    "USER_DATA_DIR",
-    "USER_CACHE_DIR",
-    "USER_STATE_DIR",
-    "USER_CONFIG_DIR",
-    "USER_RUNTIME_DIR",
-    "USER_LOG_FILE",
-    "USER_CONFIG_FILE",
-    "LOCAL_CONFIG_FILE",
-    "USER_LOG_FILENAME",
-    "USER_CONFIG_FILENAME",
-    "LOCAL_CONFIG_FILE",
-    "LOCAL_CONFIG_FILENAME",
-    "PROJECT_ROOT_DIR",
-    "PROJECT_ROOT_CONFIG",
-    "APP_ROOT_DIR",
-    "APP_STATIC_DIR",
-    "APP_CONFIG_DIR",
-    "APP_TEMPLATES_DIR",
-    "APP_CONFIG_FILE",
-    "APP_CONFIG_FILENAME",
+    # config
+    "schema",
+    "settings",
+    "PluginModel",
     "Formatter",
     "TreeFormatter",
     "Converter",
@@ -78,7 +87,6 @@ __all__ = (
     "Validator",
     "ValidationError",
     "validate_all",
-    "PluginModel",
     "SETTINGS_DEFAULTS",
     "Settings",
     "settings",
@@ -137,44 +145,50 @@ from socx.cli import color as color
 from socx.cli import debug as debug
 from socx.cli import configure as configure
 from socx.cli import verbosity as verbosity
-from socx.cli import config_files as config_files
-from socx.cli import Decorator as Decorator
-from socx.cli import AnyCallable as AnyCallable
 
+from socx.core import enums as enums
+from socx.core import __author__ as __author__
+from socx.core import __project__ as __project__
+from socx.core import __version__ as __version__
+from socx.core import __appname__ as __appname__
+from socx.core import __directory__ as __directory__
+from socx.core import USER_LOG_DIR as USER_LOG_DIR
+from socx.core import USER_DATA_DIR as USER_DATA_DIR
+from socx.core import USER_CACHE_DIR as USER_CACHE_DIR
+from socx.core import USER_STATE_DIR as USER_STATE_DIR
+from socx.core import USER_CONFIG_DIR as USER_CONFIG_DIR
+from socx.core import USER_RUNTIME_DIR as USER_RUNTIME_DIR
+from socx.core import USER_LOG_FILE as USER_LOG_FILE
+from socx.core import USER_CONFIG_FILE as USER_CONFIG_FILE
+from socx.core import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
+from socx.core import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CONFIG
+from socx.core import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
+from socx.core import USER_LOG_FILENAME as USER_LOG_FILENAME
+from socx.core import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
+from socx.core import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
+from socx.core import APP_ROOT_DIR as APP_ROOT_DIR
+from socx.core import APP_STATIC_DIR as APP_STATIC_DIR
+from socx.core import APP_CONFIG_DIR as APP_CONFIG_DIR
+from socx.core import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
+from socx.core import APP_CONFIG_FILE as APP_CONFIG_FILE
+from socx.core import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
 from socx.core import Encoder as Encoder
+from socx.core import FuncType as FuncType
+from socx.core import Decorator as Decorator
+from socx.core import GroupType as GroupType
+from socx.core import CommandType as CommandType
+from socx.core import AnyCallable as AnyCallable
+from socx.core import GroupDecorator as GroupDecorator
+from socx.core import CommandDecorator as CommandDecorator
 from socx.core import Serializer as Serializer
 
 from socx.utils import join_decorators as join_decorators
 
+from socx.config import schema as schema
 from socx.config import PluginModel as PluginModel
-from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS
 from socx.config import Settings as Settings
+from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS
 from socx.config import settings as settings
-from socx.config import __author__ as __author__
-from socx.config import __project__ as __project__
-from socx.config import __version__ as __version__
-from socx.config import __appname__ as __appname__
-from socx.config import __directory__ as __directory__
-from socx.config import USER_LOG_DIR as USER_LOG_DIR
-from socx.config import USER_DATA_DIR as USER_DATA_DIR
-from socx.config import USER_CACHE_DIR as USER_CACHE_DIR
-from socx.config import USER_STATE_DIR as USER_STATE_DIR
-from socx.config import USER_CONFIG_DIR as USER_CONFIG_DIR
-from socx.config import USER_RUNTIME_DIR as USER_RUNTIME_DIR
-from socx.config import USER_LOG_FILE as USER_LOG_FILE
-from socx.config import USER_CONFIG_FILE as USER_CONFIG_FILE
-from socx.config import USER_LOG_FILENAME as USER_LOG_FILENAME
-from socx.config import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
-from socx.config import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
-from socx.config import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
-from socx.config import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
-from socx.config import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CONFIG
-from socx.config import APP_ROOT_DIR as APP_ROOT_DIR
-from socx.config import APP_STATIC_DIR as APP_STATIC_DIR
-from socx.config import APP_CONFIG_DIR as APP_CONFIG_DIR
-from socx.config import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
-from socx.config import APP_CONFIG_FILE as APP_CONFIG_FILE
-from socx.config import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
 from socx.config import get_settings as get_settings
 from socx.config import (
     get_local_config_files as get_local_config_files,

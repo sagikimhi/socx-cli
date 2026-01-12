@@ -1,5 +1,6 @@
 cli:
   params:
+    cwd: "@jinja {{'.' | realpath}}"
     color: true
     debug: false
     configure: true
@@ -28,14 +29,12 @@ cli:
       allow_interspersed_args: false
 
   option_panels:
-    - name: Flags
-      options:
-        - --color
-        - --configure
-
     - name: Options
       options:
         - --help
+        - --cwd
         - --debug
         - --verbosity
         - --config-file
+        - --color
+        - --configure

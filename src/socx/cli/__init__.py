@@ -16,17 +16,12 @@ __all__ = (
     "configure_cb",
     "multi_param_cb",
     "config_files_cb",
-    "Decorator",
-    "AnyCallable",
 )
 
 
 import socx.cli.cfg as cfg
 
 from socx.cli.cli import cli as cli
-
-from socx.cli.types import Decorator as Decorator
-from socx.cli.types import AnyCallable as AnyCallable
 
 from socx.cli.params import opts as opts
 from socx.cli.params import debug as debug

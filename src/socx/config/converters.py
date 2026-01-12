@@ -28,6 +28,7 @@ import sh
 import rich_click as click
 import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
+from plumbum import local
 from pydantic import validate_call, ConfigDict
 from dynaconf import add_converter
 from dynaconf.utils.boxing import DynaBox
@@ -393,13 +394,16 @@ class CommandConverter(
         return cli
 
     @singledispatchmethod
-    def _run_shell_script(self, value, *args, env=None, **kwargs) -> int: ...
+    def _run_shell_script(
+        self, value, *args, cwd=None, env=None, **kwargs
+    ) -> int: ...
 
     @_run_shell_script.register
     def _(
         self,
         value: str,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
@@ -407,13 +411,16 @@ class CommandConverter(
         if isinstance(cmd, str):
             return -1
         else:
-            return self._run_shell_script(cmd, *args, env=env, **kwargs)
+            return self._run_shell_script(
+                cmd, *args, cwd=cwd, env=env, **kwargs
+            )
 
     @_run_shell_script.register
     def _(
         self,
         value: sh.Command,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
@@ -421,6 +428,7 @@ class CommandConverter(
             *args,
             **kwargs,
             _bg=True,
+            _cwd=cwd,
             _env=env,
             _in=sys.stdin,
             _out=sys.stdout,
@@ -439,6 +447,7 @@ class CommandConverter(
         self,
         value: PluginModel,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
@@ -447,7 +456,10 @@ class CommandConverter(
             if value.fresh_env
             else dict(ChainMap(os.environ.copy(), value.env))
         )
-        return self._run_shell_script(value.script, *args, env=env, **kwargs)
+        cwd = cwd or value.cwd or Path.cwd()
+        return self._run_shell_script(
+            value.script, *args, cwd=cwd, env=env, **kwargs
+        )
 
     @singledispatchmethod
     def _run_from_pathspec(self, value, *args, env=None, **kwargs) -> Any: ...
@@ -456,6 +468,7 @@ class CommandConverter(
     def _(
         self,
         value: str,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
     ) -> dict[str, Any] | Any:
         def noop(**_) -> None:
@@ -495,38 +508,43 @@ class CommandConverter(
         elif self.is_package_path(path):
             sys.path.insert(0, path)
 
-        try:
-            if self.is_module_path(path) and symbol:
-                obj = self.importer(path)
-                obj = getattr(obj, symbol, noop)
-                if callable(obj):
-                    if isinstance(obj, click.Command):
-                        rv = obj.main(
-                            sys.argv[1:], sys.argv[0], standalone_mode=False
-                        )
-                    else:
-                        rv = obj()
-            elif symbol:
-                rv = None
-                obj = runpy.run_path(path).get(symbol, noop)
-                if callable(obj):
-                    if isinstance(obj, click.Command):
-                        rv = obj.main(
-                            sys.argv[1:], sys.argv[0], standalone_mode=False
-                        )
-                    else:
-                        rv = obj()
-            else:
-                rv = runpy.run_path(path, run_name=_detect_program_name())
-        except Exception as exc:
-            err = f"Failed to run pathspec '{value}'"
-            self.log_exception(err, exc=exc)
-            raise
-        finally:
-            sys.argv = argv
-            sys.path = syspath
-            os.environ.clear()
-            os.environ.update(environ)
+        with local.cwd(cwd or Path.cwd()):
+            try:
+                if self.is_module_path(path) and symbol:
+                    obj = self.importer(path)
+                    obj = getattr(obj, symbol, noop)
+                    if callable(obj):
+                        if isinstance(obj, click.Command):
+                            rv = obj.main(
+                                sys.argv[1:],
+                                sys.argv[0],
+                                standalone_mode=False,
+                            )
+                        else:
+                            rv = obj()
+                elif symbol:
+                    rv = None
+                    obj = runpy.run_path(path).get(symbol, noop)
+                    if callable(obj):
+                        if isinstance(obj, click.Command):
+                            rv = obj.main(
+                                sys.argv[1:],
+                                sys.argv[0],
+                                standalone_mode=False,
+                            )
+                        else:
+                            rv = obj()
+                else:
+                    rv = runpy.run_path(path, run_name=_detect_program_name())
+            except Exception as exc:
+                err = f"Failed to run pathspec '{value}'"
+                self.log_exception(err, exc=exc)
+                raise
+            finally:
+                sys.argv = argv
+                sys.path = syspath
+                os.environ.clear()
+                os.environ.update(environ)
 
         return rv
 
@@ -570,7 +588,8 @@ class CommandConverter(
                     click.echo(ctx.get_help())
                     ctx.exit()
 
-        return self._run_from_pathspec(value.command, env=env)
+        with local.cwd(value.cwd):
+            return self._run_from_pathspec(value.command, env=env)
 
     @classmethod
     def _patch_theme(cls) -> None:
@@ -714,7 +733,8 @@ class ShConverter(
             else {**os.environ.copy(), **value.env}
         )
 
-        return value.script.bake(_env=env)
+        with local.cwd(value.cwd):
+            return value.script.bake(_env=env)
 
 
 class GenericConverter[TI, TO](Converter[TI, TO]):

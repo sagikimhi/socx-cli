@@ -7,7 +7,7 @@ from pathlib import Path
 
 from socx import settings, group, command
 
-from socx_plugins.rgr._rgr import options, _run_from_file
+from socx_plugins.rgr._rgr import options, run_from_file
 
 
 @group()
@@ -48,7 +48,8 @@ def run(input: Path, output: Path):  # noqa: A002
     """
     try:
         regression = asyncio.run(
-            _run_from_file(input, output), debug=settings.cli.params.debug
+            run_from_file(input, output),
+            debug=settings.cli.params.debug,
         )
     except (asyncio.CancelledError, KeyboardInterrupt):
         rv = 0x80 + 2  # SIGINT

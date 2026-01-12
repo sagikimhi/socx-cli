@@ -117,7 +117,7 @@ rich_click:
   style_options_table_pad_edge: ~
 
   # type: NotRequired["PaddingDimensions"]
-  style_options_table_padding: [1, 1, 0, 0]
+  style_options_table_padding: [0, 2, 1, 0]
 
   # type: NotRequired[bool]
   style_options_table_expand: ~
@@ -382,15 +382,6 @@ rich_click:
   # type: NotRequired[Optional[Literal["\n", "\n\n"]]]
   text_paragraph_linebreaks: "\n\n"
 
-  # type: NotRequired[Optional[bool]]
-  use_markdown: true
-
-  # type: NotRequired[Optional[bool]]
-  use_markdown_emoji: true
-
-  # type: NotRequired[Optional[bool]]
-  use_rich_markup: true
-
   # type: NotRequired[Dict[str, List[CommandGroupDict]]]
   command_groups: ~
 
@@ -401,7 +392,7 @@ rich_click:
   use_click_short_help: ~
 
   # type: NotRequired[bool]
-  helptext_show_aliases: false
+  helptext_show_aliases: true
 
   # type: NotRequired[List[str]]
   highlighter_patterns: ~
