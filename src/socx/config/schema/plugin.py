@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import shlex
+from textwrap import dedent
+from pathlib import Path
 
 from box import SBox
 import sh
@@ -10,6 +12,7 @@ import rich_click as click
 from pydantic import (
     BaseModel,
     ConfigDict,
+    DirectoryPath,
     Field,
     field_validator,
 )
@@ -18,6 +21,13 @@ from pydantic import (
 class PluginModel(BaseModel):
     """Metadata describing a plugin-backed CLI command."""
 
+    cwd: DirectoryPath = Field(
+        default_factory=Path.cwd,
+        description=dedent("""
+        An optional directory path from which the plugin should be invoked.
+        If left unspecified, it defaults to the current working directory.
+        """),
+    )
     env: dict[str, str] = Field(
         default_factory=dict,
         description="""
