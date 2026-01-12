@@ -7,6 +7,7 @@ import logging
 from typing import Any
 from pathlib import Path
 
+from plumbum import local
 from rich_click import Context
 from rich_click import Parameter
 from rich_click import RichContext
@@ -31,6 +32,13 @@ def param_cb(_: Context, param: Parameter, value: Any) -> Any:
 def multi_param_cb(_: Context, param: Parameter, value: Any) -> Any:
     """Update settings to the value of a user-specified CLI parameter."""
     settings.cli.params[param.name].append(value)
+    return value
+
+
+@log_it(logger=logger)
+def cwd_cb(ctx: Context, param: Parameter, value: Path) -> Path:
+    settings.cli.params[param.name] = value
+    ctx.with_resource(local.cwd(value))
     return value
 
 
