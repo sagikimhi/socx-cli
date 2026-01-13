@@ -181,8 +181,8 @@ def find_repositories(
     if isinstance(includes, str):
         includes = [includes]
 
-    includes = list(includes or [])
-    dirs = list(match_repos(root=root, patterns=includes)) if includes else []
+    includes = includes or [Path.cwd()]
+    dirs = list(match_repos(root=root, patterns=includes))
 
     if excludes:
         excludes = {
