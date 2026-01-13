@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from collections import ChainMap
 import os
 import sys
 import abc
 import runpy
 import shlex
 import logging
+from io import StringIO
 from types import CodeType, ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -22,12 +22,15 @@ from typing import (
 from pathlib import Path
 from importlib import import_module
 from functools import cached_property, singledispatchmethod
+from collections import ChainMap
 from collections.abc import Iterable, Callable
 
 import sh
 import rich_click as click
 import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
+from rich.console import Console
+from rich.markdown import Markdown
 from plumbum import local
 from pydantic import validate_call, ConfigDict
 from dynaconf import add_converter
@@ -477,6 +480,7 @@ class CommandConverter(
         rv = {}
         ctx = click.get_current_context(silent=True)
         path, _, symbol = value.rpartition(":")
+        cwd = cwd or Path.cwd()
         argv = sys.argv.copy()
         syspath = sys.path.copy()
         environ = os.environ.copy()
@@ -508,12 +512,12 @@ class CommandConverter(
         elif self.is_package_path(path):
             sys.path.insert(0, path)
 
-        with local.cwd(cwd or Path.cwd()):
-            try:
-                if self.is_module_path(path) and symbol:
-                    obj = self.importer(path)
-                    obj = getattr(obj, symbol, noop)
-                    if callable(obj):
+        try:
+            if self.is_module_path(path) and symbol:
+                obj = self.importer(path)
+                obj = getattr(obj, symbol, noop)
+                if callable(obj):
+                    with local.cwd(cwd):
                         if isinstance(obj, click.Command):
                             rv = obj.main(
                                 sys.argv[1:],
@@ -522,10 +526,11 @@ class CommandConverter(
                             )
                         else:
                             rv = obj()
-                elif symbol:
-                    rv = None
-                    obj = runpy.run_path(path).get(symbol, noop)
-                    if callable(obj):
+            elif symbol:
+                rv = None
+                obj = runpy.run_path(path).get(symbol, noop)
+                if callable(obj):
+                    with local.cwd(cwd):
                         if isinstance(obj, click.Command):
                             rv = obj.main(
                                 sys.argv[1:],
@@ -534,17 +539,18 @@ class CommandConverter(
                             )
                         else:
                             rv = obj()
-                else:
+            else:
+                with local.cwd(cwd):
                     rv = runpy.run_path(path, run_name=_detect_program_name())
-            except Exception as exc:
-                err = f"Failed to run pathspec '{value}'"
-                self.log_exception(err, exc=exc)
-                raise
-            finally:
-                sys.argv = argv
-                sys.path = syspath
-                os.environ.clear()
-                os.environ.update(environ)
+        except Exception as exc:
+            err = f"Failed to run pathspec '{value}'"
+            self.log_exception(err, exc=exc)
+            raise
+        finally:
+            sys.argv = argv
+            sys.path = syspath
+            os.environ.clear()
+            os.environ.update(environ)
 
         return rv
 
@@ -737,6 +743,48 @@ class ShConverter(
             return value.script.bake(_env=env)
 
 
+class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):
+    def __init__(self) -> None:
+        from jinja2.environment import Environment
+
+        self._env = Environment()
+        self._console = Console(force_terminal=True, tab_size=4)
+
+    @overload
+    def __call__(
+        self, value: str | None, *args: Any, **kwargs: Any
+    ) -> str: ...
+    @overload
+    def __call__(self, value: Lazy, *args: Any, **kwargs: Any) -> Lazy: ...
+    @overload
+    def __call__(self, value: Markdown, *args: Any, **kwargs: Any) -> str: ...
+    @override
+    @_validate
+    def __call__(
+        self, value: str | Markdown | Lazy | None, *args: Any, **kwargs: Any
+    ) -> str | Lazy:
+        if value is None:
+            return ""
+
+        if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
+            return value.set_casting(self)
+
+        if isinstance(value, str):
+            value = Markdown(markup=value, code_theme="ansi_dark")
+
+        if isinstance(value, Markdown):
+            buf = StringIO()
+            self._console.file = buf
+            self._console.print(
+                "  \n".join(value.markup.splitlines()), overflow="ellipsis"
+            )
+            value = buf.getvalue()
+
+        return value
+
+
 class GenericConverter[TI, TO](Converter[TI, TO]):
     """Adapter turning plain callables into ``Converter`` instances."""
 
@@ -783,5 +831,6 @@ def init() -> None:
         SymbolConverter(),
         CommandConverter(),
         IncludeConverter(),
+        MarkdownConverter(),
     ]
     add_converters(converters)
