@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, cast
 import rich_click as click
 from socx import (
     command,
-    console,
     settings,
+    print_outputs,
     print_command_outputs,
 )
 from rich.markdown import Markdown
@@ -56,9 +56,9 @@ if TYPE_CHECKING:
 
 
 @command(parent=cli)
+@arguments.io_opts()
 @arguments.summary_opts()
-@arguments.manifest_opts()
-def summary():
+def summary(pager: bool):
     """Output a manifest of all git repositories found under a given path."""
     mfest = Manifest(
         root=settings.git.manifest.root,
@@ -66,10 +66,15 @@ def summary():
         excludes=settings.git.manifest.excludes,
         cmd_timeout=settings.git.manifest.cmd_timeout,
     )
-    console.print(Summary(mfest.repos.values()))
+    print_outputs(
+        Summary(mfest.repos.values()), pager=pager, title="Git Summary"
+    )
 
 
 @command("help", parent=cli, add_help_option=False)
-def help_():
+@arguments.io_opts()
+def help_(pager: bool):
     """Print the full help menu along with usage examples."""
-    console.print(Markdown(settings.git.cli.help))
+    print_outputs(
+        Markdown(settings.git.cli.help), pager=pager, title="Git Help"
+    )
