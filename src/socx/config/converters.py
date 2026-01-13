@@ -482,7 +482,6 @@ class CommandConverter(
         path, _, symbol = value.rpartition(":")
         cwd = cwd or Path.cwd()
         argv = sys.argv.copy()
-        syspath = sys.path.copy()
         environ = os.environ.copy()
 
         if ctx:
@@ -507,17 +506,15 @@ class CommandConverter(
             os.environ.clear()
             os.environ.update(env)
 
-        if self.is_script_path(path):
-            sys.path.insert(0, str(Path(path).parent))
-        elif self.is_package_path(path):
-            sys.path.insert(0, path)
+        if self.is_script_path(path) or self.is_package_path(path):
+            path = str(Path(path).resolve())
 
-        try:
-            if self.is_module_path(path) and symbol:
-                obj = self.importer(path)
-                obj = getattr(obj, symbol, noop)
-                if callable(obj):
-                    with local.cwd(cwd):
+        with local.cwd(cwd):
+            try:
+                if self.is_module_path(path) and symbol:
+                    obj = self.importer(path)
+                    obj = getattr(obj, symbol, noop)
+                    if callable(obj):
                         if isinstance(obj, click.Command):
                             rv = obj.main(
                                 sys.argv[1:],
@@ -526,11 +523,10 @@ class CommandConverter(
                             )
                         else:
                             rv = obj()
-            elif symbol:
-                rv = None
-                obj = runpy.run_path(path).get(symbol, noop)
-                if callable(obj):
-                    with local.cwd(cwd):
+                elif symbol:
+                    rv = None
+                    obj = runpy.run_path(path, run_name=name).get(symbol, noop)
+                    if callable(obj):
                         if isinstance(obj, click.Command):
                             rv = obj.main(
                                 sys.argv[1:],
@@ -539,18 +535,16 @@ class CommandConverter(
                             )
                         else:
                             rv = obj()
-            else:
-                with local.cwd(cwd):
+                else:
                     rv = runpy.run_path(path, run_name=_detect_program_name())
-        except Exception as exc:
-            err = f"Failed to run pathspec '{value}'"
-            self.log_exception(err, exc=exc)
-            raise
-        finally:
-            sys.argv = argv
-            sys.path = syspath
-            os.environ.clear()
-            os.environ.update(environ)
+            except Exception as exc:
+                err = f"Failed to run pathspec '{value}'"
+                self.log_exception(err, exc=exc)
+                raise
+            finally:
+                sys.argv = argv
+                os.environ.clear()
+                os.environ.update(environ)
 
         return rv
 
@@ -559,10 +553,13 @@ class CommandConverter(
         self,
         value: Path,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
-        return self._run_from_pathspec(str(value), *args, env=env, **kwargs)
+        return self._run_from_pathspec(
+            str(value), *args, env=env, cwd=cwd, **kwargs
+        )
 
     @_run_from_pathspec.register
     def _(
@@ -594,8 +591,7 @@ class CommandConverter(
                     click.echo(ctx.get_help())
                     ctx.exit()
 
-        with local.cwd(value.cwd):
-            return self._run_from_pathspec(value.command, env=env)
+        return self._run_from_pathspec(value.command, env=env, cwd=value.cwd)
 
     @classmethod
     def _patch_theme(cls) -> None:
@@ -628,23 +624,38 @@ class CommandConverter(
         """Return ``True`` if ``path`` points to a python script file."""
         if isinstance(value, str):
             value = Path(value)
-        return (
-            isinstance(value, Path)
-            and value.exists()
-            and value.is_file()
-            and value.suffix == ".py"
-        )
+
+        if isinstance(value, Path):
+            try:
+                value = value.resolve()
+            except OSError:
+                return False
+            else:
+                return (
+                    value.exists()
+                    and value.is_file()
+                    and value.suffix == ".py"
+                )
+
+        return False
 
     def is_package_path(self, value: Any) -> bool:
         """Return ``True`` if ``path`` points to a python package directory."""
         if isinstance(value, str):
             value = Path(value)
-        return (
-            isinstance(value, Path)
-            and value.exists()
-            and value.is_dir()
-            and (value / "__init__.py").exists()
-        )
+
+        if isinstance(value, Path):
+            try:
+                value = value.resolve()
+            except OSError:
+                return False
+            return (
+                value.exists()
+                and value.is_dir()
+                and (value / "__init__.py").exists()
+            )
+
+        return False
 
 
 class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
@@ -739,8 +750,9 @@ class ShConverter(
             else {**os.environ.copy(), **value.env}
         )
 
-        with local.cwd(value.cwd):
-            return value.script.bake(_env=env)
+        cwd = value.cwd
+
+        return value.script.bake(_env=env, _cwd=cwd)
 
 
 class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):
