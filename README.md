@@ -85,7 +85,7 @@ pipx upgrade socx-cli
 >
 > ```console
 > $ socx version
-> socx-cli 0.11.0
+> socx-cli 0.11.1
 > ```
 
 ## Documentation & Community
