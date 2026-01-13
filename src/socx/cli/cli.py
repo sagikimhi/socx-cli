@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 @socx()
 @params.opts()
 @params.panels()
+@params.cli_config()
 @click.pass_context
 def cli(ctx: click.RichContext) -> None:
     """System on chip verification and tooling infrastructure."""

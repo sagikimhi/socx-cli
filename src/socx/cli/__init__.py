@@ -18,7 +18,6 @@ __all__ = (
     "config_files_cb",
 )
 
-
 import socx.cli.cfg as cfg
 
 from socx.cli.cli import cli as cli
