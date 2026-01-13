@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 import logging
-from textwrap import dedent
 import contextvars as ctx
+from textwrap import dedent
 from typing import Any
 from pathlib import Path
 from collections import ChainMap
@@ -135,17 +136,16 @@ def get_settings(
         )
 
     root = includes[-1].parent if includes else Path.cwd()
+    settings_kwargs = dict(
+        preload=settings_file, root_path=root, settings_file=includes
+    )
     kwargs = dict(
         ChainMap(
             kwargs,
-            dict(
-                preload=settings_file,
-                root_path=root,
-                settings_file=[*includes],
-            ),
+            settings_kwargs,
+            ModuleSerializer.serialize(paths),
+            ModuleSerializer.serialize(metadata),
         ),
-        **ModuleSerializer.serialize(paths),
-        **ModuleSerializer.serialize(metadata),
     )
     rv = Settings(**kwargs)
     return rv
@@ -153,9 +153,24 @@ def get_settings(
 
 converters.init()
 
-_default_settings: Settings = get_settings()
+_tokens = []
 
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
+
+_default_settings: Settings = get_settings()
+
+try:
+    _user_settings: Settings = get_settings(user_overrides=True)
+except Exception:
+    _user_settings = _default_settings
+
+try:
+    _local_settings: Settings = get_settings(
+        user_overrides=True, local_overrides=True
+    )
+except Exception:
+    _local_settings = _default_settings
+    _local_settings.update(_user_settings)
 
 settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
     _settings_cv,
@@ -167,23 +182,7 @@ settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
     """),
 )
 
-try:
-    _user_settings: Settings = get_settings(user_overrides=True)
-except Exception:
-    _user_settings = _default_settings
-
-try:
-    _local_settings: Settings = get_settings(local_overrides=True)
-except Exception:
-    _local_settings = _default_settings
-    _local_settings.update(_user_settings)
-
-try:
-    _global_settings: Settings = get_settings(
-        user_overrides=True, local_overrides=True
-    )
-except Exception:
-    _global_settings = _default_settings
-    _global_settings.update(_local_settings)
-
-_settings_cv.set(_global_settings)
+if "--no-configure" in sys.argv or "-NC" in sys.argv:
+    _tokens.append(_settings_cv.set(_default_settings))
+else:
+    _tokens.append(_settings_cv.set(_local_settings))

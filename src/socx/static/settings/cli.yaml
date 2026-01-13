@@ -4,7 +4,7 @@ cli:
     color: true
     debug: false
     configure: true
-    verbosity: ERROR
+    verbosity: WARNING
     config_files: []
 
   command:
@@ -18,8 +18,7 @@ cli:
   group:
     options_metavar: "[options]"
     subcommand_metavar: "<subcommand> [args]..."
-    no_args_is_help: true
-    context_settings: &socx-cli-context-settings
+    context_settings:
       auto_envvar_prefix: "SOCX_"
       help_option_names:
         - -h
@@ -28,13 +27,27 @@ cli:
       ignore_unknown_options: true
       allow_interspersed_args: false
 
+  command_panels:
+    - name: Commands
+      commands:
+        - git
+        - init
+        - plugin
+        - config
+        - version
+        - regression
+    - name: Plugins
+
   option_panels:
-    - name: Options
+    - name: General Options
       options:
         - --help
-        - --cwd
         - --debug
         - --verbosity
-        - --config-file
         - --color
+
+    - name: Project Options
+      options:
+        - --cwd
+        - --config-file
         - --configure

@@ -8,9 +8,6 @@ from collections import ChainMap
 from collections.abc import Iterable
 
 from sh import RunningCommand
-import click
-import dynaconf
-import rich_click
 from rich import traceback
 from rich.console import Console, RenderableType
 from werkzeug.local import LocalProxy
@@ -117,8 +114,7 @@ def get_console(*args: Any, **kwargs: Any) -> Console:
     console = Console(*args, **kwargs)
     traceback.install(
         console=console,
-        suppress=[click, rich_click, dynaconf],
-        **(settings.console.traceback),
+        **settings.console.traceback,
     )
     return console
 
