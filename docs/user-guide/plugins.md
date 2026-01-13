@@ -65,7 +65,7 @@ icon: lucide/plug
     !!! example "socx --help before adding the plugin"
 
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples"
+        ```console exec="true" source="above" result="ansi" workdir="docs/examples"
         $ socx --help
         ```
 
@@ -84,7 +84,7 @@ icon: lucide/plug
 
     !!! example "socx --help after adding the plugin"
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples"
+        ```console exec="true" source="above" result="ansi" workdir="docs/examples"
         $ cp hello_world.yaml .socx.yaml # markdown-exec: hide
         $ socx --help
         $ rm .socx.yaml # markdown-exec: hide
@@ -98,7 +98,7 @@ icon: lucide/plug
 
     !!! example "running the plugin"
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples"
+        ```console exec="true" source="above" result="ansi" workdir="docs/examples"
         $ cp hello_world.yaml .socx.yaml # markdown-exec: hide
         $ export SOCX_VERBOSITY=FATAL # markdown-exec: hide
         $ socx hello_world
@@ -146,6 +146,7 @@ icon: lucide/plug
 
     | name | type | description | required | default |
     | :--: | :--: | :---------: | :------: | :-----: |
+    | `#!yaml cwd` | `#!py str` | Change the current working directory to this path before invoking the plugin. | no | `#!py pathlib.Path.cwd()` |
     | `#!yaml env` | `#!py dict` | Environment variables that should be present when the command/script is invoked | no | `#!yaml {}` |
     | `#!yaml fresh_env` | `#!py bool` | An optional boolean that specifies whether or not the current environment should be copied into the plugin's environment when it is invoked.<br><br>If this is set to true, when the plugin is started, it will run in a new subprocess with no environment variables other than what is specified under the plugin's `env` field.<br><br>If this is set to false, the current environment variables will be copied into the new subprocess when the command is invoked, along with the variable definitions defined under `env`. | no | `#!yaml false` |
     | `#!yaml script` | `#!py str` | A shell command, script, or executable to run when the plugin is invoked.<br><br>If your plugin is a ^^**shell script**^^, command, or executable - then use the `#!yaml script` field.<br><br>Otherwise, if it is a ^^**python**^^ `#!py script`(e.g. `#!py script.py`), `#!py callable`, `#!py module`, or `#!py package` use `#!yaml command` instead. | only if `#!yaml command` is empty | `#!yaml ""` |
@@ -182,163 +183,216 @@ icon: lucide/plug
 
     !!! example "Trying to run `my_package/my_subpackage/my_script.py`"
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples"
+        ```console exec="true" source="above" result="ansi" workdir="docs/examples"
         $ python my_package/my_subpackage/my_script.py
         ```
 
     To actually run it, we will either need to add the `#!py if __name__ ==
     "__main__"` section mentioned before that will call the function, or import
-    the function from a python console.
+    the function from a python script/REPL and call it from there
 
-    As you can already see, this small missing piece just made this little script
-    that anyone could write into something that is a bit complicated to run
-    without making changes to it.
+    But yet again, this script is not really packaged as a python package, or
+    exported in some convinient way - it is only available inside some
+    arbitrary local path, and that path would have to be set inside an
+    appropriate environment variable such as `#!bash $PATH` or `#!bash
+    $PYTHONPATH`, or alternatively, installed in a virtual environment so that
+    it is available from our `site_packages` directory, but how do we even
+    install a standalone script? and what if it had additional dependencies?
 
-    This is the case with many internal tooling and software, someone had done
-    something, it works on their end, or it has some useful functionality, but
-    when you try to share it with others, everything breaks due to all sorts of
-    reasons.
+    Small missing pieces like that, which can be quite common in traditional
+    development tools and scripts of private organizations or projects, result
+    in scripts like being very simple to write, but on the other hand
+    a relatively complicated task if you wanted to reuse that script in the
+    future or run it in another unrelated environment.
+
+    A random junior developer encountering these problems for the first time
+    while still learning about all the internals of your project/organization,
+    would probably take longer to figure out how to reuse it than it would
+    take him to simply write it from scratch.
+
+    That's a bit absurd... and also makes all the work on such scripts almost
+    redundant, as it is repeated every time, whether you try to reuse it, or
+    decide to write it from scratch.
+
+    That is exactly the problem that `socx` attempts solve.
+
+    ### Proving a point - trying to import the function from python
 
     Just to prove a point, let's try to run it anyway with the console, and then
     demonstrate how it could be simpified with `socx`.
 
-    !!! example "Running the function by importing it in python console"
+    ???+ example "Attempt No. 1 - Importing as is"
 
         In order to run the script, we will first need to `#!bash cd` into its
         directory, or else it'll fail as shown below:
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples" session="full_schema" returncode="1"
+        ```console exec="true" source="above" result="ansi" workdir="docs/examples" session="full_schema" returncode="1"
         $ python -c "from my_script import my_function; my_function()"
         ```
 
+    ???+ example "Attempt No. 2 - Prepare by `cd`ing into the script directory"
+
         Lets try again by `#!bash cd`ing into the directory first:
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples" session="full_schema"
+        ```console exec="true" source="above" result="ansi" workdir="docs/examples" session="full_schema"
         $ cd my_package/my_subpackage
         $ python -c "from my_script import my_function; my_function()"
         ```
 
-    Lets now define it instead as a `socx` plugin, for practice and demonstration,
-    we will be using all of the fields in the plugin's schema.
+    ### Turning the function to a `socx` plugin
 
-    !!! failure "Important Note"
+    Lets now take a different approach, and define it instead as a `socx`
+    plugin, for practice and demonstration, we will be using all of the fields
+    in the plugin's schema to demonstrate what can be done in practice using
+    the full/complete configuration of the schema.
 
-        Keep in mind that **we are overcomplicating here for demonstration purposes**.
+    ???+ example "A complete configuration of a plugin"
 
-        In practice, this plugin could be defined with only a single `#!yaml command`
-        field, but that way we would end up with no environment variables,
-        and no help text or useful info as to what this plugin does.
+        !!! warning "Notice"
 
-        You wouldn't usually need the entire plugin schema, but it's always good
-        to know the set of tools that are available for you so that when you do
-        need something more complex later down the road, you'll know how to handle
-        it.
+            Keep in mind that we are **drastically overcomplicating here for
+            demonstration purposes**.
 
-    ???+ note "Side Note"
+            In practice, this plugin could be defined with only a single
+            `#!yaml command` field, but that way we would end up with no
+            environment variables, and no help text or useful info as to what
+            this plugin does.
 
-        Unlike running the script from python, which requires us to repeat the
-        steps in the example every time we wish to run the function - plugins
-        only need to be defined once in a configuration file, once a plugin is
-        properly configured you will never have to repeat it again, nor anyone
-        else on your team.
+            You wouldn't usually need the entire plugin schema, but it's
+            always good to know the set of tools that are available for you so
+            that when you do need something more complex later down the road,
+            you'll know how to handle it.
 
-    !!! example "Configuring the function as a plugin"
 
         === "`.socx.yaml`"
 
-            ``` { .yaml .linenums="1" .hl_lines="11-12" .title=".socx.yaml" .annotate }
+            ``` {.yaml .title=".socx.yaml" .annotate}
             plugins: # (1)!
 
               my_plugin: # (2)!
 
-                env: # (3)!
+                cwd: "@jinja {{env.HOME}}" # (3)!
+
+                env: # (4)!
                   FOO: "VALUE"
                   BAR: "VALUE1/VALUE2"
                   bazz: "value3:value4:value5"
 
-                command: >- # (4)!
+                command: >- # (5)!
                     my_package/my_subpackage/my_script.py:my_function
 
-                enabled: true # (5)!
+                enabled: true # (6)!
 
-                fresh_env: true # (6)!
+                fresh_env: true # (7)!
 
-                aliases: # (7)!
-                  - my_cmd
-                  - myc
+                aliases: [my_cmd, myc] # (8)!
 
-                panel: | # (8)!
-                    Plugin Commands
+                panel: Plugins # (9)!
 
-                short_help: | # (9)!
+                short_help: | # (10)!
                   My short one-liner help text.
 
-                epilog: | # (10)!
+                epilog: | # (11)!
                   Visit [link]https://my_awesome_website.com/documentation[/link]
                   for additional info about 'my_plugin'.
 
-                help: | # (11)!
-                  # My Plugin
+                help: | # (12)!
+                    # My Plugin
 
-                  My long descriptive and helpful help text.
+                    My long descriptive and helpful help text.
 
-                  > ---
-                  >
-                  > ***TIP***:
-                  >
-                  > Class aptent taciti sociosqu ad litora torquent per conubia
-                  > nostra, per inceptos himenaeos. Cras sollicitudin et massa
-                  > in efficitur.
-                  >
-                  > ---
+                    ## Markdown Tables Support
 
-                  ## My Plugin Subtitle
+                    | Lorem | Ipsum |
+                    | :---- | :---: |
+                    | Aenean laoreet | faucibus tincidunt |
+                    | Integer | nec magna |
 
-                  **Lorem Ipsum** - Lorem ipsum dolor sit amet, consectetur
-                  adipiscing elit.
+                    ## Code Blocks
 
-                  Aenean laoreet faucibus tincidunt. Integer nec magna at nunc
-                  posuere tincidunt.
+                    ```py
+                    from socx import console
+
+                    def hello_world():
+                        console.print("Hello World!")
+                    ```
+
+                    ## Quotes
+
+                    > ---
+                    > ***Tip***:
+                    >
+                    > Class aptent taciti sociosqu ad litora torquent per conubia
+                    > nostra, per inceptos himenaeos. Cras sollicitudin et massa
+                    > in efficitur.
+                    >
+                    > ---
+
+                    ## And More!
+
+                    **Lorem Ipsum** - Lorem ipsum dolor sit amet, consectetur
+                    adipiscing elit.
+
+                    1. Aenean laoreet faucibus tincidunt.
+                    2. Integer nec magna at nunc posuere tincidunt.
+                        - Class aptent taciti sociosqu ad litora torquent per
+                          conubia nostra, per inceptos himenaeos.
+                        - Cras sollicitudin et massa in efficitur.
+
+                    ---
             ```
 
-            1. Required - this will cause the definitions below to be merged
-               into the current `plugins` configuration.
-            2. Required - define a new plugin called "my_plugin". It can be
-               invoked later by running `socx my_plugin` in a terminal.
-            3. Optional - Define variables `FOO`, `BAR`, and `bazz` in the
-               new subprocess environment where the plugin is invoked.
-            4. Required - this is translated into something like:<br>
-               ```py
-               def my_plugin():
-                  from my_package.my_subpackage import my_function
-                  tmp = sys.argv.pop(0)
-                  try:
-                    rv = my_function()
-                  finally:
-                    sys.argv.insert(0, tmp)
-                  return rv
-               ```
-            5. Optional - enable/disable the plugin, this is true by default.
-            6. Optional - do/do-not copy environment variables from the
-               environment of the current process into the plugin's
-               subprocess.
-               <br>
-               The default value is false, which means to copy the variables from
-               the current environment instead of using a fresh one.
-            7. Optional - additional aliases/shortcuts to set that can be
-               used to invoke the sub-command, in addition to the current
-               name 'my_command' defined at the top of this snippet.
-            8. Optional - will place command in a separate panel in the
-               parent command's help menu with a custom "Plugin Commands"
-               title.
-            9. Optional - a short version of the help text that will be used
-               to render the one-liner help text in the parent command's help
-               menu.
-            10. Optional - help text shown at the bottom/end of the help menu.
+            1.  Required - this will cause the definitions below to be merged
+                into the current `plugins` configuration.
+
+            2.  Required - define a new plugin called "my_plugin". It can be
+                invoked later by running `socx my_plugin` in a terminal.
+
+            3.  Optional - Change the current working directory to the
+                specified path before invoking the script.
+
+            4.  Optional - Define variables `FOO`, `BAR`, and `bazz` in the
+                new subprocess environment where the plugin is invoked.
+
+            5.  Required - this is translated into something like:<br>
+                ```py
+                def my_plugin():
+                   from my_package.my_subpackage import my_function
+                   tmp = sys.argv.pop(0)
+                   try:
+                     rv = my_function()
+                   finally:
+                     sys.argv.insert(0, tmp)
+                   return rv
+                ```
+
+            6.  Optional - enable/disable the plugin, this is true by default.
+
+            7.  Optional - do/do-not copy environment variables from the
+                environment of the current process into the plugin's
+                subprocess.
+                <br>
+                The default value is false, which means to copy the variables from
+                the current environment instead of using a fresh one.
+
+            8.  Optional - additional aliases/shortcuts to set that can be
+                used to invoke the sub-command, in addition to the current
+                name 'my_command' defined at the top of this snippet.
+
+            9.  Optional - will place command in a separate panel in the
+                parent command's help menu with a custom "Plugin Commands"
+                title.
+
+            10. Optional - a short version of the help text that will be used
+                to render the one-liner help text in the parent command's help
+                menu.
+
+            11. Optional - help text shown at the bottom/end of the help menu.
                 <br>
                 This is usually useful for providing references, such as a url
                 to a documentation site.
-            11. Optional - plugin help text to show when running the command
+
+            12. Optional - plugin help text to show when running the command
                 with the -h or --help flag.<br>
                 Note that markdown is supported, and is the recommended format
                 for documenting plugin commands.<br>
@@ -346,40 +400,70 @@ icon: lucide/plug
                 terminal, check out the GIF image for the `socx git help`
                 command in the quickstart section.
 
+
     Now lets try to run `socx` to see if the plugin appears:
 
-    !!! example "Running `socx --help` with our new `.socx.yaml` config"
+    ???+ example "Running `socx --help` with our new `.socx.yaml` config"
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples" session="full_schema2"
-        $ cp full_schema.yaml .socx.yaml # markdown-exec: hide
-        $ socx --help
-        ```
+        === "`socx --help`"
 
-    As you can see, a new "Plugin Commands" section was added with our new command
-    `my_plugin`, lets try to run it:
+            ```console exec="true" source="above" result="ansi" title="socx --help" workdir="docs/examples" session="full_schema2"
+            $ cp full_schema.yaml .socx.yaml # markdown-exec: hide
+            $ socx --help
+            ```
 
-    !!! example "Running our new plugin with the `--help` flag"
+    As you can see, a new "Plugins" section was added with our new command
+    `my_plugin`.
+
+    That's nice and all, but theres still very little information about what
+    the command `my_plugin` actually does, the help menu shows only a single
+    line and is not very descriptive.
+
+    Lets gather a bit more information about this `my_plugin` command before
+    we run it so that we understand better what it does and how to run it
+    correctly.
+
+    ???+ example "Gathering information about a command/plugin"
 
         As was previously mentioned, plugins have a `#!yaml help` field that can
         be used to describe what the command does and how to operate it, lets
         check how our help text turned out in the terminal by running `socx
         my_plugin --help`:
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples" session="full_schema2"
-        $ socx my_plugin --help
-        ```
+        === "`socx my_plugin --help`"
 
-        Ok so the help text works, and it looks cool and all, but this is just
-        talk... can our plugin actually run now? just like that out of the box?
+            ```console exec="true" source="above" result="ansi" title="socx my_plugin --help" "workdir="docs/examples" session="full_schema2"
+            $ socx my_plugin --help
+            ```
 
-        let's give it a go:
+    Okay, so the help text works.
 
-        ```console exec="true" source="tabbed-left" result="ansi" workdir="docs/examples" session="full_schema2"
-        $ socx my_plugin
-        $ rm .socx.yaml # markdown-exec: hide
-        ```
+    Also, it means nothing and tells us nothing about the actual command
+    because we just threw it out there to show you some cool features of the
+    custom help menu like markdown tables, code blocks, or quotes rendered in
+    your terminal.
 
-        It sure can!
+    That's cool and all, but this is still just talk... We have yet to run our
+    actual plugin or got any living proof that `socx` can import and run it
+    just like that without the usual python hassles to actually improve our
+    development flows.
+
+    So, can our plugin actually run with `socx`? And without involvement other
+    than the `#!yaml script`/`#!yaml command` spec? Will it actually able run
+    it just like that out of the box?
+
+    Let's try:
+
+    ???+ example "Will it actually run"
+
+        === "`socx my_plugin`"
+
+            ```console exec="true" source="above" result="ansi" title="socx my_plugin" workdir="docs/examples" session="full_schema2"
+            $ socx my_plugin
+            $ rm .socx.yaml # markdown-exec: hide
+            ```
+
+    It sure can.
 
     I am hoping you are starting to see now the power and potential of `socx` when
     it comes to sharing tools and documenting scripts in a project development
@@ -426,27 +510,27 @@ icon: lucide/plug
 
             === "dumping the `rich-click` configurations"
 
-                ```console exec="true" source="tabbed-left" result="yaml"
+                ```console exec="true" source="above" result="yaml"
                 $ socx config dump rich_click
                 ```
 
             === "setting the nord-slim theme"
 
-                ```console exec="true" source="tabbed-left" result="ansi"
+                ```console exec="true" source="above" result="ansi"
                 $ export SOCX_RICH_CLICK__THEME="nord-slim"
                 $ socx --help
                 ```
 
             === "setting the nord-box theme"
 
-                ```console exec="true" source="tabbed-left" result="ansi"
+                ```console exec="true" source="above" result="ansi"
                 $ export SOCX_RICH_CLICK__THEME="nord-box"
                 $ socx --help
                 ```
 
         ??? example "Dumping a specific configuration field"
 
-            ```console exec="true" source="tabbed-left" result="yaml"
+            ```console exec="true" source="above" result="yaml"
             $ socx config dump git.status.flags
             ```
 
@@ -454,13 +538,13 @@ icon: lucide/plug
 
         ??? example "Dumping the plugins configuration in TOML format"
 
-            ```console exec="true" source="tabbed-left" result="toml"
+            ```console exec="true" source="above" result="toml"
             $ socx config dump -f toml plugins
             ```
 
         ??? example "Dumping the plugins configuration in JSON format"
 
-            ```console exec="true" source="tabbed-left" result="json" title="dumping the plugins configuration in JSON format"
+            ```console exec="true" source="above" result="json" title="dumping the plugins configuration in JSON format"
             $ socx config dump -f json plugins
             ```
 

@@ -1,0 +1,36 @@
+name: Run tests with pytest
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    name: python
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.12"
+          - "3.13"
+          - "3.14"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Test Environment
+        run: make setup
+      - name: Sync dependencies
+        run: make sync
+      - name: Run tests
+        run: make test

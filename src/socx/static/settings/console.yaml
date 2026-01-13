@@ -1,10 +1,20 @@
 console:
   init:
     tab_size: 4
+    quiet: "@bool False"
     markup: "@bool True"
     record: "@bool False"
     highlight: "@bool True"
+    soft_wrap: "@bool True"
+    no_color: "@jinja False"
 
   traceback:
-    show_locals: "@bool True"
-    locals_hide_sunder: "@bool True"
+    theme: ansi_dark
+    suppress:
+      - click
+      - dynaconf
+      - rich_click
+    word_wrap: true
+    show_locals: true
+    indent_guides: false
+    locals_hide_sunder: ~

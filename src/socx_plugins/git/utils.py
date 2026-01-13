@@ -153,12 +153,7 @@ def find_repositories(
         if not root.is_dir():
             return []
 
-        rv = [root]
-        kwargs = {
-            "root_dir": root,
-            "recursive": recursive,
-            "include_hidden": include_hidden,
-        }
+        rv = []
 
         for pattern in map(str, patterns):
             if not pattern.endswith("/"):
@@ -166,7 +161,12 @@ def find_repositories(
 
             paths = [
                 (root / path).relative_to(Path.cwd(), walk_up=True)
-                for path in glob(pattern, **kwargs)
+                for path in glob(
+                    pattern,
+                    root_dir=root,
+                    recursive=recursive,
+                    include_hidden=include_hidden,
+                )
             ]
             rv.extend(filter(Path.is_dir, paths))
 
@@ -175,17 +175,14 @@ def find_repositories(
     def match_repos(
         root: Path, patterns: Iterable[str | Path], deduplicate: bool = False
     ) -> list[Path]:
-        dirs = filter(is_repo, match_directories(root, patterns))
+        dirs = filter(is_repo, match_directories(root=root, patterns=patterns))
         return deduplicate_paths(dirs) if deduplicate else list(dirs)
 
-    dirs = match_repos(root, ["*/"])
+    if isinstance(includes, str):
+        includes = [includes]
 
-    includes = (
-        [includes] if isinstance(includes, str) else list(includes or [])
-    )
-
-    if includes:
-        dirs.extend(match_repos(root=root, patterns=includes))
+    includes = includes or [Path.cwd()]
+    dirs = list(match_repos(root=root, patterns=includes))
 
     if excludes:
         excludes = {

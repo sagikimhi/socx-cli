@@ -9,8 +9,7 @@ from logging import Logger
 import box
 import rich_click as click
 
-from socx import console, settings, get_logger
-from socx.config.paths import LOCAL_CONFIG_FILENAME
+from socx import console, settings, get_logger, LOCAL_CONFIG_FILENAME
 
 
 logger: Logger = get_logger(__name__)

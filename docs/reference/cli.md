@@ -18,12 +18,6 @@ icon: lucide/square-terminal
         $ socx git --help
         ```
 
-    === "`#!yaml socx rgr`"
-
-        ```console exec="1" source="tabbed-right" result="ansi"
-        $ socx rgr --help
-        ```
-
     === "`#!yaml socx init`"
 
         ```console exec="1" source="tabbed-right" result="ansi"
@@ -46,4 +40,10 @@ icon: lucide/square-terminal
 
         ```console exec="1" source="tabbed-right" result="ansi"
         $ socx version --help
+        ```
+
+    === "`#!yaml socx regression`"
+
+        ```console exec="1" source="tabbed-right" result="ansi"
+        $ socx regression --help
         ```

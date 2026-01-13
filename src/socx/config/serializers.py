@@ -40,5 +40,5 @@ class SettingsSerializer(Serializer[LazySettings]):
     ) -> DynaBox:
         """Serialize a ``LazySettings`` obj into a python ``dict``."""
         if key is None:
-            return obj.to_dict()
+            return DynaBox(obj.to_dict())
         return obj.get(key, cast=False, fresh=True)

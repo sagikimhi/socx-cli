@@ -2,19 +2,11 @@
 
 from __future__ import annotations
 
-import sys
 import logging
 from typing import Any, Literal, ParamSpec, TypeVar
 from pathlib import Path
 from collections import ChainMap
 from collections.abc import Callable
-
-try:
-    import box
-
-    sys.modules["dynaconf.vendor.box"] = box
-except ImportError:
-    from dynaconf.vendor import box
 
 from dynaconf import LazySettings, get_history
 from dynaconf.base import SourceMetadata, ensure_a_list
@@ -153,7 +145,7 @@ class Settings(LazySettings):
         """Return a ``dict`` with useful debugging information of settings."""
         return self.get_debug_info()
 
-    def as_box(self, key: str | None = None) -> DynaBox | box.BoxList:
+    def as_box(self, key: str | None = None) -> DynaBox:
         """Get the current settings as a ``DynaBox`` instance."""
         rv = self.get_raw(key)
         return DynaBox({key: rv}) if key is not None else DynaBox(rv)
@@ -173,7 +165,7 @@ class Settings(LazySettings):
     def get_raw(
         self,
         key: str | None = None,
-        default: Any = None,
+        default: Any | None = None,
         sep: str | None = None,
     ) -> Any:
         """Return the raw value for key if such exists, else default.
@@ -207,13 +199,11 @@ class Settings(LazySettings):
             return self.raw
 
         if self.exists(key):
-            return self.encode(
-                _get_data_by_key(
-                    data=self.raw,
-                    key_dotted_path=key,
-                    default=default,
-                    sep=(sep or "__"),
-                )
+            return _get_data_by_key(
+                data=self.raw,
+                key_dotted_path=key,
+                default=default,
+                sep=(sep or "__"),
             )
 
         if hasattr(self, key):
@@ -249,15 +239,12 @@ class Settings(LazySettings):
 
             The returned entries are ordered from oldest to newest.
         """
-        return tuple(
-            reversed(
-                [
-                    DynaBox(self.encode(entry))
-                    for i, entry in enumerate(get_history(obj=self, key=key))
-                    if limit == 0 or i < limit
-                ]
-            )
-        )
+        rv = [
+            DynaBox(self.encode(entry))
+            for i, entry in enumerate(get_history(obj=self, key=key))
+        ]
+        rv.reverse()
+        return tuple(rv[: limit or -1])
 
     def get_debug_info(
         self, key: str | None = None, verbosity: Literal[0, 1, 2] = 0
@@ -323,16 +310,18 @@ class Settings(LazySettings):
     def _encode(cls, obj: Any):
         rv = unparse_conf_data(obj)
 
+        if isinstance(rv, Path):
+            return str(rv)
+
         if isinstance(rv, str):
             if rv.startswith("@none"):
                 rv = rv.strip()
 
             return rv
 
-        if isinstance(rv, Path):
-            return str(rv)
-
-        return to_jsonable_python(rv)
+        return to_jsonable_python(
+            rv, serialize_unknown=True, fallback=unparse_conf_data
+        )
 
     @classmethod
     def _lowerfy(cls, obj: Any):

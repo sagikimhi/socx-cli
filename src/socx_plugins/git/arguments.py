@@ -50,6 +50,10 @@ def manifest_opts() -> Decorator:
     )
 
 
+def summary_opts() -> Decorator:
+    return join_decorators(format_())
+
+
 def git_command_arg() -> Decorator:
     return click.argument(
         "git_cmd",

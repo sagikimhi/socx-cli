@@ -12,7 +12,6 @@ from socx import (
     Regression,
     TestStatus,
     Decorator,
-    AnyCallable,
     SymbolConverter,
     settings,
     join_decorators,
@@ -24,7 +23,7 @@ from socx_plugins.rgr.callbacks import input_cb, output_cb
 logger = logging.getLogger(__name__)
 
 
-def _input() -> Decorator[AnyCallable]:
+def _input() -> Decorator:
     """Click option configuring the regression input file path."""
     return click.argument(
         "input",
@@ -44,7 +43,7 @@ def _input() -> Decorator[AnyCallable]:
     )
 
 
-def _output() -> Decorator[AnyCallable]:
+def _output() -> Decorator:
     """Click option configuring where regression results are stored."""
     return click.option(
         "--output",
@@ -59,13 +58,16 @@ def _output() -> Decorator[AnyCallable]:
             resolve_path=True,
             path_type=Path,
         ),
-        required=False,
+        default=settings.regression.run.output.directory,
         callback=output_cb,
+        required=True,
+        show_envvar=True,
+        show_default=True,
         expose_value=True,
     )
 
 
-def options() -> Decorator[AnyCallable]:
+def options() -> Decorator:
     """Compose the reusable input/output options."""
     return join_decorators(_input(), _output())
 
@@ -98,6 +100,19 @@ def _correct_paths_out(
     return dir_out
 
 
+def _write_test_outputs(test: Test, output_dir: Path) -> None:
+    if test.stdout:
+        test_out_log = output_dir / test.name / "stdout.log"
+        test_out_log.parent.mkdir(parents=True, exist_ok=True)
+        test_out_log.write_text(test.stdout)
+        del test._stdout
+    if test.stderr:
+        test_err_log = output_dir / test.name / "stderr.log"
+        test_err_log.parent.mkdir(parents=True, exist_ok=True)
+        test_err_log.write_text(test.stderr)
+        del test._stderr
+
+
 async def write_test_outputs(regression: Regression, output_dir: Path) -> None:
     """Write the regression command results to their respective files."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -120,19 +135,6 @@ async def write_test_outputs(regression: Regression, output_dir: Path) -> None:
             regression.done.task_done()
 
 
-def _write_test_outputs(test: Test, output_dir: Path) -> None:
-    if test.stdout:
-        test_out_log = output_dir / test.name / "stdout.log"
-        test_out_log.parent.mkdir(parents=True, exist_ok=True)
-        test_out_log.write_text(test.stdout)
-        del test._stdout
-    if test.stderr:
-        test_err_log = output_dir / test.name / "stderr.log"
-        test_err_log.parent.mkdir(parents=True, exist_ok=True)
-        test_err_log.write_text(test.stderr)
-        del test._stderr
-
-
 def write_test_results(regression: Regression, output_dir: Path) -> None:
     """Write the regression command results to their respective files."""
     fail_out = output_dir / "failed.log"
@@ -152,7 +154,7 @@ def write_test_results(regression: Regression, output_dir: Path) -> None:
     logger.info("regression results successfuly written to disk.")
 
 
-def _populate_regression(filepath: Path) -> Regression:
+def populate_regression(filepath: Path) -> Regression:
     """Construct a ``Regression`` model from the recorded commands file."""
     converter = SymbolConverter()
     test_cls = converter(settings.regression.test_cls)
@@ -164,13 +166,13 @@ def _populate_regression(filepath: Path) -> Regression:
     )
 
 
-async def _run_from_file(
+async def run_from_file(
     input: str | Path | None = None,  # noqa: A002
     output: str | Path | None = None,
 ) -> Regression:
     """Run a regression using file inputs and persist the results."""
     path_in = _correct_path_in(input)
-    regression = _populate_regression(path_in)
+    regression = populate_regression(path_in)
     output_dir = _correct_paths_out(regression, output)
 
     try:

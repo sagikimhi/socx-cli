@@ -6,13 +6,6 @@ plugins:
     command: "socx_plugins.git:cli"
     short_help: Run `git` commands in parallel on multiple repositories.
 
-  rgr:
-    panel: Commands
-    enabled: true
-    aliases: []
-    command: "socx_plugins.rgr:cli"
-    short_help: Perform various regression related actions.
-
   init:
     panel: Commands
     enabled: true
@@ -40,3 +33,10 @@ plugins:
     aliases: []
     command: "socx_plugins.version:version"
     short_help: Print version information and exit.
+
+  regression:
+    panel: Commands
+    enabled: true
+    aliases: []
+    command: "socx_plugins.rgr:cli"
+    short_help: Perform various regression related actions.

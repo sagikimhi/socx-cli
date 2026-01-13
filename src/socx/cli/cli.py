@@ -8,8 +8,8 @@ import rich_click as click
 
 from socx.io import get_logger
 from socx.cli import params
+from socx.core import LOCAL_CONFIG_FILENAME
 from socx.cli._cli import socx
-from socx.config import LOCAL_CONFIG_FILENAME
 
 
 logger = get_logger(__name__)
@@ -18,8 +18,9 @@ logger = get_logger(__name__)
 @socx()
 @params.opts()
 @params.panels()
+@params.cli_config()
 @click.pass_context
-def cli(ctx: click.RichContext):
+def cli(ctx: click.RichContext) -> None:
     """System on chip verification and tooling infrastructure."""
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())

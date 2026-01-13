@@ -1,21 +1,24 @@
 cli:
   params:
+    cwd: "@jinja {{'.' | realpath}}"
     color: true
     debug: false
     configure: true
-    verbosity: ERROR
+    verbosity: WARNING
     config_files: []
 
   command:
     options_metavar: "[options]"
     context_settings:
+      help_option_names:
+        - -h
+        - --help
       allow_interspersed_args: true
 
   group:
     options_metavar: "[options]"
     subcommand_metavar: "<subcommand> [args]..."
-    no_args_is_help: true
-    context_settings: &socx-cli-context-settings
+    context_settings:
       auto_envvar_prefix: "SOCX_"
       help_option_names:
         - -h
@@ -24,15 +27,27 @@ cli:
       ignore_unknown_options: true
       allow_interspersed_args: false
 
-  option_panels:
-    - name: Flags
-      options:
-        - --color
-        - --configure
+  command_panels:
+    - name: Commands
+      commands:
+        - git
+        - init
+        - plugin
+        - config
+        - version
+        - regression
+    - name: Plugins
 
-    - name: Options
+  option_panels:
+    - name: General Options
       options:
         - --help
         - --debug
         - --verbosity
+        - --color
+
+    - name: Project Options
+      options:
+        - --cwd
         - --config-file
+        - --configure

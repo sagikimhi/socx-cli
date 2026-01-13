@@ -14,6 +14,10 @@ tags:
     [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
     [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
     [![Hatch](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
+    [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+    ![PyPI - Version](https://img.shields.io/pypi/v/socx-cli?style=flat-square&color=cornflowerblue)
+    ![PyPI - Downloads](https://img.shields.io/pypi/dm/socx-cli?style=flat-square)
+    ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/socx-cli?style=flat-square)
 
     ---
 
@@ -169,12 +173,6 @@ tags:
         === "`socx config dump`"
 
             ![socx config dump](assets/images/socx-config-dump.svg){ width="800" loading=lazy }
-            /// caption
-            ///
-
-        === "`socx config list`"
-
-            ![socx config list](assets/images/socx-config-list.svg){ width="800" loading=lazy }
             /// caption
             ///
 

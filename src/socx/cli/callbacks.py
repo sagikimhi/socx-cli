@@ -7,6 +7,7 @@ import logging
 from typing import Any
 from pathlib import Path
 
+from plumbum import local
 from rich_click import Context
 from rich_click import Parameter
 from rich_click import RichContext
@@ -35,6 +36,13 @@ def multi_param_cb(_: Context, param: Parameter, value: Any) -> Any:
 
 
 @log_it(logger=logger)
+def cwd_cb(ctx: Context, param: Parameter, value: Path) -> Path:
+    settings.cli.params[param.name] = value
+    ctx.with_resource(local.cwd(value))
+    return value
+
+
+@log_it(logger=logger)
 def debug_cb(_: Context, param: Parameter, value: bool) -> bool:
     """Enable debug logging and persist the CLI switch to settings."""
     settings.cli.params[param.name] = value
@@ -47,31 +55,31 @@ def debug_cb(_: Context, param: Parameter, value: bool) -> bool:
 @log_it(logger=logger)
 def color_cb(ctx: RichContext, param: Parameter, value: bool) -> bool:
     """Enable color logging and persist the CLI switch to settings."""
-    ctx.console = console
-    console.no_color = not value
-    ctx.console.no_color = not value
     settings.cli.params[param.name] = value
-    if not value:
-        os.environ["NO_COLOR"] = "true"
+    no_color = not value
+
+    if no_color:
+        os.environ["NO_COLOR"] = str(int(no_color))
+
+    console.no_color = no_color
     return value
 
 
 @log_it(logger=logger)
-def configure_cb(_: Context, param: Parameter, value: str) -> str:
+def configure_cb(ctx: Context, param: Parameter, value: str) -> str:
     """Toggle whether user overrides should be merged into settings."""
     from socx.config._config import (
         _settings_cv,
-        get_settings,
+        _local_settings,
+        _default_settings,
     )
 
     settings.cli.params[param.name] = value
 
     if value:
-        _settings_cv.set(
-            get_settings(user_overrides=True, local_overrides=True)
-        )
+        _settings_cv.set(_local_settings)
     else:
-        _settings_cv.set(get_settings())
+        _settings_cv.set(_default_settings)
 
     settings.cli.params[param.name] = value
     return value

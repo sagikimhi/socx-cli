@@ -184,7 +184,6 @@ export_svg: uv ## Export help menus of all socx commands as svg images
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx config get plugins" $(SVG_DIR)/socx-config-get.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx config dump plugins" $(SVG_DIR)/socx-config-dump.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx config tree" $(SVG_DIR)/socx-config-tree.svg
-	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx config list" $(SVG_DIR)/socx-config-list.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx config debug" $(SVG_DIR)/socx-config-debug.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx config inspect" $(SVG_DIR)/socx-config-inspect.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx plugin --help" $(SVG_DIR)/socx-plugin.svg

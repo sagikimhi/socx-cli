@@ -251,8 +251,8 @@ def get(ctx: click.Context, pager: bool, field: str):
 @click.pass_context
 def dump(
     ctx: click.Context,
-    pager: bool,
     guides: bool,
+    pager: bool,
     format_: str,
     field: str | None,
 ) -> None:

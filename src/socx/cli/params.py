@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import logging
+from textwrap import dedent
 from typing import Any, cast
 from pathlib import Path
 from collections import ChainMap
@@ -11,10 +11,13 @@ from collections.abc import Callable
 from pydantic import ValidationError
 import rich_click as click
 
+from socx.core import Decorator, GroupType, CommandType, AnyCallable
+from socx.io.log import Level
+from socx.io.console import console
 from socx.config import settings
 from socx.config.schema.plugin import PluginModel
-from socx.cli.types import Decorator, GroupType, CommandType, AnyCallable
 from socx.cli.callbacks import (
+    cwd_cb,
     debug_cb,
     color_cb,
     verbosity_cb,
@@ -24,6 +27,24 @@ from socx.cli.callbacks import (
 from socx.utils.decorators import join_decorators
 
 
+def cli_config(**kwargs: Any) -> Decorator:
+    config = dict(
+        ChainMap(
+            kwargs,
+            settings.transform(
+                settings.rich_click.to_dict(), settings._normalize_key
+            ),
+        )
+    )
+    for k in list(config.keys()):
+        if config[k] is None:
+            del config[k]
+    return click.rich_config(
+        help_config=config,
+        console=console,
+    )
+
+
 def command(
     name: str | AnyCallable | None = None,
     cls: type[CommandType] | None = None,
@@ -31,7 +52,7 @@ def command(
     **kwargs: Any,
 ) -> CommandType | Callable[[AnyCallable], CommandType | click.Command]:
     cls = cls or cast(type[CommandType], click.Command)
-    kwargs = dict(ChainMap(kwargs, settings.cli.command))
+    kwargs = dict(ChainMap(kwargs, settings.cli.command.to_dict()))
 
     def decorator(func: AnyCallable) -> CommandType:
         cmd = click.command(
@@ -54,7 +75,7 @@ def group(
     parent: GroupType | None = None,
     **kwargs: Any,
 ) -> GroupType | Callable[[AnyCallable], GroupType | click.Group]:
-    kwargs = dict(ChainMap(kwargs, settings.cli.group))
+    kwargs = dict(ChainMap(kwargs, settings.cli.group.to_dict()))
 
     def decorator(func: AnyCallable) -> GroupType | click.Group:
         cmd = click.group(
@@ -74,10 +95,26 @@ def group(
     return decorator
 
 
+cwd: Decorator = click.option(
+    "--cwd",
+    "-cd",
+    help="Run the command from another directory",
+    nargs=1,
+    type=click.Path(
+        exists=True, file_okay=False, dir_okay=True, path_type=Path
+    ),
+    metavar="directory",
+    envvar="SOCX_CWD",
+    default=settings.cli.params.cwd,
+    show_default=False,
+    expose_value=False,
+    callback=cwd_cb,
+)
+
 color: Decorator = click.option(
     "--color/--no-color",
     "color",
-    help="Disable colored output.",
+    help="Enable/disable colored output.",
     envvar="SOCX_COLOR",
     default=settings.cli.params.color,
     is_flag=True,
@@ -99,7 +136,7 @@ debug: Decorator = click.option(
     is_flag=True,
     is_eager=False,
     show_envvar=True,
-    show_default=True,
+    show_default=False,
     expose_value=False,
     callback=debug_cb,
 )
@@ -116,10 +153,10 @@ verbosity: Decorator = click.option(
     is_eager=False,
     show_envvar=True,
     show_choices=True,
-    show_default=True,
+    show_default=False,
     expose_value=False,
     type=click.Choice(
-        choices=tuple(logging.getLevelNamesMapping()),
+        choices=tuple(Level._member_map_),
         case_sensitive=False,
     ),
     callback=verbosity_cb,
@@ -127,10 +164,11 @@ verbosity: Decorator = click.option(
 
 configure: Decorator = click.option(
     "--configure/--no-configure",
+    "-C/-NC",
     "configure",
     help="Enable/disable loading of user and local configuration files.",
     envvar="SOCX_CONFIGURE",
-    default=settings.cli.params.configure,
+    default=True,
     is_flag=True,
     is_eager=True,
     show_envvar=True,
@@ -142,16 +180,10 @@ config_files: Decorator = click.option(
     "--config-file",
     "-f",
     "config_files",
-    help="""
-    Additional configuration file(s) to load.
-
-    Supported file formats are:
-    - INI: ".ini"
-    - JSON: ".json"
-    - YAML: ".yml", ".yaml"
-    - TOML: ".toml"
-    - Python: ".py"
-    """,
+    help=dedent("""
+    Additional configuration file(s) to load.\n
+    Can be passed multiple times to load multiple files.
+    """),
     nargs=1,
     default=settings.cli.params.config_files,
     type=click.Path(
@@ -165,7 +197,7 @@ config_files: Decorator = click.option(
     ),
     is_eager=False,
     multiple=True,
-    metavar="<path>",
+    metavar="path",
     callback=config_files_cb,
     expose_value=False,
 )
@@ -173,7 +205,9 @@ config_files: Decorator = click.option(
 
 def opts() -> Decorator:
     """Apply the standard set of global SoCX CLI options."""
-    return join_decorators(configure, verbosity, debug, color, config_files)
+    return join_decorators(
+        configure, verbosity, debug, color, cwd, config_files
+    )
 
 
 def panels():
@@ -193,11 +227,7 @@ def command_panels():
 
 def _option_panels():
     return [
-        click.option_panel(
-            name=panel.name,
-            options=panel.options,
-        )
-        for panel in settings.cli.option_panels
+        click.option_panel(**panel) for panel in settings.cli.option_panels
     ]
 
 
@@ -221,4 +251,4 @@ def _command_panels():
     return [
         click.command_panel(name=name, commands=commands)
         for name, commands in panel_commands.items()
-    ]
+    ] + [click.command_panel(**panel) for panel in settings.cli.command_panels]

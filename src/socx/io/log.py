@@ -5,12 +5,12 @@ from __future__ import annotations
 import os
 import enum
 import logging
+import logging.handlers
 from typing import Any
 from pathlib import Path
 from collections import ChainMap
 from collections.abc import Iterable
 
-from click import open_file
 from rich.console import Console
 from rich.logging import RichHandler
 from platformdirs import user_log_path
@@ -75,9 +75,14 @@ def _get_file_handler(
     path: str | Path, level: Level = Level.NOTSET
 ) -> logging.Handler:
     """Create a Rich handler that writes log output to ``path``."""
-    file = open_file(str(path), mode="w", encoding="utf-8", lazy=True)
-    console = Console(file=file, markup=False, tab_size=4)
-    return RichHandler(console=console, level=level)
+    handler = logging.handlers.RotatingFileHandler(
+        path, maxBytes=1024 * 1024 * 5, backupCount=5
+    )
+    handler.setLevel(level)
+    handler.setFormatter(
+        logging.Formatter(DEFAULT_CHILD_FORMAT, DEFAULT_TIME_FORMAT)
+    )
+    return handler
 
 
 APP_LIB_NAME = __name__.partition(".")[0]

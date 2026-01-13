@@ -6,10 +6,9 @@ from typing import TYPE_CHECKING, cast
 
 import rich_click as click
 from socx import (
-    join_decorators,
+    command,
     settings,
-    console,
-    Decorator,
+    print_outputs,
     print_command_outputs,
 )
 from rich.markdown import Markdown
@@ -17,22 +16,6 @@ from rich.markdown import Markdown
 from socx_plugins.git import arguments
 from socx_plugins.git.summary import Summary
 from socx_plugins.git.manifest import Manifest
-
-
-def opts() -> Decorator:
-    return join_decorators(
-        arguments.root(),
-        arguments.pager(),
-        arguments.timeout(),
-        arguments.includes(),
-        arguments.excludes(),
-    )
-
-
-def args() -> Decorator:
-    return join_decorators(
-        arguments.git_command_arg(), arguments.git_arguments_arg()
-    )
 
 
 @click.group(**settings.git.cli.group)
@@ -55,7 +38,7 @@ def cli(
     cmd = ctx.command.get_command(ctx, git_cmd)
 
     if cmd is not None:
-        ctx.invoke(cmd, git_args)
+        cmd.main(args=git_args, prog_name=f"{ctx.command_path} {cmd.name}")
     else:
         mfest = Manifest(
             root=settings.git.manifest.root,
@@ -72,9 +55,10 @@ if TYPE_CHECKING:
     cli = cast(click.Group, cli)
 
 
-@cli.command(**settings.cli.command)
-@arguments.format_()
-def summary():
+@command(parent=cli)
+@arguments.io_opts()
+@arguments.summary_opts()
+def summary(pager: bool):
     """Output a manifest of all git repositories found under a given path."""
     mfest = Manifest(
         root=settings.git.manifest.root,
@@ -82,10 +66,15 @@ def summary():
         excludes=settings.git.manifest.excludes,
         cmd_timeout=settings.git.manifest.cmd_timeout,
     )
-    console.print(Summary(mfest.repos.values()))
+    print_outputs(
+        Summary(mfest.repos.values()), pager=pager, title="Git Summary"
+    )
 
 
-@cli.command("help", **settings.cli.command, add_help_option=False)
-def help_():
+@command("help", parent=cli, add_help_option=False)
+@arguments.io_opts()
+def help_(pager: bool):
     """Print the full help menu along with usage examples."""
-    console.print(Markdown(settings.git.cli.help))
+    print_outputs(
+        Markdown(settings.git.cli.help), pager=pager, title="Git Help"
+    )

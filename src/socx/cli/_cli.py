@@ -9,8 +9,8 @@ from collections.abc import Callable
 import rich_click as click
 
 from socx.cli import params
+from socx.core import AnyCallable
 from socx.config import settings, CommandConverter, ShConverter
-from socx.cli.types import AnyCallable
 from socx.config.schema.plugin import PluginModel
 
 

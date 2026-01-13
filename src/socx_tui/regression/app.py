@@ -13,31 +13,21 @@ from textual.app import SystemCommand
 from textual.screen import Screen
 from textual.widgets import Header
 from textual.widgets import Footer
-from textual.binding import Binding
-from textual.binding import BindingType
 from hoptex.decorator import hoptex
 
-from socx_tui.regression.screens import TemplateView
-from socx_tui.regression.screens import RegressionView
+from socx_tui.regression.screens import RegressionScreen
 
 
 @hoptex()
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("t", "push_screen('template')", "Template", show=True),
-        Binding("r", "push_screen('regression')", "Regression", show=True),
-    ]
-
     SCREENS: ClassVar[dict[str, Callable[[], Screen[Any]]]] = {
-        "template": TemplateView,
-        "regression": RegressionView,
+        "regression": RegressionScreen,
     }
 
     MODES: ClassVar[dict[str, str | Callable[[], Screen[None]]]] = {
         "default": "regression",
-        "template": TemplateView,
     }
 
     INLINE_PADDING = 0
@@ -47,9 +37,7 @@ class SoCX(App[int]):
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
         yield Header(show_clock=True, name="app_header")
-        footer = Footer(classes="-ansi-colors")
-        footer.compact = True
-        yield footer
+        yield Footer(classes="-ansi-colors", compact=True)
 
     async def on_mount(self) -> None:
         """Run any startup logic once the app attaches to the event loop."""

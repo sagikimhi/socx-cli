@@ -10,10 +10,10 @@ from textual.screen import Screen, ModalScreen
 from textual.binding import Binding
 from textual.binding import BindingType
 from textual.widgets import Button, Footer, Header, Placeholder
-from textual.containers import Container, HorizontalGroup
+from textual.containers import HorizontalGroup, VerticalGroup
 
-from socx_tui.regression.regression.table import Table
-from socx_tui.regression.regression.table import TableVisitor
+from socx_tui.regression.table import Table
+from socx_tui.regression.table import TableVisitor
 
 
 class TemplateView(ModalScreen[None], can_focus=True, inherit_bindings=True):
@@ -21,19 +21,19 @@ class TemplateView(ModalScreen[None], can_focus=True, inherit_bindings=True):
 
     CSS = """
     TemplateView {
-        align: center top;
+        align: center middle;
+        height: auto;
+        border: none;
+        padding: 0 0;
+        max-height: 80vh;
+
         Placeholder {
+            height: auto;
             padding: 0 1;
             border: none !important;
-            height: auto;
         }
     }
     """
-
-    @property
-    def container(self) -> Container:
-        """Return the scrollable container that hosts template content."""
-        return self.query_one("#container", Container)
 
     def compose(self) -> ComposeResult:
         """Render a static placeholder view until real content is supplied."""
@@ -43,36 +43,39 @@ class TemplateView(ModalScreen[None], can_focus=True, inherit_bindings=True):
         yield Placeholder("World")
 
 
-class RegressionView(Screen[None], can_focus=True, inherit_bindings=True):
+class RegressionScreen(Screen[None], can_focus=True, inherit_bindings=True):
     """Screen responsible for rendering regression results within the TUI."""
 
     CSS = """
-    RegressionView {
+    RegressionScreen {
+        align: center middle;
         height: auto;
         border: none;
-        align: center top;
+        padding: 0 0;
         max-height: 80vh;
-        &.-maximized-view {
-            height: 80vh;
-            hatch: right ansi_black;
-        }
-        .-maximized { margin: 1 2; }
 
         Header {
-            height: 1;
-            margin: 0 1 !important;
+            margin: 0 0 !important;
         }
+
         Footer {
-            height: 1;
-            margin: 0 1 !important;
+            margin: 0 0 !important;
         }
-        HorizontalGroup {
-            align: center bottom;
-            margin: 0 1 !important;
-        }
-        Table {
-            margin: 0 1 !important;
-            max-height: 60vh;
+
+        VerticalGroup {
+            align: center middle;
+            max-height: 80vh;
+
+            HorizontalGroup {
+                align: center bottom;
+                margin: 0 0 !important;
+            }
+
+            Table {
+                max-height:68vh;
+                align: center bottom;
+                margin: 0 0 !important;
+            }
         }
     }
     """
@@ -85,11 +88,12 @@ class RegressionView(Screen[None], can_focus=True, inherit_bindings=True):
         """Build the screen body using the regression results table widget."""
         yield Header()
         yield Footer()
-        yield Table()
-        with HorizontalGroup():
-            yield Button("Stop", "error")
-            yield Button("Start", "success")
-            yield Button("Export", "primary")
+        with VerticalGroup():
+            yield Table()
+            with HorizontalGroup():
+                yield Button("Stop", "error")
+                yield Button("Start", "success")
+                yield Button("Export", "primary")
 
     def action_load_from_file(self) -> None:
         """Load regression results from disk and refresh the table view."""

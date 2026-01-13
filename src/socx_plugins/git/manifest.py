@@ -7,7 +7,6 @@ from collections.abc import Iterable, Iterator
 from sh import RunningCommand
 from sh.contrib import git  # pyright: ignore[reportMissingImports]
 from git import Repo
-from socx import settings
 from pydantic import BaseModel, ConfigDict, computed_field
 
 from socx_plugins.git.utils import (
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class Manifest(BaseModel):
-    root: Path = settings.git.manifest.root
+    root: Path
     includes: list[str | Path] = []
     excludes: list[str | Path] = []
     cmd_timeout: float | None = None
@@ -42,7 +41,7 @@ class Manifest(BaseModel):
         rv = {
             get_repo_name(repo): repo
             for repo in find_repositories(
-                self.root, self.includes, self.excludes
+                root=self.root, includes=self.includes, excludes=self.excludes
             )
         }
         return rv

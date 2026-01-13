@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 import logging
-from textwrap import dedent
 import contextvars as ctx
+from textwrap import dedent
 from typing import Any
 from pathlib import Path
 from collections import ChainMap
@@ -13,7 +14,7 @@ from dynaconf.utils import ensure_a_list
 from werkzeug.local import LocalProxy
 
 from socx.config import converters
-from socx.config._paths import (
+from socx.core import (
     LOCAL_CONFIG_FILENAME,
     LOCAL_CONFIG_FILE,
     USER_CONFIG_FILE,
@@ -113,8 +114,8 @@ def get_settings(
     **kwargs: Any,
 ) -> Settings:
     """Create a configured ``Settings`` instance, including overrides."""
-    from socx.config import paths
-    from socx.config import metadata
+    from socx.core import paths
+    from socx.core import metadata
     from socx.config.serializers import ModuleSerializer
 
     if isinstance(path, str):
@@ -135,18 +136,16 @@ def get_settings(
         )
 
     root = includes[-1].parent if includes else Path.cwd()
+    settings_kwargs = dict(
+        preload=settings_file, root_path=root, settings_file=includes
+    )
     kwargs = dict(
         ChainMap(
             kwargs,
-            dict(
-                root_path=root,
-                project_root=root,
-                preload=settings_file,
-                settings_file=[*includes],
-            ),
+            settings_kwargs,
+            ModuleSerializer.serialize(paths),
+            ModuleSerializer.serialize(metadata),
         ),
-        **ModuleSerializer.serialize(paths),
-        **ModuleSerializer.serialize(metadata),
     )
     rv = Settings(**kwargs)
     return rv
@@ -154,9 +153,24 @@ def get_settings(
 
 converters.init()
 
-_default_settings: Settings = get_settings()
+_tokens = []
 
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
+
+_default_settings: Settings = get_settings()
+
+try:
+    _user_settings: Settings = get_settings(user_overrides=True)
+except Exception:
+    _user_settings = _default_settings
+
+try:
+    _local_settings: Settings = get_settings(
+        user_overrides=True, local_overrides=True
+    )
+except Exception:
+    _local_settings = _default_settings
+    _local_settings.update(_user_settings)
 
 settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
     _settings_cv,
@@ -168,23 +182,7 @@ settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
     """),
 )
 
-try:
-    _user_settings: Settings = get_settings(user_overrides=True)
-except Exception:
-    _user_settings = _default_settings
-
-try:
-    _local_settings: Settings = get_settings(local_overrides=True)
-except Exception:
-    _local_settings = _default_settings
-    _local_settings.update(_user_settings)
-
-try:
-    _global_settings: Settings = get_settings(
-        user_overrides=True, local_overrides=True
-    )
-except Exception:
-    _global_settings = _default_settings
-    _global_settings.update(_local_settings)
-
-_settings_cv.set(_global_settings)
+if "--no-configure" in sys.argv or "-NC" in sys.argv:
+    _tokens.append(_settings_cv.set(_default_settings))
+else:
+    _tokens.append(_settings_cv.set(_local_settings))

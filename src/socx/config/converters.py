@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from collections import ChainMap
 import os
 import sys
 import abc
 import runpy
 import shlex
 import logging
+from io import StringIO
 from types import CodeType, ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -22,12 +22,16 @@ from typing import (
 from pathlib import Path
 from importlib import import_module
 from functools import cached_property, singledispatchmethod
+from collections import ChainMap
 from collections.abc import Iterable, Callable
 
 import sh
 import rich_click as click
 import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
+from rich.console import Console
+from rich.markdown import Markdown
+from plumbum import local
 from pydantic import validate_call, ConfigDict
 from dynaconf import add_converter
 from dynaconf.utils.boxing import DynaBox
@@ -367,9 +371,8 @@ class CommandConverter(
             "args",
             nargs=-1,
             required=False,
-            expose_value=True,
             type=click.UNPROCESSED,
-            metavar="[<subcommand>] [<args>...]",
+            metavar="[args]...",
         )
         def cli(args):
             nonlocal value
@@ -394,13 +397,16 @@ class CommandConverter(
         return cli
 
     @singledispatchmethod
-    def _run_shell_script(self, value, *args, env=None, **kwargs) -> int: ...
+    def _run_shell_script(
+        self, value, *args, cwd=None, env=None, **kwargs
+    ) -> int: ...
 
     @_run_shell_script.register
     def _(
         self,
         value: str,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
@@ -408,13 +414,16 @@ class CommandConverter(
         if isinstance(cmd, str):
             return -1
         else:
-            return self._run_shell_script(cmd, *args, env=env, **kwargs)
+            return self._run_shell_script(
+                cmd, *args, cwd=cwd, env=env, **kwargs
+            )
 
     @_run_shell_script.register
     def _(
         self,
         value: sh.Command,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
@@ -422,6 +431,7 @@ class CommandConverter(
             *args,
             **kwargs,
             _bg=True,
+            _cwd=cwd,
             _env=env,
             _in=sys.stdin,
             _out=sys.stdout,
@@ -440,6 +450,7 @@ class CommandConverter(
         self,
         value: PluginModel,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
@@ -448,7 +459,10 @@ class CommandConverter(
             if value.fresh_env
             else dict(ChainMap(os.environ.copy(), value.env))
         )
-        return self._run_shell_script(value.script, *args, env=env, **kwargs)
+        cwd = cwd or value.cwd or Path.cwd()
+        return self._run_shell_script(
+            value.script, *args, cwd=cwd, env=env, **kwargs
+        )
 
     @singledispatchmethod
     def _run_from_pathspec(self, value, *args, env=None, **kwargs) -> Any: ...
@@ -457,6 +471,7 @@ class CommandConverter(
     def _(
         self,
         value: str,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
     ) -> dict[str, Any] | Any:
         def noop(**_) -> None:
@@ -465,8 +480,8 @@ class CommandConverter(
         rv = {}
         ctx = click.get_current_context(silent=True)
         path, _, symbol = value.rpartition(":")
+        cwd = cwd or Path.cwd()
         argv = sys.argv.copy()
-        syspath = sys.path.copy()
         environ = os.environ.copy()
 
         if ctx:
@@ -482,49 +497,54 @@ class CommandConverter(
         while sys.argv and sys.argv[0] != name:
             sys.argv.pop(0)
 
-        sys.argv[0] = f"socx {sys.argv[0]}"
+        if sys.argv:
+            sys.argv[0] = f"socx {name}"
+        else:
+            sys.argv.append(f"socx {name}")
 
         if env:
             os.environ.clear()
             os.environ.update(env)
 
-        if self.is_script_path(path):
-            sys.path.insert(0, str(Path(path).parent))
-        elif self.is_package_path(path):
-            sys.path.insert(0, path)
+        if self.is_script_path(path) or self.is_package_path(path):
+            path = str(Path(path).resolve())
 
-        try:
-            if self.is_module_path(path) and symbol:
-                obj = self.importer(path)
-                obj = getattr(obj, symbol, noop)
-                if callable(obj):
-                    if isinstance(obj, click.Command):
-                        rv = obj.main(
-                            sys.argv[1:], sys.argv[0], standalone_mode=False
-                        )
-                    else:
-                        rv = obj()
-            elif symbol:
-                rv = None
-                obj = runpy.run_path(path).get(symbol, noop)
-                if callable(obj):
-                    if isinstance(obj, click.Command):
-                        rv = obj.main(
-                            sys.argv[1:], sys.argv[0], standalone_mode=False
-                        )
-                    else:
-                        rv = obj()
-            else:
-                rv = runpy.run_path(path, run_name=_detect_program_name())
-        except Exception as exc:
-            err = f"Failed to run pathspec '{value}'"
-            self.log_exception(err, exc=exc)
-            raise
-        finally:
-            sys.argv = argv
-            sys.path = syspath
-            os.environ.clear()
-            os.environ.update(environ)
+        with local.cwd(cwd):
+            try:
+                if self.is_module_path(path) and symbol:
+                    obj = self.importer(path)
+                    obj = getattr(obj, symbol, noop)
+                    if callable(obj):
+                        if isinstance(obj, click.Command):
+                            rv = obj.main(
+                                sys.argv[1:],
+                                sys.argv[0],
+                                standalone_mode=False,
+                            )
+                        else:
+                            rv = obj()
+                elif symbol:
+                    rv = None
+                    obj = runpy.run_path(path, run_name=name).get(symbol, noop)
+                    if callable(obj):
+                        if isinstance(obj, click.Command):
+                            rv = obj.main(
+                                sys.argv[1:],
+                                sys.argv[0],
+                                standalone_mode=False,
+                            )
+                        else:
+                            rv = obj()
+                else:
+                    rv = runpy.run_path(path, run_name=_detect_program_name())
+            except Exception as exc:
+                err = f"Failed to run pathspec '{value}'"
+                self.log_exception(err, exc=exc)
+                raise
+            finally:
+                sys.argv = argv
+                os.environ.clear()
+                os.environ.update(environ)
 
         return rv
 
@@ -533,10 +553,13 @@ class CommandConverter(
         self,
         value: Path,
         *args: Any,
+        cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
-        return self._run_from_pathspec(str(value), *args, env=env, **kwargs)
+        return self._run_from_pathspec(
+            str(value), *args, env=env, cwd=cwd, **kwargs
+        )
 
     @_run_from_pathspec.register
     def _(
@@ -544,25 +567,31 @@ class CommandConverter(
     ) -> dict[str, Any] | Any:
         if not value.command:
             return {}
+
         env = (
             value.env
             if value.fresh_env
             else {**os.environ.copy(), **value.env}
         )
+
         if "-h" in sys.argv or "--help" in sys.argv:
             ctx = click.get_current_context()
+
             if ctx:
                 if value.epilog:
                     ctx.command.epilog = ctx.command.epilog or value.epilog
+
                 if value.short_help:
                     ctx.command.short_help = (
                         ctx.command.short_help or value.short_help
                     )
+
                 if value.help:
                     ctx.command.help = ctx.command.help or value.help
                     click.echo(ctx.get_help())
                     ctx.exit()
-        return self._run_from_pathspec(value.command, env=env)
+
+        return self._run_from_pathspec(value.command, env=env, cwd=value.cwd)
 
     @classmethod
     def _patch_theme(cls) -> None:
@@ -595,23 +624,38 @@ class CommandConverter(
         """Return ``True`` if ``path`` points to a python script file."""
         if isinstance(value, str):
             value = Path(value)
-        return (
-            isinstance(value, Path)
-            and value.exists()
-            and value.is_file()
-            and value.suffix == ".py"
-        )
+
+        if isinstance(value, Path):
+            try:
+                value = value.resolve()
+            except OSError:
+                return False
+            else:
+                return (
+                    value.exists()
+                    and value.is_file()
+                    and value.suffix == ".py"
+                )
+
+        return False
 
     def is_package_path(self, value: Any) -> bool:
         """Return ``True`` if ``path`` points to a python package directory."""
         if isinstance(value, str):
             value = Path(value)
-        return (
-            isinstance(value, Path)
-            and value.exists()
-            and value.is_dir()
-            and (value / "__init__.py").exists()
-        )
+
+        if isinstance(value, Path):
+            try:
+                value = value.resolve()
+            except OSError:
+                return False
+            return (
+                value.exists()
+                and value.is_dir()
+                and (value / "__init__.py").exists()
+            )
+
+        return False
 
 
 class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
@@ -706,7 +750,51 @@ class ShConverter(
             else {**os.environ.copy(), **value.env}
         )
 
-        return value.script.bake(_env=env)
+        cwd = value.cwd
+
+        return value.script.bake(_env=env, _cwd=cwd)
+
+
+class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):
+    def __init__(self) -> None:
+        from jinja2.environment import Environment
+
+        self._env = Environment()
+        self._console = Console(force_terminal=True, tab_size=4)
+
+    @overload
+    def __call__(
+        self, value: str | None, *args: Any, **kwargs: Any
+    ) -> str: ...
+    @overload
+    def __call__(self, value: Lazy, *args: Any, **kwargs: Any) -> Lazy: ...
+    @overload
+    def __call__(self, value: Markdown, *args: Any, **kwargs: Any) -> str: ...
+    @override
+    @_validate
+    def __call__(
+        self, value: str | Markdown | Lazy | None, *args: Any, **kwargs: Any
+    ) -> str | Lazy:
+        if value is None:
+            return ""
+
+        if isinstance(value, Lazy):
+            if value.casting is self:
+                return value
+            return value.set_casting(self)
+
+        if isinstance(value, str):
+            value = Markdown(markup=value, code_theme="ansi_dark")
+
+        if isinstance(value, Markdown):
+            buf = StringIO()
+            self._console.file = buf
+            self._console.print(
+                "  \n".join(value.markup.splitlines()), overflow="ellipsis"
+            )
+            value = buf.getvalue()
+
+        return value
 
 
 class GenericConverter[TI, TO](Converter[TI, TO]):
@@ -755,5 +843,6 @@ def init() -> None:
         SymbolConverter(),
         CommandConverter(),
         IncludeConverter(),
+        MarkdownConverter(),
     ]
     add_converters(converters)
