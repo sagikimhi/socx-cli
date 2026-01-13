@@ -47,7 +47,7 @@ class PluginModel(BaseModel):
     """.strip(),
     )
     panel: str = Field(
-        default="Commands",
+        default="Plugins",
         description="""
         Custom panel name in which plugin help text will be displayed when
         CLI is invoked with the -h/--help flag.
