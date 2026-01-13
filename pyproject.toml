@@ -30,7 +30,7 @@ socx = 'socx.__main__:main'
 name = "socx-cli"
 readme = "README.md"
 version = "0.11.1"
-license = "Apache-2.0 OR MIT"
+license = "Apache-2.0"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 description = "System on chip verification and tooling infrastructure."
@@ -82,11 +82,11 @@ dependencies = [
 
 [project.urls]
 Issues = "https://github.com/sagikimhi/socx-cli/issues"
-Homepage = "https://sagikimhi.github.io/socx-cli"
-Changelog = "https://sagikimhi.github.io/socx-cli/changelog"
+Homepage = "https://sagikimhi.dev/socx-cli"
+Changelog = "https://sagikimhi.dev/socx-cli/changelog"
 Repository = "https://github.com/sagikimhi/socx-cli"
 Discussions = "https://github.com/sagikimhi/socx-cli/discussions"
-Documentation = "https://sagikimhi.github.io/socx-cli"
+Documentation = "https://sagikimhi.dev/socx-cli"
 
 [dependency-groups]
 dev = [
