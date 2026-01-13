@@ -7,6 +7,10 @@ plugins:
   # later by running `socx my_plugin` in a terminal
   my_plugin:
 
+    # Optional - Change the current working directory to the specified path
+    # before invoking the script.
+    cwd: "@jinja {{env.HOME}}"
+
     # Optional - Define variables `FOO`, `BAR`, and `bazz` in the new
     # subprocess environment where the plugin is invoked.
     env:
@@ -15,13 +19,17 @@ plugins:
       bazz: "value3:value4:value5"
 
     # Required - this is translated into something like:
+    #
     # def my_plugin():
     #    from my_package.my_subpackage import my_function
-    #    tmp = sys.argv.pop(0)
+    #
+    #    tmp = sys.argv.copy()
+    #    while sys.argv and sys.argv[0] != "my_plugin":
+    #        _ = sys.argv.pop(0)
     #    try:
     #      rv = my_function()
     #    finally:
-    #      sys.argv.insert(0, tmp)
+    #      sys.argv = tmp
     #    return rv
     command: my_package/my_subpackage/my_script.py:my_function
 
@@ -44,7 +52,7 @@ plugins:
 
     # Optional - will place command in a separate panel in the parent
     # command's help menu with a custom "Plugin Commands" title.
-    panel: Plugin Commands
+    panel: Plugins
 
     # Optional - a short version of the help text that will be used to
     # render the one-liner help text in the parent command's help menu
@@ -73,9 +81,26 @@ plugins:
 
       My long descriptive and helpful help text.
 
+      ## Markdown Tables Support
+
+      | Lorem | Ipsum |
+      | :---- | :---: |
+      | Aenean laoreet | faucibus tincidunt |
+      | Integer | nec magna |
+
+      ## Code Blocks
+
+      ```py
+      from socx import console
+
+      def hello_world():
+          console.print("Hello World!")
+      ```
+
+      ## Quotes
+
       > ---
-      >
-      > ***TIP***:
+      > ***Tip***:
       >
       > Class aptent taciti sociosqu ad litora torquent per conubia
       > nostra, per inceptos himenaeos. Cras sollicitudin et massa
@@ -83,10 +108,14 @@ plugins:
       >
       > ---
 
-      ## My Plugin Subtitle
+      ## And More!
 
       **Lorem Ipsum** - Lorem ipsum dolor sit amet, consectetur
       adipiscing elit.
 
-      Aenean laoreet faucibus tincidunt. Integer nec magna at nunc
-      posuere tincidunt.
+      1. Aenean laoreet faucibus tincidunt.
+      2. Integer nec magna at nunc posuere tincidunt.
+        - Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
+        - Cras sollicitudin et massa in efficitur.
+
+      ---

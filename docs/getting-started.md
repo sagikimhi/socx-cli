@@ -176,12 +176,6 @@ tags:
             /// caption
             ///
 
-        === "`socx config list`"
-
-            ![socx config list](assets/images/socx-config-list.svg){ width="800" loading=lazy }
-            /// caption
-            ///
-
         === "`socx config tree`"
 
             ![socx config tree](assets/images/socx-config-tree.svg){ width="800" loading=lazy }
