@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: 3.14
       - name: Sync dependencies
-        run: uv sync --locked --all-extras --dev
+        run: make sync
       - name: Build documentation
         run: uv run zensical build --clean
       - uses: actions/upload-pages-artifact@v4
