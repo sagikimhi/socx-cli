@@ -20,8 +20,10 @@ git:
   pull:
     flags:
       - --tags
+      - --ff-only
       - --no-edit
       - --autostash
+
   diff:
     flags:
       - -M
@@ -40,6 +42,11 @@ git:
   fetch:
     flags:
       - --no-write-fetch-head
+
+  clone:
+    flags:
+      - --progress
+      - --filter=blob:none
 
   summary:
     format: table
