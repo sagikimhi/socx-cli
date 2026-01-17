@@ -219,7 +219,6 @@ def get(ctx: click.Context, pager: bool, field: str):
     "guides",
     is_flag=True,
     default=False,
-    show_default=True,
     help="Show indentation guides in the output.",
 )
 @click.option(
@@ -227,7 +226,6 @@ def get(ctx: click.Context, pager: bool, field: str):
     "-p",
     is_flag=True,
     default=False,
-    show_default=True,
     help="Display the output in a pager.",
 )
 @click.option(
@@ -235,16 +233,16 @@ def get(ctx: click.Context, pager: bool, field: str):
     "-f",
     "format_",
     nargs=1,
-    type=click.Choice(["yaml", "toml", "json"]),
+    type=click.Choice(["yaml", "toml", "json", "plain"]),
     help="Specify a format for dumping configrations.",
     default="yaml",
-    show_default=True,
+    show_choices=True,
 )
 @click.argument(
     "field",
     default=None,
     type=click.STRING,
-    metavar="[field]",
+    metavar="field",
     help="An optional name of the configuration field to be shown",
     required=False,
 )
@@ -257,12 +255,15 @@ def dump(
     field: str | None,
 ) -> None:
     """Dump the current settings configurations in the specified format."""
+    if field and field not in settings and not hasattr(settings, field):
+        ctx.fail(f"No such field: {field}")
+
+    if format_ == "plain":
+        console.print(settings.get_raw(field), highlight=False, end="")
+        ctx.exit()
 
     def noop(*args, **kwargs):
         return ""
-
-    if field and field not in settings:
-        ctx.fail(f"No such field: {field}")
 
     text = getattr(settings, f"to_{format_}", noop)(field)
 
@@ -276,5 +277,4 @@ def dump(
         tab_size=2,
         indent_guides=guides,
     )
-
     print_outputs(syntax, pager=pager, title=field)
