@@ -188,4 +188,4 @@ export_svg: uv ## Export help menus of all socx commands as svg images
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx plugin schema" $(SVG_DIR)/socx-plugin-schema.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx plugin example" $(SVG_DIR)/socx-plugin-example.svg
 	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx regression --help" $(SVG_DIR)/socx-regression.svg
-	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx regression run $(CWD)/assets/rgr/inputs/tiny" $(SVG_DIR)/socx-rgr-run.svg
+	$(HIDE)$(UV) run termtosvg -m 100 -M 1000000 -t base16_default_dark -c "socx regression run $(CWD)/assets/rgr/inputs/tiny" $(SVG_DIR)/socx-regression-run.svg
