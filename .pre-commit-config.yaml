@@ -34,8 +34,3 @@ repos:
         types_or:
           - pyi
           - python
-
-  - repo: "https://github.com/abravalheri/validate-pyproject"
-    rev: v0.24.1
-    hooks:
-      - id: validate-pyproject
