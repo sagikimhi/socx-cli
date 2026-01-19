@@ -38,6 +38,7 @@ __all__ = (
     "APP_CONFIG_FILENAME",
     "Encoder",
     "Serializer",
+    "deduplicate",
     # I/O
     "DEFAULT_LEVEL",
     "DEFAULT_FORMAT",
@@ -63,6 +64,24 @@ __all__ = (
     "is_enabled_for",
     "remove_handler",
     "get_handler_names",
+    # Git
+    "get_ssh_config",
+    "get_ssh_key_path",
+    "get_repo",
+    "is_repo",
+    "get_repo_dir",
+    "get_repo_name",
+    "get_ref_name",
+    "get_short_ref",
+    "get_author_date",
+    "get_author_name",
+    "get_commit_hash",
+    "get_commit_message",
+    "get_ahead_behind",
+    "format_ahead_behind",
+    "is_local_branch",
+    "iter_repositories",
+    "find_repositories",
     # CLI
     "cli",
     # util
@@ -70,6 +89,11 @@ __all__ = (
     # config
     "schema",
     "settings",
+    "Script",
+    "NewPath",
+    "FilePath",
+    "SocketPath",
+    "DirectoryPath",
     "PluginModel",
     "Formatter",
     "TreeFormatter",
@@ -137,6 +161,24 @@ from socx.io import is_enabled_for as is_enabled_for
 from socx.io import remove_handler as remove_handler
 from socx.io import get_handler_names as get_handler_names
 
+from socx.git import get_ssh_config as get_ssh_config
+from socx.git import get_ssh_key_path as get_ssh_key_path
+from socx.git import get_repo as get_repo
+from socx.git import get_repo_dir as get_repo_dir
+from socx.git import get_repo_name as get_repo_name
+from socx.git import get_ref_name as get_ref_name
+from socx.git import get_short_ref as get_short_ref
+from socx.git import get_author_date as get_author_date
+from socx.git import get_author_name as get_author_name
+from socx.git import get_commit_hash as get_commit_hash
+from socx.git import get_commit_message as get_commit_message
+from socx.git import get_ahead_behind as get_ahead_behind
+from socx.git import format_ahead_behind as format_ahead_behind
+from socx.git import is_repo as is_repo
+from socx.git import is_local_branch as is_local_branch
+from socx.git import iter_repositories as iter_repositories
+from socx.git import find_repositories as find_repositories
+
 from socx.cli import cli as cli
 from socx.cli import opts as opts
 from socx.cli import group as group
@@ -181,10 +223,16 @@ from socx.core import AnyCallable as AnyCallable
 from socx.core import GroupDecorator as GroupDecorator
 from socx.core import CommandDecorator as CommandDecorator
 from socx.core import Serializer as Serializer
+from socx.core import deduplicate as deduplicate
 
 from socx.utils import join_decorators as join_decorators
 
 from socx.config import schema as schema
+from socx.config import Script as Script
+from socx.config import NewPath as NewPath
+from socx.config import FilePath as FilePath
+from socx.config import SocketPath as SocketPath
+from socx.config import DirectoryPath as DirectoryPath
 from socx.config import PluginModel as PluginModel
 from socx.config import Settings as Settings
 from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS

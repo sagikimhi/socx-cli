@@ -21,7 +21,6 @@ class _CmdLine(click.RichGroup):
     """Custom Click group that loads plugin commands on demand."""
 
     def __init__(self, *args, **kwargs):
-        self._plugins = {}
         self._sh_converter = ShConverter()
         self._cmd_converter = CommandConverter()
         self._cmd_converter._patch_theme()

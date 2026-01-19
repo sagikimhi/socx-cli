@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import os
 import sys
 import abc
 import runpy
-import shlex
 import logging
+import contextlib
 from io import StringIO
 from types import CodeType, ModuleType
 from typing import (
@@ -22,7 +21,6 @@ from typing import (
 from pathlib import Path
 from importlib import import_module
 from functools import cached_property, singledispatchmethod
-from collections import ChainMap
 from collections.abc import Iterable, Callable
 
 import sh
@@ -31,13 +29,20 @@ import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
 from rich.console import Console
 from rich.markdown import Markdown
-from plumbum import local
-from pydantic import validate_call, ConfigDict
+from plumbum import FG, ProcessExecutionError, local
+from plumbum.commands.base import BaseCommand
+from pydantic import (
+    TypeAdapter,
+    validate_call,
+    ConfigDict,
+)
 from dynaconf import add_converter
 from dynaconf.utils.boxing import DynaBox
 from dynaconf.utils.parse_conf import Lazy
 from click.utils import _detect_program_name
 
+from socx.core.funcs import fill
+from socx.config.schema.types import Script, FilePath
 from socx.config.schema.plugin import PluginModel
 
 
@@ -83,11 +88,13 @@ class Converter[TI, TO](abc.ABC):
 class PathConverter(Converter[str | Path | Lazy, Path | Lazy]):
     """Resolve string inputs into concrete filesystem paths."""
 
+    def __init__(self) -> None:
+        self._path_adapter = TypeAdapter(Path)
+
     @overload
     def __call__(
         self, value: str | Path, *args: Any, **kwargs: Any
     ) -> Path: ...
-
     @overload
     def __call__(self, value: Lazy, *args: Any, **kwargs: Any) -> Lazy: ...
 
@@ -102,14 +109,7 @@ class PathConverter(Converter[str | Path | Lazy, Path | Lazy]):
                 return value
             return value.set_casting(self)
 
-        path = Path(value) if isinstance(value, str) else value
-
-        try:
-            path = path.resolve()
-        except OSError:
-            self.log_exception(str(value))
-
-        return path
+        return self._path_adapter.validate_python(value)
 
 
 class CompileConverter(Converter[str | Path | Lazy, CodeType | Lazy | None]):
@@ -143,14 +143,20 @@ class CompileConverter(Converter[str | Path | Lazy, CodeType | Lazy | None]):
         try:
             value = value.resolve()
         except OSError:
-            self.log_exception(str(value))
+            err = f"Conversion failed for path '{value}': path does not exist."
+            self.log_exception(err)
             return None
 
         try:
             rv = compile(value.read_text(), str(value), "exec")
-        except (SyntaxError, ValueError):
+        except (SyntaxError, ValueError) as exc:
+            exc_name = exc.__class__.__name__
+            err = (
+                f"Conversion failed for value '{value}': "
+                f"{exc_name} exception was raised during compilation."
+            )
             rv = None
-            self.log_exception(str(value))
+            self.log_exception(err)
         return rv
 
 
@@ -177,8 +183,12 @@ class ImportConverter(Converter[str | Lazy, ModuleType | Lazy | None]):
         try:
             rv = import_module(value)
         except ImportError:
+            err = (
+                f"Conversion failed for value '{value}': "
+                "import_module failed with an ImportError."
+            )
             rv = None
-            self.log_exception(value)
+            self.log_exception(err)
         else:
             return rv
 
@@ -232,8 +242,13 @@ class EvalConverter(
             ns = {**globals(), **locals()}
             try:
                 eval(code, ns, ns)
-            except Exception:
-                self.log_exception(str(value))
+            except Exception as exc:
+                exc_name = exc.__class__.__name__
+                err = (
+                    f"Conversion failed for value '{value}': "
+                    f"{exc_name} was raised during code evaluation."
+                )
+                self.log_exception(err)
             return ns
         return {}
 
@@ -263,11 +278,19 @@ class SymbolConverter(Converter[str | Lazy, Any]):
         path, _, symbol = value.partition(":")
 
         if not path:
-            self.log_exception(f"Command path/pathspec is missing: {value}")
+            err = (
+                f"Conversion failed for value '{value}': path/pathspec is "
+                "missing."
+            )
+            self.log_exception(err)
             return None
 
         if not symbol:
-            self.log_exception(f"Command symbol is missing: {value}")
+            err = (
+                f"Conversion failed for value '{value}': symbol name is "
+                "missing."
+            )
+            self.log_exception(err)
             return None
 
         if not Path(path).exists():
@@ -380,9 +403,6 @@ class CommandConverter(
             if TYPE_CHECKING:
                 value = cast(str | sh.Command | PluginModel, value)
 
-            if isinstance(value, str):
-                return self._run_from_pathspec(value, *args)
-
             if isinstance(value, sh.Command):
                 return self._run_shell_script(value, *args)
 
@@ -397,92 +417,109 @@ class CommandConverter(
         return cli
 
     @singledispatchmethod
-    def _run_shell_script(
-        self, value, *args, cwd=None, env=None, **kwargs
-    ) -> int: ...
+    def _run_shell_script(self, value, *args, **kwargs) -> int: ...
 
     @_run_shell_script.register
     def _(
         self,
         value: str,
         *args: Any,
-        cwd: str | Path | None = None,
-        env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
         cmd = self.sh_converter.convert(value)
         if isinstance(cmd, str):
             return -1
         else:
-            return self._run_shell_script(
-                cmd, *args, cwd=cwd, env=env, **kwargs
-            )
+            return self._run_shell_script(cmd, *args, **kwargs)
 
     @_run_shell_script.register
     def _(
         self,
-        value: sh.Command,
+        value: BaseCommand,
         *args: Any,
-        cwd: str | Path | None = None,
-        env: dict[str, str] | None = None,
+        cwd: str | Path,
+        env: dict[str, str],
+        timeout: float | None = None,
+        retcode: int = 0,
+        fresh_env: bool = False,
         **kwargs: Any,
     ) -> int:
-        proc = value(
-            *args,
-            **kwargs,
-            _bg=True,
-            _cwd=cwd,
-            _env=env,
-            _in=sys.stdin,
-            _out=sys.stdout,
-            _err=sys.stderr,
-            _return_cmd=True,
-        )
+        if args:
+            value = value[args]
 
-        if TYPE_CHECKING:
-            proc = cast(sh.RunningCommand, proc)
+        env = env or {}
+        cwd = local.path(cwd)
 
-        rv = proc.exit_code
-        return rv if rv is not None else -1
+        with local.env(), local.cwd(cwd):
+            if fresh_env:
+                local.env.clear()
+
+            local.env.update(env)
+            cmd = value.with_cwd(cwd)
+            cmd_str = str(cmd)
+            cwd_str = str(cwd)
+            env_str = "\n".join(f"\t{k}={v}" for k, v in local.env.items())
+
+            logger.info(f"Executing command: '{cmd_str}'.")
+            logger.debug(
+                fill(f"""
+                ENV:\n{env_str}
+                CWD:\n\t{cwd_str}
+                COMMAND:\n\t{cmd_str}
+                """)
+            )
+
+            try:
+                _ = cmd & FG(retcode=retcode, timeout=timeout)
+            except FileNotFoundError as exc:
+                logger.exception(str(exc))
+                raise
+            except ProcessExecutionError as exc:
+                logger.exception(str(exc))
+                raise
+
+        return retcode
 
     @_run_shell_script.register
     def _(
         self,
         value: PluginModel,
         *args: Any,
-        cwd: str | Path | None = None,
-        env: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> int:
-        env = env or (
-            value.env
-            if value.fresh_env
-            else dict(ChainMap(os.environ.copy(), value.env))
-        )
-        cwd = cwd or value.cwd or Path.cwd()
         return self._run_shell_script(
-            value.script, *args, cwd=cwd, env=env, **kwargs
+            value.script,
+            *args,
+            env=value.env,
+            cwd=value.cwd,
+            timeout=value.timeout,
+            fresh_env=value.fresh_env,
+            **kwargs,
         )
 
     @singledispatchmethod
-    def _run_from_pathspec(self, value, *args, env=None, **kwargs) -> Any: ...
+    def _run_from_pathspec(self, value, *args, **kwargs) -> Any: ...
 
     @_run_from_pathspec.register
     def _(
         self,
         value: str,
+        *args,
         cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
+        fresh_env: bool = False,
+        **kwargs,
     ) -> dict[str, Any] | Any:
         def noop(**_) -> None:
             return None
 
         rv = {}
-        ctx = click.get_current_context(silent=True)
-        path, _, symbol = value.rpartition(":")
+        env = env or {}
         cwd = cwd or Path.cwd()
+        ctx = click.get_current_context(silent=True)
         argv = sys.argv.copy()
-        environ = os.environ.copy()
+
+        path, _, symbol = value.rpartition(":")
 
         if ctx:
             name = ctx.command.name
@@ -491,7 +528,15 @@ class CommandConverter(
         elif path:
             name = Path(path).stem
         else:
-            err = "Could not infer command name"
+            err = (
+                f"Conversion failed for value '{value}': invalid format. "
+                "Command format should be specified as '<PATH>[:SYMBOL]'. "
+                "PATH is either a path to a python script, path to "
+                "a python package, or a valid module import path. SYMBOL is "
+                "optional and if specified, should be a valid name of "
+                "a callable object that is defined in and importable from "
+                "PATH."
+            )
             raise RuntimeError(err)
 
         while sys.argv and sys.argv[0] != name:
@@ -502,14 +547,15 @@ class CommandConverter(
         else:
             sys.argv.append(f"socx {name}")
 
-        if env:
-            os.environ.clear()
-            os.environ.update(env)
-
         if self.is_script_path(path) or self.is_package_path(path):
             path = str(Path(path).resolve())
 
-        with local.cwd(cwd):
+        with local.cwd(cwd), local.env():
+            if fresh_env:
+                local.env.clear()
+
+            local.env.update(env)
+
             try:
                 if self.is_module_path(path) and symbol:
                     obj = self.importer(path)
@@ -524,7 +570,6 @@ class CommandConverter(
                         else:
                             rv = obj()
                 elif symbol:
-                    rv = None
                     obj = runpy.run_path(path, run_name=name).get(symbol, noop)
                     if callable(obj):
                         if isinstance(obj, click.Command):
@@ -535,16 +580,17 @@ class CommandConverter(
                             )
                         else:
                             rv = obj()
-                else:
+                elif self.is_script_path(path) or self.is_package_path(path):
                     rv = runpy.run_path(path, run_name=_detect_program_name())
             except Exception as exc:
-                err = f"Failed to run pathspec '{value}'"
-                self.log_exception(err, exc=exc)
-                raise
+                exc_cls = exc.__class__.__name__
+                err = (
+                    f"Conversion failed for value '{value}': {exc_cls} was "
+                    "raised during execution."
+                )
+                self.log_exception(err)
             finally:
                 sys.argv = argv
-                os.environ.clear()
-                os.environ.update(environ)
 
         return rv
 
@@ -555,10 +601,11 @@ class CommandConverter(
         *args: Any,
         cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
+        fresh_env: bool = False,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
         return self._run_from_pathspec(
-            str(value), *args, env=env, cwd=cwd, **kwargs
+            str(value), *args, env=env, cwd=cwd, fresh_env=fresh_env, **kwargs
         )
 
     @_run_from_pathspec.register
@@ -567,12 +614,6 @@ class CommandConverter(
     ) -> dict[str, Any] | Any:
         if not value.command:
             return {}
-
-        env = (
-            value.env
-            if value.fresh_env
-            else {**os.environ.copy(), **value.env}
-        )
 
         if "-h" in sys.argv or "--help" in sys.argv:
             ctx = click.get_current_context()
@@ -591,7 +632,14 @@ class CommandConverter(
                     click.echo(ctx.get_help())
                     ctx.exit()
 
-        return self._run_from_pathspec(value.command, env=env, cwd=value.cwd)
+        return self._run_from_pathspec(
+            value.command,
+            *args,
+            env=value.env,
+            cwd=value.cwd,
+            fresh_env=value.fresh_env,
+            **kwargs,
+        )
 
     @classmethod
     def _patch_theme(cls) -> None:
@@ -626,11 +674,8 @@ class CommandConverter(
             value = Path(value)
 
         if isinstance(value, Path):
-            try:
+            with contextlib.suppress(OSError):
                 value = value.resolve()
-            except OSError:
-                return False
-            else:
                 return (
                     value.exists()
                     and value.is_file()
@@ -645,21 +690,22 @@ class CommandConverter(
             value = Path(value)
 
         if isinstance(value, Path):
-            try:
+            with contextlib.suppress(OSError):
                 value = value.resolve()
-            except OSError:
-                return False
-            return (
-                value.exists()
-                and value.is_dir()
-                and (value / "__init__.py").exists()
-            )
+                return (
+                    value.exists()
+                    and value.is_dir()
+                    and (value / "__init__.py").exists()
+                )
 
         return False
 
 
 class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
     """Load configuration files referenced within other settings."""
+
+    def __init__(self) -> None:
+        self._file_adapter = TypeAdapter(FilePath)
 
     @overload
     def __call__(self, value: Lazy) -> Lazy: ...
@@ -675,32 +721,46 @@ class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
         if isinstance(value, Lazy):
             if value.casting is self:
                 return value
-            return value.set_casting(self)
+            else:
+                return value.set_casting(self)
 
-        path = Path(value) if isinstance(value, str) else value
+        path = self._file_adapter.validate_python(value)
 
-        if not self.is_yaml_path(path):
-            return DynaBox()
+        match path.suffix:
+            case ".yml" | ".yaml":
+                parser = DynaBox.from_yaml
+            case ".json":
+                parser = DynaBox.from_json
+            case ".toml":
+                parser = DynaBox.from_toml
+            case _:
+                return DynaBox()
+
+        text = path.read_text()
 
         try:
-            obj = DynaBox.from_yaml(path.read_text())
-        except Exception:
-            self.log_exception(str(value))
-            obj = DynaBox()
-        return obj
+            obj = parser(text)
+        except Exception as exc:
+            exc_cls = exc.__class__.__name__
+            parser_name = parser.__name__
+            err = (
+                f"Conversion failed for value '{value}': {exc_cls} "
+                f"was raised during parsing from method '{parser_name}'."
+            )
+            self.log_exception(err)
+            return DynaBox()
 
-    @classmethod
-    def is_yaml_path(cls, value: Path) -> bool:
-        return (
-            value.exists()
-            and value.is_file()
-            and value.suffix in [".yml", ".yaml"]
-        )
+        return obj
 
 
 class ShConverter(
-    Converter[str | Lazy | sh.Command | PluginModel, str | Lazy | sh.Command]
+    Converter[str | Lazy | BaseCommand | PluginModel, str | Lazy | BaseCommand]
 ):
+    def __init__(self) -> None:
+        self._script_adapter = TypeAdapter(
+            Script, config=ConfigDict(arbitrary_types_allowed=True)
+        )
+
     @singledispatchmethod
     @override
     def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -708,51 +768,15 @@ class ShConverter(
         value,
         *args: Any,
         **kwargs: Any,
-    ) -> str | Lazy | sh.Command: ...
+    ) -> Lazy | Script: ...
 
     @__call__.register
-    def _(self, value: str, *args: Any, **kwargs: Any) -> str | sh.Command:
-        cmd_args = [arg.strip() for arg in value.split()]
-
-        if not cmd_args:
-            err = f"Invalid script '{shlex.quote(value)}'"
-            self.log_exception(err)
-            return value
-
-        try:
-            cmd = sh.Command(cmd_args.pop(0))
-        except sh.CommandNotFound as exc:
-            err = f"Invalid script '{shlex.quote(value)}': {exc}"
-            self.log_exception(err)
-            exc.add_note(err)
-            raise
-        else:
-            return cmd.bake(*cmd_args) if cmd_args else cmd
-
-    @__call__.register
-    def _(self, value: Lazy, *args: Any, **kwargs: Any) -> Lazy:
+    def _(self, value: Lazy) -> Lazy:
         return value if value.casting is self else value.set_casting(self)
 
     @__call__.register
-    def _(self, value: sh.Command, *args: Any, **kwargs: Any) -> sh.Command:
-        return value
-
-    @__call__.register
-    def _(
-        self, value: PluginModel, *args: Any, **kwargs: Any
-    ) -> str | sh.Command:
-        if isinstance(value.script, str):
-            return value.script
-
-        env = (
-            value.env
-            if value.fresh_env
-            else {**os.environ.copy(), **value.env}
-        )
-
-        cwd = value.cwd
-
-        return value.script.bake(_env=env, _cwd=cwd)
+    def _(self, value: str | BaseCommand) -> Script:
+        return self._script_adapter.validate_python(value)
 
 
 class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):

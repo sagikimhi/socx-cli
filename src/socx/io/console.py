@@ -40,8 +40,8 @@ def print_with_pager(
     *renderables: RenderableType | Iterable[RenderableType]
         The text or renderable objects to display.
     """
-    with console.pager(styles=True, links=True):
-        console.print(*renderables)
+    with console.pager(**settings.console.pager):
+        console.print(*renderables, **settings.console.print)
 
 
 def print_outputs(
@@ -68,7 +68,7 @@ def print_outputs(
             output = formatter(output, title)
 
         if not pager:
-            console.print(output)
+            console.print(output, **settings.console.print)
         else:
             print_with_pager(output)
 

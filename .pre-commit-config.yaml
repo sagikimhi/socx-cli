@@ -10,17 +10,18 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      - id: check-yaml
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: check-illegal-windows-names
       - id: check-merge-conflict
         args:
           - --assume-in-merge
-      - id: check-added-large-files
-      - id: check-illegal-windows-names
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.9
+    rev: v0.14.13
     hooks:
       - id: ruff
         args:
@@ -30,15 +31,6 @@ repos:
           - python
 
       - id: ruff-format
-        args:
-          [--line-length, "79", --respect-gitignore, --target-version, py312]
         types_or:
           - pyi
           - python
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      # Prevent committing inline conflict markers
-      - id: check-merge-conflict
-        args: [--assume-in-merge]
