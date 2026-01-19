@@ -89,6 +89,11 @@ __all__ = (
     # config
     "schema",
     "settings",
+    "Script",
+    "NewPath",
+    "FilePath",
+    "SocketPath",
+    "DirectoryPath",
     "PluginModel",
     "Formatter",
     "TreeFormatter",
@@ -223,6 +228,11 @@ from socx.core import deduplicate as deduplicate
 from socx.utils import join_decorators as join_decorators
 
 from socx.config import schema as schema
+from socx.config import Script as Script
+from socx.config import NewPath as NewPath
+from socx.config import FilePath as FilePath
+from socx.config import SocketPath as SocketPath
+from socx.config import DirectoryPath as DirectoryPath
 from socx.config import PluginModel as PluginModel
 from socx.config import Settings as Settings
 from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS

@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import sys
 import abc
 import runpy
-import shlex
 import logging
 import contextlib
 from io import StringIO
-from textwrap import fill
 from types import CodeType, ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -24,19 +21,17 @@ from typing import (
 from pathlib import Path
 from importlib import import_module
 from functools import cached_property, singledispatchmethod
-from collections import ChainMap
 from collections.abc import Iterable, Callable
 
 import sh
 import rich_click as click
 import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
-from rich.json import JSON
 from rich.console import Console
 from rich.markdown import Markdown
-from plumbum import TF, CommandNotFound, ProcessExecutionError, local
+from plumbum import FG, ProcessExecutionError, local
+from plumbum.commands.base import BaseCommand
 from pydantic import (
-    FilePath,
     TypeAdapter,
     validate_call,
     ConfigDict,
@@ -46,6 +41,8 @@ from dynaconf.utils.boxing import DynaBox
 from dynaconf.utils.parse_conf import Lazy
 from click.utils import _detect_program_name
 
+from socx.core.funcs import fill
+from socx.config.schema.types import Script, FilePath
 from socx.config.schema.plugin import PluginModel
 
 
@@ -91,6 +88,9 @@ class Converter[TI, TO](abc.ABC):
 class PathConverter(Converter[str | Path | Lazy, Path | Lazy]):
     """Resolve string inputs into concrete filesystem paths."""
 
+    def __init__(self) -> None:
+        self._path_adapter = TypeAdapter(Path)
+
     @overload
     def __call__(
         self, value: str | Path, *args: Any, **kwargs: Any
@@ -109,7 +109,7 @@ class PathConverter(Converter[str | Path | Lazy, Path | Lazy]):
                 return value
             return value.set_casting(self)
 
-        return TypeAdapter(Path).validate_python(value)
+        return self._path_adapter.validate_python(value)
 
 
 class CompileConverter(Converter[str | Path | Lazy, CodeType | Lazy | None]):
@@ -435,50 +435,50 @@ class CommandConverter(
     @_run_shell_script.register
     def _(
         self,
-        value: sh.Command,
+        value: BaseCommand,
         *args: Any,
         cwd: str | Path,
         env: dict[str, str],
         timeout: float | None = None,
+        retcode: int = 0,
+        fresh_env: bool = False,
         **kwargs: Any,
     ) -> int:
-        cmd_str = " ".join([value._path, *value._partial_baked_args])
-        logger.info(f"Executing command: '{cmd_str}'.")
+        if args:
+            value = value[args]
 
-        try:
-            cmd = local[value._path][value._partial_baked_args, *args]
-        except CommandNotFound as exc:
-            err = f"Failed to run command: '{exc.program}'"
-            logger.exception(err)
-            logger.debug(f"PATH:\n{fill(exc.path, initial_indent='\t')}")
-            return 1
+        env = env or {}
+        cwd = local.path(cwd)
 
-        with local.cwd(cwd), local.env(env):
+        with local.env(), local.cwd(cwd):
+            if fresh_env:
+                local.env.clear()
+
+            local.env.update(env)
+            cmd = value.with_cwd(cwd)
+            cmd_str = str(cmd)
+            cwd_str = str(cwd)
+            env_str = "\n".join(f"\t{k}={v}" for k, v in local.env.items())
+
+            logger.info(f"Executing command: '{cmd_str}'.")
+            logger.debug(
+                fill(f"""
+                ENV:\n{env_str}
+                CWD:\n\t{cwd_str}
+                COMMAND:\n\t{cmd_str}
+                """)
+            )
+
             try:
-                _ = cmd & TF(FG=True, timeout=timeout)
+                _ = cmd & FG(retcode=retcode, timeout=timeout)
+            except FileNotFoundError as exc:
+                logger.exception(str(exc))
+                raise
             except ProcessExecutionError as exc:
-                env_str = JSON.from_data(env, indent=4).text.plain
-                logger.exception("Command execution failed.")
-                logger.debug(f"ENV:\n'{env_str}'")
-                logger.debug(
-                    f"CWD:\n'{fill(str(Path.cwd()), initial_indent='\t')}'"
-                )
-                logger.debug(
-                    f"CMD:\n'{fill(' '.join(exc.args), initial_indent='\t')}'"
-                )
-                logger.debug(
-                    f"STDERR:\n'{fill(exc.stderr, initial_indent='\t')}'"
-                )
-                logger.debug(
-                    f"STDOUT:\n'{fill(exc.stdout, initial_indent='\t')}'"
-                )
-                logger.debug(f"RETCODE:\n{exc.retcode}'")
-                return exc.retcode
-            else:
-                logger.info(
-                    f"Command finished executing successfully: '{cmd}'."
-                )
-                return 0
+                logger.exception(str(exc))
+                raise
+
+        return retcode
 
     @_run_shell_script.register
     def _(
@@ -487,18 +487,14 @@ class CommandConverter(
         *args: Any,
         **kwargs: Any,
     ) -> int:
-        env = (
-            value.env
-            if value.fresh_env
-            else dict(ChainMap(os.environ.copy(), value.env))
-        )
         return self._run_shell_script(
             value.script,
             *args,
-            **kwargs,
-            env=env,
+            env=value.env,
             cwd=value.cwd,
             timeout=value.timeout,
+            fresh_env=value.fresh_env,
+            **kwargs,
         )
 
     @singledispatchmethod
@@ -508,19 +504,22 @@ class CommandConverter(
     def _(
         self,
         value: str,
+        *args,
         cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
-        timeout: float | None = None,
+        fresh_env: bool = False,
+        **kwargs,
     ) -> dict[str, Any] | Any:
         def noop(**_) -> None:
             return None
 
         rv = {}
-        ctx = click.get_current_context(silent=True)
-        path, _, symbol = value.rpartition(":")
+        env = env or {}
         cwd = cwd or Path.cwd()
+        ctx = click.get_current_context(silent=True)
         argv = sys.argv.copy()
-        environ = os.environ.copy()
+
+        path, _, symbol = value.rpartition(":")
 
         if ctx:
             name = ctx.command.name
@@ -548,14 +547,15 @@ class CommandConverter(
         else:
             sys.argv.append(f"socx {name}")
 
-        if env:
-            os.environ.clear()
-            os.environ.update(env)
-
         if self.is_script_path(path) or self.is_package_path(path):
             path = str(Path(path).resolve())
 
-        with local.cwd(cwd):
+        with local.cwd(cwd), local.env():
+            if fresh_env:
+                local.env.clear()
+
+            local.env.update(env)
+
             try:
                 if self.is_module_path(path) and symbol:
                     obj = self.importer(path)
@@ -591,8 +591,6 @@ class CommandConverter(
                 self.log_exception(err)
             finally:
                 sys.argv = argv
-                os.environ.clear()
-                os.environ.update(environ)
 
         return rv
 
@@ -603,10 +601,11 @@ class CommandConverter(
         *args: Any,
         cwd: str | Path | None = None,
         env: dict[str, str] | None = None,
+        fresh_env: bool = False,
         **kwargs: Any,
     ) -> dict[str, Any] | Any:
         return self._run_from_pathspec(
-            str(value), *args, env=env, cwd=cwd, **kwargs
+            str(value), *args, env=env, cwd=cwd, fresh_env=fresh_env, **kwargs
         )
 
     @_run_from_pathspec.register
@@ -615,12 +614,6 @@ class CommandConverter(
     ) -> dict[str, Any] | Any:
         if not value.command:
             return {}
-
-        env = (
-            value.env
-            if value.fresh_env
-            else {**os.environ.copy(), **value.env}
-        )
 
         if "-h" in sys.argv or "--help" in sys.argv:
             ctx = click.get_current_context()
@@ -639,7 +632,14 @@ class CommandConverter(
                     click.echo(ctx.get_help())
                     ctx.exit()
 
-        return self._run_from_pathspec(value.command, env=env, cwd=value.cwd)
+        return self._run_from_pathspec(
+            value.command,
+            *args,
+            env=value.env,
+            cwd=value.cwd,
+            fresh_env=value.fresh_env,
+            **kwargs,
+        )
 
     @classmethod
     def _patch_theme(cls) -> None:
@@ -704,6 +704,9 @@ class CommandConverter(
 class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
     """Load configuration files referenced within other settings."""
 
+    def __init__(self) -> None:
+        self._file_adapter = TypeAdapter(FilePath)
+
     @overload
     def __call__(self, value: Lazy) -> Lazy: ...
     @overload
@@ -721,7 +724,7 @@ class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
             else:
                 return value.set_casting(self)
 
-        path = TypeAdapter(FilePath).validate_python(value)
+        path = self._file_adapter.validate_python(value)
 
         match path.suffix:
             case ".yml" | ".yaml":
@@ -751,8 +754,13 @@ class IncludeConverter(Converter[str | Path | Lazy, DynaBox | Lazy | None]):
 
 
 class ShConverter(
-    Converter[str | Lazy | sh.Command | PluginModel, str | Lazy | sh.Command]
+    Converter[str | Lazy | BaseCommand | PluginModel, str | Lazy | BaseCommand]
 ):
+    def __init__(self) -> None:
+        self._script_adapter = TypeAdapter(
+            Script, config=ConfigDict(arbitrary_types_allowed=True)
+        )
+
     @singledispatchmethod
     @override
     def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
@@ -760,53 +768,15 @@ class ShConverter(
         value,
         *args: Any,
         **kwargs: Any,
-    ) -> str | Lazy | sh.Command: ...
+    ) -> Lazy | Script: ...
 
     @__call__.register
-    def _(self, value: str, *args: Any, **kwargs: Any) -> str | sh.Command:
-        cmd_args = [arg.strip() for arg in value.split()]
-
-        if not cmd_args:
-            err = f"Invalid script '{shlex.quote(value)}'"
-            self.log_exception(err)
-            return value
-
-        try:
-            cmd = sh.Command(cmd_args.pop(0))
-        except sh.CommandNotFound:
-            err = (
-                f"Conversion failed for value '{value}': command does not "
-                "exist."
-            )
-            self.log_exception(err)
-            return value
-        else:
-            return cmd.bake(*cmd_args) if cmd_args else cmd
-
-    @__call__.register
-    def _(self, value: Lazy, *args: Any, **kwargs: Any) -> Lazy:
+    def _(self, value: Lazy) -> Lazy:
         return value if value.casting is self else value.set_casting(self)
 
     @__call__.register
-    def _(self, value: sh.Command, *args: Any, **kwargs: Any) -> sh.Command:
-        return value
-
-    @__call__.register
-    def _(
-        self, value: PluginModel, *args: Any, **kwargs: Any
-    ) -> str | sh.Command:
-        if isinstance(value.script, str):
-            return value.script
-
-        env = (
-            value.env
-            if value.fresh_env
-            else {**os.environ.copy(), **value.env}
-        )
-
-        cwd = value.cwd
-
-        return value.script.bake(_env=env, _cwd=cwd)
+    def _(self, value: str | BaseCommand) -> Script:
+        return self._script_adapter.validate_python(value)
 
 
 class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):

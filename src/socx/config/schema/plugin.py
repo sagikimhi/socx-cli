@@ -2,20 +2,14 @@
 
 from __future__ import annotations
 
-import shlex
 from textwrap import dedent
 from pathlib import Path
 
 from box import SBox
-import sh
 import rich_click as click
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    DirectoryPath,
-    Field,
-    field_validator,
-)
+from pydantic import Field, BaseModel, ConfigDict
+
+from socx.config.schema.types import DirectoryPath, Script
 
 
 class PluginModel(BaseModel):
@@ -71,7 +65,7 @@ class PluginModel(BaseModel):
         """,
     )
 
-    script: str | sh.Command = Field(
+    script: Script = Field(
         default="",
         description="""
             A shell command or a path to an executable file to run on plugin
@@ -147,22 +141,3 @@ class PluginModel(BaseModel):
     @classmethod
     def json_schema(cls) -> str:
         return SBox(cls.model_json_schema()).json
-
-    @field_validator("script", mode="before")
-    @classmethod
-    def validate_script(cls, value: str | sh.Command) -> str | sh.Command:
-        if not value:
-            return value
-
-        if isinstance(value, sh.Command):
-            return value
-
-        args = shlex.split(value, comments=True)
-
-        try:
-            cmd = sh.Command(args.pop(0))
-        except sh.CommandNotFound as exc:
-            err = f"Invalid script '{shlex.quote(value)}': {exc}"
-            raise ValueError(err) from None
-
-        return cmd.bake(*args) if args else cmd
