@@ -4,7 +4,7 @@ from functools import cached_property
 from pathlib import Path
 
 import pygit2 as git
-from pydantic import BaseModel, Field, ConfigDict, computed_field
+from pydantic import AnyUrl, BaseModel, Field, ConfigDict, computed_field
 
 from socx.core.paths import USER_DATA_DIR
 from socx.config.schema.git.git import RepositoryUrl, Oid, RefName
@@ -13,9 +13,10 @@ from socx.config.schema.git.git import RepositoryUrl, Oid, RefName
 class RepositoryEntry(BaseModel):
     """Manifest repository specification for an entry in the repo registry."""
 
-    name: str = Field(...)
-    url: RepositoryUrl = Field(...)
+    name: str
+    url: AnyUrl
     model_config = ConfigDict(
+        from_attributes=True,
         validate_assignment=True,
         arbitrary_types_allowed=True,
     )
