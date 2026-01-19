@@ -1,12 +1,19 @@
 console:
   init:
     tab_size: 4
-    quiet: "@bool False"
-    markup: "@bool True"
-    record: "@bool False"
-    highlight: "@bool True"
-    soft_wrap: "@bool True"
-    no_color: "@jinja False"
+    quiet: false
+    markup: true
+    record: false
+    highlight: true
+    soft_wrap: false
+    no_color: false
+
+  print:
+    soft_wrap: true
+
+  pager:
+    links: true
+    styles: true
 
   traceback:
     theme: ansi_dark

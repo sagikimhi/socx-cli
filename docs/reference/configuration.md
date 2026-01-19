@@ -4,57 +4,65 @@ icon: lucide/file-cog
 
 <div class="grid cards" markdown>
 
--   # Configuration Reference
+- # Configuration Reference
 
-    Below are the built-in `socx` settings and their default values.
-    {.card}
+  Below are the built-in `socx` settings and their default values.
+  {.card}
 
-    === "`rich_click`"
+  === "`rich_click`"
 
-        This configuration file contains configurations to alter the command-line
-        interface appearance of `socx`.
+      This configuration file contains configurations to alter the command-line
+      interface appearance of `socx`.
 
-        Any option in that file maps to a
-        [`rich_click`](https://ewels.github.io/rich-click/) configuration attribute
-        and is set during the initialization of the command-line interface sub-package
-        of `socx`, called `socx.cli`.
+      Any option in that file maps to a
+      [`rich_click`](https://ewels.github.io/rich-click/) configuration attribute
+      and is set during the initialization of the command-line interface sub-package
+      of `socx`, called `socx.cli`.
 
-        ```yaml title="rich_click.yaml"
-        ---8<-- "src/socx/static/settings/rich_click.yaml"
-        ```
+      ```yaml title="rich_click.yaml"
+      ---8<-- "src/socx/static/settings/rich_click.yaml"
+      ```
 
-    === "`plugins`"
+  === "`plugins`"
 
-        Defines all of `socx`'s built-in plugins.
+      Defines all of `socx`'s built-in plugins.
 
-        See [Plugins](../user-guide/plugins.md) for further information regarding plugins.
+      See [Plugins](../user-guide/plugins.md) for further information regarding plugins.
 
-        ```yaml title="plugins.yaml"
-        ---8<-- "src/socx/static/settings/plugins.yaml"
-        ```
+      ```yaml title="plugins.yaml"
+      ---8<-- "src/socx/static/settings/plugins.yaml"
+      ```
 
-    === "`cli`"
+  === "`cli`"
 
-        Used by the main command-line interface module `socx.cli`.
+      Used by the main command-line interface module `socx.cli`.
 
-        ```yaml title="cli.yaml"
-        ---8<-- "src/socx/static/settings/cli.yaml"
-        ```
+      ```yaml title="cli.yaml"
+      ---8<-- "src/socx/static/settings/cli.yaml"
+      ```
 
-    === "`git`"
+  === "`git`"
 
-        Used by `socx git` plugin.
+      Used by `socx git` plugin.
 
-        ```yaml title="git.yaml"
-        ---8<-- "src/socx/static/settings/git.yaml"
-        ```
+      ```yaml title="git.yaml"
+      ---8<-- "src/socx/static/settings/git.yaml"
+      ```
 
-    === "`regression`"
+  === "console"
 
-        Used by `socx rgr` plugin.
+      Used for instantiationg console and tracebacks.
 
-        ```yaml title="regression.yaml"
-        ---8<-- "src/socx/static/settings/regression.yaml"
-        ```
+      ```yaml title="console.yaml"
+      ---8<-- "src/socx/static/settings/console.yaml"
+      ```
+
+  === "`regression`"
+
+      Used by `socx regression` plugin.
+
+      ```yaml title="regression.yaml"
+      ---8<-- "src/socx/static/settings/regression.yaml"
+      ```
 
 </div>

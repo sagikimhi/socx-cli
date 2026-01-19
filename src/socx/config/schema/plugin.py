@@ -2,24 +2,22 @@
 
 from __future__ import annotations
 
-import shlex
 from textwrap import dedent
 from pathlib import Path
 
 from box import SBox
-import sh
 import rich_click as click
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    DirectoryPath,
-    Field,
-    field_validator,
-)
+from pydantic import Field, BaseModel, ConfigDict
+
+from socx.config.schema.types import DirectoryPath, Script
 
 
 class PluginModel(BaseModel):
     """Metadata describing a plugin-backed CLI command."""
+
+    name: str = Field(
+        ..., pattern=r"[a-zA-Z0-9_-]+", description="Name of the plugin."
+    )
 
     cwd: DirectoryPath = Field(
         default_factory=Path.cwd,
@@ -28,6 +26,7 @@ class PluginModel(BaseModel):
         If left unspecified, it defaults to the current working directory.
         """),
     )
+
     env: dict[str, str] = Field(
         default_factory=dict,
         description="""
@@ -35,39 +34,45 @@ class PluginModel(BaseModel):
             command/script is invoked
         """.strip(),
     )
-    name: str = Field(
-        pattern=r"[a-zA-Z0-9]+", description="Name of the plugin."
-    )
-    help: str = Field(
-        default="",
+
+    timeout: float | None = Field(
+        default=None,
+        ge=0,
         description="""
-        Description of what the plugin does to be printed during plugin
-        invocation if any of -h or --help flags were passed with the
-        command.
-    """.strip(),
+        An optional timeout in seconds for the plugin execution.
+        If left unspecified, then plugin execution may last indefinitely.
+        """,
     )
-    panel: str = Field(
-        default="Plugins",
-        description="""
-        Custom panel name in which plugin help text will be displayed when
-        CLI is invoked with the -h/--help flag.
-        """.strip(),
-    )
+
     enabled: bool = Field(
         default=True,
-        description="Whether or not the plugin should be enabled.",
+        description="""
+            Whether or not the plugin should be enabled.
+            If left unspecified, defaults to True.
+        """,
     )
-    aliases: tuple[str, ...] = Field(
-        default_factory=tuple,
-        description="Additional command aliases for the plugin.",
+
+    fresh_env: bool = Field(
+        default=False,
+        description="""
+            Whether or not to execute the plugin in a fresh environment.
+            A fresh environment is an environment with no environment
+            variables defined other than those defined in the ``env`` field.
+            A non-fresh environment will contain all environment variables of
+            the current process, as well as any variables defined in the
+            ``env`` field.
+            If left unspecified, defaults to False.
+        """,
     )
-    script: str | sh.Command = Field(
+
+    script: Script = Field(
         default="",
         description="""
             A shell command or a path to an executable file to run on plugin
             invocation.
         """.strip(),
     )
+
     command: str | click.Command = Field(
         default="",
         pattern=r"(((((\w+)(.|/))*)(\w+))(:(\w+))?)?",
@@ -77,6 +82,24 @@ class PluginModel(BaseModel):
             `<module_path/file_path>[:<symbol_name>]`.
         """.strip(),
     )
+
+    help: str = Field(
+        default="",
+        description="""
+        Description of what the plugin does to be printed during plugin
+        invocation if any of -h or --help flags were passed with the
+        command.
+    """.strip(),
+    )
+
+    panel: str = Field(
+        default="Plugins",
+        description="""
+        Custom panel name in which plugin help text will be displayed when
+        CLI is invoked with the -h/--help flag.
+        """.strip(),
+    )
+
     epilog: str = Field(
         default="",
         description="""
@@ -84,25 +107,17 @@ class PluginModel(BaseModel):
             else.
         """.strip(),
     )
+
+    aliases: tuple[str, ...] = Field(
+        default_factory=tuple,
+        description="Additional command aliases for the plugin.",
+    )
+
     short_help: str = Field(
         default="",
         description="The short help to use for this command",
     )
-    fresh_env: bool = Field(
-        default=False,
-        description="""
-            Whether or not to run the plugin with a fresh environment.
 
-            When set to True, when the plugin is launched it will be started
-            in a subprocess with a fresh environment as if it was started with
-            `/usr/bin/env -i` and will be passed only the environment
-            variables defined under the plugin's ``env`` field.
-
-            When set to False, both the current environment, as well as any
-            key-value pairs defined under the ``env`` field, will be copied to
-            the enviornment of the subprocess in which the plugin will run.
-        """,
-    )
     model_config = ConfigDict(
         extra="allow",
         from_attributes=True,
@@ -126,22 +141,3 @@ class PluginModel(BaseModel):
     @classmethod
     def json_schema(cls) -> str:
         return SBox(cls.model_json_schema()).json
-
-    @field_validator("script", mode="before")
-    @classmethod
-    def validate_script(cls, value: str | sh.Command) -> str | sh.Command:
-        if not value:
-            return value
-
-        if isinstance(value, sh.Command):
-            return value
-
-        args = shlex.split(value, comments=True)
-
-        try:
-            cmd = sh.Command(args.pop(0))
-        except sh.CommandNotFound as exc:
-            err = f"Invalid script '{shlex.quote(value)}': {exc}"
-            raise ValueError(err) from None
-
-        return cmd.bake(*args) if args else cmd

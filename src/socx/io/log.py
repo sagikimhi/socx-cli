@@ -91,7 +91,7 @@ APP_LIB_NAME = __name__.partition(".")[0]
 DEFAULT_ENCODING: str = "utf-8"
 """Default text encoding for emitted log files."""
 
-DEFAULT_LEVEL: Level = Level[os.environ.get("SOCX_VERBOSITY", "INFO")]
+DEFAULT_LEVEL: Level = Level[os.environ.get("SOCX_VERBOSITY", "FATAL")]
 """Default logger level, a.k.a verbosity."""
 
 DEFAULT_FORMAT: str = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")

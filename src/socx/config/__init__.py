@@ -3,6 +3,11 @@
 __all__ = (
     # Schema
     "schema",
+    "Script",
+    "NewPath",
+    "FilePath",
+    "SocketPath",
+    "DirectoryPath",
     "PluginModel",
     # Settings
     "SETTINGS_DEFAULTS",
@@ -39,6 +44,12 @@ __all__ = (
 
 from . import schema as schema
 
+
+from socx.config.schema import Script as Script
+from socx.config.schema import NewPath as NewPath
+from socx.config.schema import FilePath as FilePath
+from socx.config.schema import SocketPath as SocketPath
+from socx.config.schema import DirectoryPath as DirectoryPath
 from socx.config.schema import PluginModel as PluginModel
 
 from socx.config._settings import Settings as Settings

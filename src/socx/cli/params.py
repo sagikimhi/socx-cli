@@ -195,7 +195,7 @@ config_files: Decorator = click.option(
         resolve_path=True,
         path_type=Path,
     ),
-    is_eager=False,
+    is_eager=True,
     multiple=True,
     metavar="path",
     callback=config_files_cb,
