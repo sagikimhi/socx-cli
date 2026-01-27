@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import abc
 import runpy
@@ -16,7 +17,7 @@ from typing import (
     overload,
     override,
     TypeVar,
-    ClassVar,
+    ClassVar, Generic,
 )
 from pathlib import Path
 from importlib import import_module
@@ -52,8 +53,10 @@ _validate = validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 
 logger = logging.getLogger(__name__)
 
+TI = TypeVar("TI")
+TO = TypeVar("TO")
 
-class Converter[TI, TO](abc.ABC):
+class Converter(abc.ABC, Generic[TI, TO]):
     """Base protocol for Dynaconf converters used by SoCX."""
 
     @abc.abstractmethod
@@ -73,8 +76,6 @@ class Converter[TI, TO](abc.ABC):
         self, msg: str, *args: Any, exc: Exception | None = None, **kwargs: Any
     ) -> None:
         """Log a recoverable converter error message."""
-        if exc is not None:
-            exc.add_note(msg)
         self.logger.exception(msg, *args, **kwargs)
 
     def convert(self, value: TI, *args: Any, **kwargs: Any) -> TO:
@@ -417,7 +418,7 @@ class CommandConverter(
         return cli
 
     @singledispatchmethod
-    def _run_shell_script(self, value, *args, **kwargs) -> int: ...
+    def _run_shell_script(self, value, *args, **kwargs): ...
 
     @_run_shell_script.register
     def _(
@@ -450,12 +451,15 @@ class CommandConverter(
         env = env or {}
         cwd = local.path(cwd)
 
-        with local.env(), local.cwd(cwd):
+        if not fresh_env:
+            env = dict(os.environ, **env)
+
+        with local.env(env), local.cwd(cwd):
             if fresh_env:
                 local.env.clear()
 
             local.env.update(env)
-            cmd = value.with_cwd(cwd)
+            cmd = value.with_cwd(cwd).with_env(**env)
             cmd_str = str(cmd)
             cwd_str = str(cwd)
             env_str = "\n".join(f"\t{k}={v}" for k, v in local.env.items())
@@ -518,6 +522,7 @@ class CommandConverter(
         cwd = cwd or Path.cwd()
         ctx = click.get_current_context(silent=True)
         argv = sys.argv.copy()
+        environ = os.environ.copy()
 
         path, _, symbol = value.rpartition(":")
 
@@ -550,11 +555,11 @@ class CommandConverter(
         if self.is_script_path(path) or self.is_package_path(path):
             path = str(Path(path).resolve())
 
-        with local.cwd(cwd), local.env():
+        with local.cwd(cwd):
             if fresh_env:
-                local.env.clear()
+                os.environ.clear()
 
-            local.env.update(env)
+            os.environ.update(env)
 
             try:
                 if self.is_module_path(path) and symbol:
@@ -591,6 +596,8 @@ class CommandConverter(
                 self.log_exception(err)
             finally:
                 sys.argv = argv
+                os.environ.clear()
+                os.environ.update(environ)
 
         return rv
 
@@ -766,9 +773,9 @@ class ShConverter(
     def __call__(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         value,
-        *args: Any,
-        **kwargs: Any,
-    ) -> Lazy | Script: ...
+        *args,
+        **kwargs,
+    ): ...
 
     @__call__.register
     def _(self, value: Lazy) -> Lazy:
@@ -821,7 +828,7 @@ class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):
         return value
 
 
-class GenericConverter[TI, TO](Converter[TI, TO]):
+class GenericConverter(Converter[TI, TO]):
     """Adapter turning plain callables into ``Converter`` instances."""
 
     def __init__(self, name: str, cvt: Callable[..., TO]) -> None:

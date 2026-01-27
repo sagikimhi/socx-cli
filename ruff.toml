@@ -14,11 +14,12 @@ exclude = [
 cache-dir = "~/.cache/ruff"
 line-length = 79
 indent-width = 4
-target-version = "py312"
+target-version = "py310"
 respect-gitignore = true
 
 [analyze]
-direction = "Dependencies"
+direction = "dependencies"
+type-checking-imports = true
 detect-string-imports = true
 
 [format]
@@ -59,14 +60,24 @@ ignore = [
     "D103",
     "D104",
     "D105",
+    "D107",
     "D205",
     "UP031",
     "RUF022",
     "ASYNC110",
 ]
 
+[isort]
+length-sort = true
+order-by-type = true
+force-wrap-aliases = true
+split-on-trailing-comma = true
+lines-after-imports = 2
+required-imports = ["from __future__ import annotations"]
+
 [lint.pydocstyle]
-convention = "numpy"
+convention = "google"
+ignore-var-parameters = true
 
 [lint.pycodestyle]
 max-doc-length = 79

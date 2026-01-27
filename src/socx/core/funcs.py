@@ -46,6 +46,6 @@ def wrap(text: str) -> str:
     return "\n".join(text_wrapper.wrap(text))
 
 
-def deduplicate(iterable: Iterable[T]) -> list[T]:  # noqa: UP047
+def deduplicate(iterable: Iterable[T]) -> list[T]:
     seen = set()
     return [v for v in iterable if v not in seen and seen.add(v) is None]

@@ -107,6 +107,7 @@ dev = [
     "hatch-uvenv",
     "objexplore>=1.6.3",
     "ipython>=8.38.0",
+    "ty>=0.0.14",
 ]
 docs = [
     "mike",

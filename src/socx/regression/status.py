@@ -5,8 +5,7 @@ from enum import auto
 
 
 class RegressionResult(IntEnum):
-    """
-    Represents the result of a regression that had finished and exited
+    """Represents the result of a regression that had finished and exited
     normally.
 
     Members
@@ -30,8 +29,7 @@ class RegressionResult(IntEnum):
 
 
 class RegressionStatus(IntEnum):
-    """
-    Regression process status enum representation.
+    """Regression process status enum representation.
 
     Members
     -------

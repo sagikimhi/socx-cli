@@ -22,8 +22,7 @@ from socx.patterns import UIDMixin
 
 
 class TestResult(StrEnum):
-    """
-    Represents the result of a test that had finished and exited normally.
+    """Represents the result of a test that had finished and exited normally.
 
     Members
     -------
@@ -46,8 +45,7 @@ class TestResult(StrEnum):
 
 
 class TestStatus(IntEnum):
-    """
-    TestStatus representation of a test process as an `IntEnum`.
+    """TestStatus representation of a test process as an `IntEnum`.
 
     Members
     -------

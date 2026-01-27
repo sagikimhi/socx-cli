@@ -52,8 +52,7 @@ class UIDBase(metaclass=_UIDMeta):
 
 
 class PtrMixin(UIDBase):
-    """
-    Pointer mixin class.
+    """Pointer mixin class.
 
     Extending this class adds the `ref` property to subclass instances and the
     `dref` class method to the subclass.
@@ -72,8 +71,7 @@ class PtrMixin(UIDBase):
 
 @dataclass
 class UIDMixin(PtrMixin):
-    """
-    Unique instance ID mixin class.
+    """Unique instance ID mixin class.
 
     Extending this class assigns a unique instance id to all instances of the
     extending subclass.

@@ -32,8 +32,7 @@ class ConsoleProxy(ProxyMixin[Console], Console): ...
 def print_with_pager(
     *renderables: RenderableType | Iterable[RenderableType],
 ) -> None:
-    """
-    Print the given text using the console pager.
+    """Print the given text using the console pager.
 
     Parameters
     ----------
@@ -49,8 +48,7 @@ def print_outputs(
     pager: bool = False,
     title: str | None = None,
 ) -> None:
-    """
-    Print a dictionary of outputs, optionally using a pager.
+    """Print a dictionary of outputs, optionally using a pager.
 
     Parameters
     ----------
@@ -78,8 +76,7 @@ def print_command_outputs(
     pager: bool = True,
     title: str | None = None,
 ) -> None:
-    """
-    Print the stdout of a dictionary of RunningCommand objects.
+    """Print the stdout of a dictionary of RunningCommand objects.
 
     Parameters
     ----------
@@ -97,8 +94,7 @@ def print_command_outputs(
 
 
 def get_console(*args: Any, **kwargs: Any) -> Console:
-    """
-    Create and configure a rich Console instance with custom settings.
+    """Create and configure a rich Console instance with custom settings.
 
     Parameters
     ----------
