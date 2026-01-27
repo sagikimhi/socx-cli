@@ -12,8 +12,7 @@ logger = logging.getLogger(__name__)
 def get_ssh_config(
     hostname: str, path: str | Path | None = None
 ) -> paramiko.SSHConfigDict:
-    """
-    Retrieve the SSH configuration for a given hostname.
+    """Retrieve the SSH configuration for a given hostname.
 
     Parameters
     ----------
@@ -47,8 +46,7 @@ def get_ssh_config(
 def get_ssh_key_path(
     hostname: str, path: str | Path | None = None
 ) -> str | None:
-    """
-    Get the path to the SSH private key for a given hostname.
+    """Get the path to the SSH private key for a given hostname.
 
     Parameters
     ----------

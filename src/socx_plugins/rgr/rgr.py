@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 from socx import settings, group, command
 
-from socx_plugins.rgr._rgr import options, run_from_file
+from socx_plugins.rgr._rgr import options, run_regression
 
 
 @group()
@@ -25,7 +24,7 @@ def tui() -> None:
 
 @command(parent=cli, no_args_is_help=True)
 @options()
-def run(input: Path, output: Path):  # noqa: A002
+def run():
     r"""Run a regression of multiple tests defined in FILE.
 
     The FILE argument is a file containing a list of test commands to be ran.
@@ -48,7 +47,7 @@ def run(input: Path, output: Path):  # noqa: A002
     """
     try:
         regression = asyncio.run(
-            run_from_file(input, output),
+            run_regression(),
             debug=settings.cli.params.debug,
         )
     except (asyncio.CancelledError, KeyboardInterrupt):

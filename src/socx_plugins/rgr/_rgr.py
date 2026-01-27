@@ -28,17 +28,17 @@ def _input() -> Decorator:
     return click.argument(
         "input",
         help="A file containing a list of test commands to be ran.",
-        metavar="[<args>...]",
+        metavar="<file>",
         required=True,
         callback=input_cb,
-        expose_value=True,
+        expose_value=False,
         type=click.Path(
             exists=True,
-            file_okay=True,
-            dir_okay=False,
             readable=True,
-            resolve_path=True,
+            dir_okay=False,
+            file_okay=True,
             path_type=Path,
+            resolve_path=True,
         ),
     )
 
@@ -51,19 +51,18 @@ def _output() -> Decorator:
         "output",
         help="Output directory for writing passed/failed run commands.",
         nargs=1,
+        metavar="[<directory>]",
         type=click.Path(
             exists=False,
-            file_okay=False,
             dir_okay=True,
-            resolve_path=True,
+            file_okay=False,
             path_type=Path,
+            resolve_path=True,
         ),
         default=settings.regression.run.output.directory,
         callback=output_cb,
-        required=True,
-        show_envvar=True,
         show_default=True,
-        expose_value=True,
+        expose_value=False,
     )
 
 
@@ -72,28 +71,23 @@ def options() -> Decorator:
     return join_decorators(_input(), _output())
 
 
-def _correct_path_in(input_path: str | Path | None = None) -> Path:
+def _get_input_path() -> Path:
     """Resolve the regression input path from CLI value or settings."""
-    if input_path is None:
-        input_cfg = settings.regression.run.input
-        dir_in = input_cfg.directory
-        file_in = input_cfg.filename
-        input_path = Path(f"{dir_in}/{file_in}")
-
-    if isinstance(input_path, str):
-        input_path = Path(input_path)
-
-    return input_path.resolve()
+    input_cfg = settings.regression.run.input
+    directory, filename = input_cfg.directory, input_cfg.filename
+    rv = (
+        (Path(directory) / filename)
+        if isinstance(directory, str)
+        else (directory / filename)
+    )
+    return rv.resolve()
 
 
-def _correct_paths_out(
-    regression: Regression,
-    output_path: str | Path | None = None,
-) -> Path:
+def _get_output_path(regression: Regression) -> Path:
     """Return timestamped output paths for passed and failed results."""
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
-    dir_out = output_path or settings.regression.run.output.directory  # pyright: ignore
+    dir_out = settings.regression.run.output.directory  # pyright: ignore
     if isinstance(dir_out, str):
         dir_out = Path(dir_out)
     dir_out = dir_out / regression.name / today / now
@@ -166,14 +160,11 @@ def populate_regression(filepath: Path) -> Regression:
     )
 
 
-async def run_from_file(
-    input: str | Path | None = None,  # noqa: A002
-    output: str | Path | None = None,
-) -> Regression:
+async def run_regression() -> Regression:
     """Run a regression using file inputs and persist the results."""
-    path_in = _correct_path_in(input)
+    path_in = _get_input_path()
     regression = populate_regression(path_in)
-    output_dir = _correct_paths_out(regression, output)
+    output_dir = _get_output_path(regression)
 
     try:
         async with asyncio.TaskGroup() as tg:

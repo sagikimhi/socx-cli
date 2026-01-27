@@ -217,15 +217,15 @@ tags:
 
     === "**__:lucide-flask-conical: Regression Commands__**"
 
-        === "`socx rgr`"
+        === "`socx regression`"
 
-            ![socx rgr](assets/images/socx-rgr.svg){ width="800" loading=lazy }
+            ![socx regression](assets/images/socx-regression.svg){ width="800" loading=lazy }
             /// caption
             ///
 
-        === "`socx rgr run`"
+        === "`socx regression run`"
 
-            ![socx rgr run](assets/images/socx-rgr-run.svg){ width="800" loading=lazy }
+            ![socx regression run](assets/images/socx-regression-run.svg){ width="800" loading=lazy }
             /// caption
             ///
 
