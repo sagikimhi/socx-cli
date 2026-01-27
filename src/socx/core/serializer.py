@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, TypeVar, Generic
+
+T = TypeVar("T")
 
 
-class Serializer[T](ABC):
+class Serializer(ABC, Generic[T]):
     """Generic protocol for converting values into configuration payloads."""
 
     @classmethod
