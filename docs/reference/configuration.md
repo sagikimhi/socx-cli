@@ -6,10 +6,10 @@ icon: lucide/file-cog
 
 - # Configuration Reference
 
-  Below are the built-in `socx` settings and their default values.
-  {.card}
+    Below are the built-in `socx` settings and their default values.
+    {.card}
 
-  === "`rich_click`"
+    === "`rich_click`"
 
         This configuration file contains configurations to alter the command-line
         interface appearance of `socx`.
@@ -23,7 +23,7 @@ icon: lucide/file-cog
         ---8<-- "src/socx/static/settings/rich_click.yaml"
         ```
 
-  === "`plugins`"
+    === "`plugins`"
 
         Defines all of `socx`'s built-in plugins.
 
@@ -33,7 +33,7 @@ icon: lucide/file-cog
         ---8<-- "src/socx/static/settings/plugins.yaml"
         ```
 
-  === "`cli`"
+    === "`cli`"
 
         Used by the main command-line interface module `socx.cli`.
 
@@ -41,7 +41,7 @@ icon: lucide/file-cog
         ---8<-- "src/socx/static/settings/cli.yaml"
         ```
 
-  === "`git`"
+    === "`git`"
 
         Used by `socx git` plugin.
 
@@ -49,7 +49,7 @@ icon: lucide/file-cog
         ---8<-- "src/socx/static/settings/git.yaml"
         ```
 
-  === "`console`"
+    === "`console`"
 
         Used for instantiationg console and tracebacks.
 
@@ -57,7 +57,7 @@ icon: lucide/file-cog
         ---8<-- "src/socx/static/settings/console.yaml"
         ```
 
-  === "`regression`"
+    === "`regression`"
 
         Used by `socx regression` plugin.
 
