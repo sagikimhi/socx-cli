@@ -5,6 +5,6 @@ regression:
   run:
     input:
       filename: small
-      directory: "@path @format {this.paths.app_root_dir}/assets/rgr/inputs"
+      directory: "@path @jinja {{this.paths.app_root_dir}}/assets/rgr/inputs"
     output:
       directory: "@path workrun/regression"
