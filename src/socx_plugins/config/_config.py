@@ -20,12 +20,7 @@ def edit_config():
         Path(file).stem: Path(settings.app_settings_dir / file)
         for file in settings.dynaconf_include
     }
-
-    for name in files:
-        try:
-            files[name] = files[name].resolve()
-        except OSError:
-            del files[name]
+    files = {k: v.resolve() for k, v in files.items() if v.exists()}
 
     file_choice = Prompt.ask(
         console=console,

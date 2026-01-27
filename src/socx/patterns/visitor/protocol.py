@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, TypeVar, Generic
 from collections.abc import Iterable
 
 
-class Visitor[NODE](Protocol):
+NODE = TypeVar("NODE")
+
+
+class Visitor(Protocol, Generic[NODE]):
     """Protocol describing objects that can visit nodes."""
 
     __slots__ = ()
@@ -16,7 +19,7 @@ class Visitor[NODE](Protocol):
         ...
 
 
-class Node[NODE](Protocol):
+class Node(Protocol, Generic[NODE]):
     """Protocol for nodes that accept visitors."""
 
     __slots__ = ()
@@ -26,7 +29,7 @@ class Node[NODE](Protocol):
         ...
 
 
-class Structure[NODE](Protocol):
+class Structure(Protocol, Generic[NODE]):
     """Protocol for structures exposing child relationships."""
 
     __slots__ = ()
@@ -37,7 +40,7 @@ class Structure[NODE](Protocol):
         ...
 
 
-class Traversal[NODE](Protocol):
+class Traversal(Protocol, Generic[NODE]):
     """Adapter interface that controls how nodes accept visitors."""
 
     __slots__ = ()
