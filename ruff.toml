@@ -67,7 +67,7 @@ ignore = [
     "ASYNC110",
 ]
 
-[isort]
+[lint.isort]
 length-sort = true
 order-by-type = true
 force-wrap-aliases = true
