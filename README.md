@@ -8,6 +8,8 @@
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/socx-cli?style=flat-square)](https://pypi.org/p/socx-cli/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/socx-cli?style=flat-square)](https://pypi.org/p/socx-cli/)
 
+![socx-cli](docs/assets/images/socx-cli.svg)
+
 SoCX is a command-line toolbox for EDA development teams.
 
 SoCX can also be used in your own python project/library/script and provides an
@@ -21,7 +23,7 @@ For details, please refer to the [official documentation page](https://sagikimhi
 > ensure you meet the following perquisites before proceeding with the
 > installation of `socx`:
 > -  A working installation of `pip` or [`uv`](https://github.com/astral-sh/uv).
-> -  A working installation of Python 3.10 or newer version.
+> -  A working installation of Python 3.12 or newer version.
 
 ### Install as a tool
 
@@ -85,7 +87,19 @@ pipx upgrade socx-cli
 >
 > ```console
 > $ socx version
-> socx-cli 0.11.1
+> Name: socx-cli
+> Version: 0.11.5
+> Summary: System on chip verification and tooling infrastructure.
+> Home-page: https://sagikimhi.dev/socx-cli
+> Author:
+> Author-email: Sagi Kimhi <sagi.kim5@gmail.com>
+> License-Expression: Apache-2.0
+> Location: /home/skimhi/.project/git/users/sagikimhi/python/socx-worktree/develop/.venv/lib/python3.14/site-packages
+> Editable project location: /home/skimhi/.project/git/users/sagikimhi/python/socx-worktree/develop
+> Requires: click, copier, dynaconf, gitpython, hoptex, jinja2, paramiko, pip,
+> platformdirs, plumbum, prompt-toolkit, psutil, pydantic, pygit2, python-box,
+> rich, rich-click, sh, textual, textual-speedups, typer, uv, werkzeug
+> Required-by:
 > ```
 
 ## Documentation & Community

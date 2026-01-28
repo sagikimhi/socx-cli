@@ -15,8 +15,8 @@ from typing import (
     TYPE_CHECKING,
     Any,
     cast,
-    overload,
     override,
+    overload,
     TypeVar,
     ClassVar,
 )
