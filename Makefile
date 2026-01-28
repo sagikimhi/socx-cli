@@ -149,7 +149,17 @@ coverage: uv ## Report coverage as text and HTML
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
 
 changelog: ## Update the project's CHANGELOG.md from the git commit log
-	$(HIDE)$(CHANGELOG_BIN) $(CHANGELOG_FLAGS)
+	$(HIDE)$(UV) tool run --python 3.14 git-changelog \
+		--in-place \
+		--parse-refs \
+		--git-trailers \
+		--omit-empty-versions \
+		--style conventional \
+		--input CHANGELOG.md \
+		--sections feat,fix,revert,refactor,perf,docs \
+		--versioning semver \
+		--config-file ./config/git-changelog.toml \
+		--bump "$$($(CWD)/bin/version)"
 
 check_api: uv ## Check API for breaking changes.
 	$(HIDE)$(UV) run $(CWD)/scripts/make.py "$@"
