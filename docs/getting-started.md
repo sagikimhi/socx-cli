@@ -149,6 +149,12 @@ tags:
             /// caption
             ///
 
+        === "`socx git show`"
+
+            ![socx git show](assets/images/socx-git-show.svg){ width="800" loading=lazy }
+            /// caption
+            ///
+
         === "`socx git summary`"
 
             ![socx git summary](assets/images/socx-git-summary.svg){ width="800" loading=lazy }
@@ -220,6 +226,12 @@ tags:
         === "`socx regression`"
 
             ![socx regression](assets/images/socx-regression.svg){ width="800" loading=lazy }
+            /// caption
+            ///
+
+        === "`socx regression tui`"
+
+            ![socx regression tui](assets/images/socx-regression-tui.svg){ width="800" loading=lazy }
             /// caption
             ///
 
