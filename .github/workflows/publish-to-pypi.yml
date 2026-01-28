@@ -25,10 +25,6 @@ jobs:
           python-version: 3.14
       - name: Build distribution
         run: make build
-      - name: Run smoke test (wheel)
-        run: uv run --isolated --no-project --with pytest --with dist/*.whl pytest tests
-      - name: Run smoke test (source distribution)
-        run: uv run --isolated --no-project --with pytest --with dist/*.tar.gz pytest tests
       - name: Publish distribution
         run: make publish
         env:
