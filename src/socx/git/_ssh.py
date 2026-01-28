@@ -14,16 +14,16 @@ def get_ssh_config(
 ) -> paramiko.SSHConfigDict:
     """Retrieve the SSH configuration for a given hostname.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     hostname: str
         The hostname to look up in the SSH config.
     path: str | Path | None, optional
         Path to the SSH config file.
         Defaults to '~/.ssh/config' if not provided.
 
-    Returns
-    -------
+    Returns:
+    --------
     paramiko.SSHConfigDict
         The SSH configuration dictionary for the hostname.
         Returns an empty dictionary if the config file is not found or cannot
@@ -48,8 +48,8 @@ def get_ssh_key_path(
 ) -> str | None:
     """Get the path to the SSH private key for a given hostname.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     hostname: str
         The hostname to look up in the SSH config.
 
@@ -57,8 +57,8 @@ def get_ssh_key_path(
         Path to the SSH config file.
         Defaults to '~/.ssh/config' if not provided.
 
-    Returns
-    -------
+    Returns:
+    --------
     str | None
         The path to the SSH private key if found, otherwise None.
     """

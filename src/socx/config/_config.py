@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 def get_local_config_files() -> list[Path]:
     """Get a list of local settings file paths found in parent folders.
 
-    Description
-    -----------
+    Description:
+    ------------
     After initialization, `socx` searches parent directories for any file
     named '.socx.<ext>' where <ext> is any file extension supported by the
     `socx` configuration system.
@@ -57,8 +57,8 @@ def get_local_config_files() -> list[Path]:
         parent directories starting the search at the current working
         directory.
 
-    Returns
-    -------
+    Returns:
+    --------
     An ordered list of `Path` objects pointing at configuration files to be
     loaded in that exact order to preserve the described overrides order.
 
@@ -74,8 +74,8 @@ def get_local_config_files() -> list[Path]:
 def get_user_config_files() -> list[Path]:
     """Get a list of all local config files found in parent folders.
 
-    Description
-    -----------
+    Description:
+    ------------
     User configuration files are any configuration files who's format is
     supported and are located under the XDG_CONFIG_HOME directory.
 
@@ -96,8 +96,8 @@ def get_user_config_files() -> list[Path]:
         parent directories starting the search at the current working
         directory.
 
-    Returns
-    -------
+    Returns:
+    --------
     An ordered list of `Path` objects pointing at configuration files to be
     loaded in that exact order to preserve the described overrides order.
 

@@ -34,8 +34,8 @@ def print_with_pager(
 ) -> None:
     """Print the given text using the console pager.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     *renderables: RenderableType | Iterable[RenderableType]
         The text or renderable objects to display.
     """
@@ -50,8 +50,8 @@ def print_outputs(
 ) -> None:
     """Print a dictionary of outputs, optionally using a pager.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     outputs: dict[str, str]
         Mapping of names to output strings.
     pager: bool, optional
@@ -78,8 +78,8 @@ def print_command_outputs(
 ) -> None:
     """Print the stdout of a dictionary of RunningCommand objects.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     outputs: dict[str, RunningCommand]
         Mapping of names to RunningCommand objects.
     pager: bool = True
@@ -96,13 +96,13 @@ def print_command_outputs(
 def get_console(*args: Any, **kwargs: Any) -> Console:
     """Create and configure a rich Console instance with custom settings.
 
-    Parameters
-    ----------
+    Parameters:
+    -----------
     **kwargs: dict[str, Any]
         Additional keyword arguments for Console.
 
-    Returns
-    -------
+    Returns:
+    --------
     Console:
         Configured Console instance.
     """

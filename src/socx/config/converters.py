@@ -17,7 +17,8 @@ from typing import (
     overload,
     override,
     TypeVar,
-    ClassVar, Generic,
+    ClassVar,
+    Generic,
 )
 from pathlib import Path
 from importlib import import_module
@@ -55,6 +56,7 @@ logger = logging.getLogger(__name__)
 
 TI = TypeVar("TI")
 TO = TypeVar("TO")
+
 
 class Converter(abc.ABC, Generic[TI, TO]):
     """Base protocol for Dynaconf converters used by SoCX."""

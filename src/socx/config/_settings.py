@@ -64,8 +64,8 @@ class Settings(LazySettings):
     def raw(self) -> dict[str, Any]:
         """Return this instance with all nested values as raw values.
 
-        See Also
-        --------
+        See Also:
+        ---------
         get_raw : Further information regarding 'raw values'.
 
         """
@@ -93,8 +93,8 @@ class Settings(LazySettings):
     def history(self) -> tuple[dict[str, Any], ...]:
         """Get the history of this instance.
 
-        See Also
-        --------
+        See Also:
+        ---------
         get_history : Additional options for retrieving the settings history.
 
         """
@@ -178,8 +178,8 @@ class Settings(LazySettings):
         revert unserializable python types into their original configuration
         string form.
 
-        Parameters
-        ----------
+        Parameters:
+        -----------
         key: str, optional
             The dictionary key of the raw value to return.
         default: Any, optional
@@ -188,8 +188,8 @@ class Settings(LazySettings):
             An optional seperator in the original key that will be replaced
             with a dot before performing a dotted lookup.
 
-        Returns
-        -------
+        Returns:
+        --------
         value_or_default: Any
             The value in its raw configuration format or default if key does
             not exist.
@@ -216,8 +216,8 @@ class Settings(LazySettings):
     ) -> tuple[dict[str, Any], ...]:
         """Get up to limit entries of loaded data history.
 
-        Parameters
-        ----------
+        Parameters:
+        -----------
         key: str | None, optional
             An optional key to by which to filter history entries in order
             to search for changes applied to a specific settings key.
@@ -231,8 +231,8 @@ class Settings(LazySettings):
             entries are sorted from newest to oldest, with the newest entry
             being at index 0.
 
-        Returns
-        -------
+        Returns:
+        --------
         entries: tuple[dict[str, Any], ...]
             A tuple of history entries where each entry is a transformation
             that has been previously applied to the settings instance.
