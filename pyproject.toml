@@ -29,13 +29,13 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.11.5"
+version = "0.12.0"
 license = "Apache-2.0"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 description = "System on chip verification and tooling infrastructure."
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Topic :: Utilities",
     "Topic :: Documentation",
@@ -48,8 +48,6 @@ classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -146,13 +144,6 @@ managed = true
 default-groups = ["dev", "docs"]
 
 # -----------------------------------------------------------------------------
-# Tool Configurations - pytest
-# -----------------------------------------------------------------------------
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-
-# -----------------------------------------------------------------------------
 # Tool Configurations - Hatch
 # -----------------------------------------------------------------------------
 
@@ -169,6 +160,9 @@ packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
 [tool.hatch.build.targets.wheel]
 packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
 
-[tool.hatch.build.targets.binary]
-scripts = ["socx"]
-packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
+# -----------------------------------------------------------------------------
+# Tool Configurations - pytest
+# -----------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
