@@ -134,6 +134,12 @@ __all__ = (
     "TestStatus",
     "TestResult",
     "TestCommand",
+    # Server
+    "Server",
+    "Job",
+    "JobCommand",
+    "JobStatus",
+    "JobResult",
 )
 
 from socx.io import log as log
@@ -276,3 +282,9 @@ from socx.regression import Regression as Regression
 from socx.regression import TestStatus as TestStatus
 from socx.regression import TestResult as TestResult
 from socx.regression import TestCommand as TestCommand
+
+from socx.server import Server as Server
+from socx.server import Job as Job
+from socx.server import JobCommand as JobCommand
+from socx.server import JobStatus as JobStatus
+from socx.server import JobResult as JobResult
