@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
+## [0.12.0](https://github.com/sagikimhi/socx-cli/releases/tag/0.12.0) - 2026-02-02
+
+<small>[Compare with first commit](https://github.com/sagikimhi/socx-cli/compare/2ac4ca1338119aa792e1e5c1e12d0d7d1a02f6cd...0.12.0)</small>
+
+### Features
+
+- scripts are now actual scripts ([ffa0b80](https://github.com/sagikimhi/socx-cli/commit/ffa0b8069eb2beef8d4f9df0407cc4d788b47439) by Sagi Kimhi). Related issues/PRs: [#138](https://github.com/sagikimhi/socx-cli/issues/138) Signed-off-by: Sagi Kimhi <sagi.kim5@gmail.com>, Resolves: #138
+
+### Docs
+
+- update CLI showcase images ([b1df71f](https://github.com/sagikimhi/socx-cli/commit/b1df71f098a725c1187bbc363ca370c50b6cf297) by Sagi Kimhi). Signed-off-by: Sagi Kimhi <sagi.kim5@gmail.com>
+- update credits page icon ([756d3b9](https://github.com/sagikimhi/socx-cli/commit/756d3b95214ad2bcb6e0a364f3df5e559b302682) by Sagi Kimhi). Signed-off-by: Sagi Kimhi <sagi.kim5@gmail.com>
+
+## [0.1.0](https://github.com/sagikimhi/socx-cli/releases/tag/0.1.0) - 2026-02-02
+
+<small>[Compare with first commit](https://github.com/sagikimhi/socx-cli/compare/2ac4ca1338119aa792e1e5c1e12d0d7d1a02f6cd...0.1.0)</small>
+
+### Features
+
+- scripts are now actual scripts ([ffa0b80](https://github.com/sagikimhi/socx-cli/commit/ffa0b8069eb2beef8d4f9df0407cc4d788b47439) by Sagi Kimhi). Related issues/PRs: [#138](https://github.com/sagikimhi/socx-cli/issues/138) Signed-off-by: Sagi Kimhi <sagi.kim5@gmail.com>, Resolves: #138
+
+### Docs
+
+- update CLI showcase images ([b1df71f](https://github.com/sagikimhi/socx-cli/commit/b1df71f098a725c1187bbc363ca370c50b6cf297) by Sagi Kimhi). Signed-off-by: Sagi Kimhi <sagi.kim5@gmail.com>
+- update credits page icon ([756d3b9](https://github.com/sagikimhi/socx-cli/commit/756d3b95214ad2bcb6e0a364f3df5e559b302682) by Sagi Kimhi). Signed-off-by: Sagi Kimhi <sagi.kim5@gmail.com>
+
 ## [0.11.5](https://github.com/sagikimhi/socx-cli/releases/tag/0.11.5) - 2026-01-28
 
 <small>[Compare with first commit](https://github.com/sagikimhi/socx-cli/compare/8207c6342287279f97909eec94c3b79382debd59...0.11.5)</small>
