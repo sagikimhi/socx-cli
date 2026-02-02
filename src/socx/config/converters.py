@@ -7,6 +7,7 @@ import sys
 import abc
 import runpy
 import logging
+import tempfile
 import contextlib
 from io import StringIO
 from types import CodeType, ModuleType
@@ -18,7 +19,6 @@ from typing import (
     override,
     TypeVar,
     ClassVar,
-    Generic,
 )
 from pathlib import Path
 from importlib import import_module
@@ -31,7 +31,7 @@ import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
 from rich.console import Console
 from rich.markdown import Markdown
-from plumbum import FG, ProcessExecutionError, local
+import plumbum
 from plumbum.commands.base import BaseCommand
 from pydantic import (
     TypeAdapter,
@@ -54,11 +54,8 @@ _validate = validate_call(config=ConfigDict(arbitrary_types_allowed=True))
 
 logger = logging.getLogger(__name__)
 
-TI = TypeVar("TI")
-TO = TypeVar("TO")
 
-
-class Converter(abc.ABC, Generic[TI, TO]):
+class Converter[TI, TO](abc.ABC):
     """Base protocol for Dynaconf converters used by SoCX."""
 
     @abc.abstractmethod
@@ -429,11 +426,22 @@ class CommandConverter(
         *args: Any,
         **kwargs: Any,
     ) -> int:
-        cmd = self.sh_converter.convert(value)
-        if isinstance(cmd, str):
-            return -1
-        else:
-            return self._run_shell_script(cmd, *args, **kwargs)
+        if not value:
+            return 0
+
+        with tempfile.NamedTemporaryFile("w+", delete=False) as tmp:
+            tmp.write(value)
+
+        os.chmod(path=tmp.name, mode=0o755)
+        script = plumbum.local[tmp.name]
+
+        try:
+            return self._run_shell_script(script, *args, **kwargs)
+        except PermissionError:
+            script = plumbum.local["/bin/sh"]["-c", value]
+            return self._run_shell_script(script, *args, **kwargs)
+        finally:
+            os.remove(tmp.name)
 
     @_run_shell_script.register
     def _(
@@ -451,20 +459,22 @@ class CommandConverter(
             value = value[args]
 
         env = env or {}
-        cwd = local.path(cwd)
+        cwd = plumbum.local.path(cwd)
 
         if not fresh_env:
             env = dict(os.environ, **env)
 
-        with local.env(env), local.cwd(cwd):
+        with plumbum.local.env(env), plumbum.local.cwd(cwd):
             if fresh_env:
-                local.env.clear()
+                plumbum.local.env.clear()
 
-            local.env.update(env)
+            plumbum.local.env.update(env)
             cmd = value.with_cwd(cwd).with_env(**env)
             cmd_str = str(cmd)
             cwd_str = str(cwd)
-            env_str = "\n".join(f"\t{k}={v}" for k, v in local.env.items())
+            env_str = "\n".join(
+                f"\t{k}={v}" for k, v in plumbum.local.env.items()
+            )
 
             logger.info(f"Executing command: '{cmd_str}'.")
             logger.debug(
@@ -476,11 +486,11 @@ class CommandConverter(
             )
 
             try:
-                _ = cmd & FG(retcode=retcode, timeout=timeout)
+                _ = cmd & plumbum.FG(retcode=retcode, timeout=timeout)
             except FileNotFoundError as exc:
                 logger.exception(str(exc))
                 raise
-            except ProcessExecutionError as exc:
+            except plumbum.ProcessExecutionError as exc:
                 logger.exception(str(exc))
                 raise
 
@@ -557,7 +567,7 @@ class CommandConverter(
         if self.is_script_path(path) or self.is_package_path(path):
             path = str(Path(path).resolve())
 
-        with local.cwd(cwd):
+        with plumbum.local.cwd(cwd):
             if fresh_env:
                 os.environ.clear()
 
@@ -830,7 +840,7 @@ class MarkdownConverter(Converter[str | Lazy | Markdown | None, str | Lazy]):
         return value
 
 
-class GenericConverter(Converter[TI, TO]):
+class GenericConverter[TI, TO](Converter[TI, TO]):
     """Adapter turning plain callables into ``Converter`` instances."""
 
     def __init__(self, name: str, cvt: Callable[..., TO]) -> None:
