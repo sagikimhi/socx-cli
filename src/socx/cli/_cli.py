@@ -34,7 +34,9 @@ class _CmdLine(click.RichGroup):
             for name, value in settings.get("plugins", {}).items()
         }
 
-    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
+    def get_command(
+        self, ctx: click.Context, cmd_name: str
+    ) -> click.Command | None:
         """Resolve commands from core registrations or configured plugins."""
         if cmd_name not in self.commands:
             plugin = self.plugins.get(cmd_name)
@@ -76,7 +78,9 @@ class _CmdLine(click.RichGroup):
         _, cmd, args = super().resolve_command(ctx, args)
         return (cmd.name, cmd, args) if cmd else (None, None, args)
 
-    def _update_command_attrs(self, cmd: click.Command, plugin: PluginModel) -> None:
+    def _update_command_attrs(
+        self, cmd: click.Command, plugin: PluginModel
+    ) -> None:
         if isinstance(cmd, click.Command):
             cmd.name = plugin.name
             cmd.epilog = cmd.epilog or plugin.epilog

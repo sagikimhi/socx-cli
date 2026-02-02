@@ -1,17 +1,13 @@
 """Traversal strategies compatible with the visitor protocol."""
 
 from __future__ import annotations
-from typing import TypeVar
 
 from socx.patterns.visitor.protocol import Visitor
 from socx.patterns.visitor.protocol import Structure
 from socx.patterns.visitor.protocol import Traversal
 
 
-NODE = TypeVar("NODE")
-
-
-class TopDownTraversal(Traversal[NODE]):
+class TopDownTraversal[NODE](Traversal[NODE]):
     """Pre-order traversal that visits parents before descendants."""
 
     @classmethod
@@ -23,7 +19,7 @@ class TopDownTraversal(Traversal[NODE]):
             cls.accept(c, v, p)
 
 
-class BottomUpTraversal(Traversal[NODE]):
+class BottomUpTraversal[NODE](Traversal[NODE]):
     """Post-order traversal that visits descendants before parents."""
 
     @classmethod
@@ -35,7 +31,7 @@ class BottomUpTraversal(Traversal[NODE]):
         v.visit(n)
 
 
-class ByLevelTraversal(Traversal[NODE]):
+class ByLevelTraversal[NODE](Traversal[NODE]):
     """Breadth-first traversal that visits nodes one level at a time."""
 
     @classmethod
