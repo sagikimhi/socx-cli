@@ -14,7 +14,7 @@ exclude = [
 cache-dir = "~/.cache/ruff"
 line-length = 79
 indent-width = 4
-target-version = "py310"
+target-version = "py312"
 respect-gitignore = true
 
 [analyze]

@@ -1,13 +1,11 @@
 from __future__ import annotations
+from collections.abc import Iterable
 
-import shlex
 import dataclasses
 from pathlib import Path
 from typing import Annotated, Literal, cast, Any
 
 from pydantic_core import PydanticCustomError
-from plumbum import local, CommandNotFound
-from plumbum.commands import BaseCommand
 from pydantic_core import core_schema
 from pydantic.json_schema import JsonSchemaValue
 from pydantic import (
@@ -213,30 +211,24 @@ SocketPath = Annotated[Path, PathType("socket")]
 """A path to an existing socket file"""
 
 
-def validate_script(value: str | BaseCommand) -> str | BaseCommand:
-    if isinstance(value, str):
-        value = value.strip()
-        if not value:
-            return value
-    elif isinstance(value, BaseCommand):
-        return value
+def validate_script(value: str | Iterable[str]) -> str:
+    # [set] wouldnt make sense here due to its unordered nature
+    if not value:
+        return ""
 
-    args = tuple(arg.strip() for arg in shlex.split(value) if arg)
+    if isinstance(value, list | tuple):
+        value = "\n".join(list(value))
 
-    try:
-        cmd = local[args[0]]
-    except CommandNotFound as exc:
-        raise PydanticCustomError(
-            "invalid_script",  # noqa: EM101
-            "{exc}",
-            {"exc": str(exc)},
-        ) from exc
+    script = value if isinstance(value, str) else "\n".join(value)
 
-    return cmd[args[1:]]
+    if not script.strip().startswith("#!"):
+        script = "#!/bin/sh\n%s" % script
+
+    return script
 
 
 Script = Annotated[
-    str | BaseCommand,
+    str,
     BeforeValidator(validate_script),
     PlainSerializer(str, str),
 ]

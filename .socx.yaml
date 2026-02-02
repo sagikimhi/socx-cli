@@ -1,0 +1,21 @@
+plugins:
+  hello:
+    script:
+      - echo "hello"
+      - echo "world"!
+    help: |
+      @markdown Say "hello world!" but invoke echo for each individual word.
+
+  secretgen:
+    script:
+      - "#!/usr/bin/env -S uv run --script"
+      - "import secrets"
+      - "print(secrets.token_urlsafe(32))"
+    help: |
+      @markdown Generate a random secret token using python's [secrets] package.
+
+  run:
+    script:
+      - "@jinja {{this.paths.app_root_dir}}/bin/run"
+    help: |
+      Do some work for up to 10 seconds.
