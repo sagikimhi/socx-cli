@@ -4,7 +4,6 @@ site_url: https://sagikimhi.dev/socx-cli/
 site_description: >-
   System on chip verification and tooling infrastructure.
 use_directory_urls: true
-
 # Repository Info
 repo_name: sagikimhi/socx-cli
 repo_url: https://github.com/sagikimhi/socx-cli
@@ -203,7 +202,7 @@ plugins:
   - autorefs
   - typeset
   - section-index
-  - zensical.extensions.preview:
+  - material.extensions.preview:
       targets:
         include:
           - getting-started.md
