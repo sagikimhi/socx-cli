@@ -118,6 +118,23 @@ class PluginModel(BaseModel):
         description="The short help to use for this command",
     )
 
+    remote: str = Field(
+        default="",
+        description="""
+            GitHub repository URL or shorthand (owner/repo) for remote plugins.
+            If specified, the plugin is hosted on GitHub and will be cloned
+            to the cache directory.
+        """.strip(),
+    )
+
+    ref: str = Field(
+        default="",
+        description="""
+            Git reference (branch, tag, or commit SHA) for remote plugins.
+            If left unspecified, uses the default branch.
+        """.strip(),
+    )
+
     model_config = ConfigDict(
         extra="allow",
         from_attributes=True,
@@ -129,6 +146,9 @@ class PluginModel(BaseModel):
 
     def is_command(self) -> bool:
         return bool(self.command)
+
+    def is_remote(self) -> bool:
+        return bool(self.remote)
 
     @classmethod
     def toml_schema(cls) -> str | None:
