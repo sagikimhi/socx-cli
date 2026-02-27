@@ -134,6 +134,9 @@ __all__ = (
     "TestStatus",
     "TestResult",
     "TestCommand",
+    # Plugins
+    "PluginCache",
+    "PluginManager",
 )
 
 from socx.io import log as log
@@ -276,3 +279,6 @@ from socx.regression import Regression as Regression
 from socx.regression import TestStatus as TestStatus
 from socx.regression import TestResult as TestResult
 from socx.regression import TestCommand as TestCommand
+
+from socx.plugins import PluginCache as PluginCache
+from socx.plugins import PluginManager as PluginManager

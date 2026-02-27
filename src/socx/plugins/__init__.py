@@ -1,4 +1,4 @@
-"""Plugin management utilities for remote GitHub plugins."""
+"""Plugin management utilities for remote Git plugins from any provider."""
 
 from __future__ import annotations
 

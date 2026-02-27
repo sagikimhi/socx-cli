@@ -28,10 +28,10 @@ def test_normalize_url():
     """Test URL normalization."""
     cache = PluginCache()
 
-    # Test shorthand
+    # Test GitHub shorthand
     assert cache._normalize_url("owner/repo") == "https://github.com/owner/repo"
 
-    # Test full URL
+    # Test GitHub full URL
     assert (
         cache._normalize_url("https://github.com/owner/repo")
         == "https://github.com/owner/repo"
@@ -48,6 +48,48 @@ def test_normalize_url():
         cache._normalize_url("https://github.com/owner/repo.git")
         == "https://github.com/owner/repo"
     )
+
+    # Test GitLab URL with domain
+    assert (
+        cache._normalize_url("gitlab.com/owner/repo")
+        == "https://gitlab.com/owner/repo"
+    )
+
+    # Test Bitbucket URL with domain
+    assert (
+        cache._normalize_url("bitbucket.org/owner/repo")
+        == "https://bitbucket.org/owner/repo"
+    )
+
+    # Test full GitLab URL
+    assert (
+        cache._normalize_url("https://gitlab.com/owner/repo")
+        == "https://gitlab.com/owner/repo"
+    )
+
+    # Test full Bitbucket URL
+    assert (
+        cache._normalize_url("https://bitbucket.org/owner/repo")
+        == "https://bitbucket.org/owner/repo"
+    )
+
+    # Test local absolute path (Unix)
+    import os
+    if os.name != 'nt':  # Unix-like systems
+        normalized = cache._normalize_url("/home/user/my-plugin")
+        assert normalized.startswith("/")
+        assert "my-plugin" in normalized
+
+    # Test local relative path
+    normalized = cache._normalize_url("./my-plugin")
+    assert "my-plugin" in normalized
+
+    # Test home directory path
+    import pathlib
+    normalized = cache._normalize_url("~/my-plugin")
+    assert "my-plugin" in normalized
+    # Should be expanded to absolute path
+    assert not normalized.startswith("~")
 
 
 def test_get_plugin_path(temp_cache_dir):

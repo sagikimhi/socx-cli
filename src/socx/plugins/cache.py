@@ -31,7 +31,7 @@ class PluginCache:
         """Get the cache path for a plugin.
 
         Args:
-            remote_url: GitHub repository URL or shorthand (owner/repo)
+            remote_url: Git repository URL, provider shorthand, or local path
             ref: Git reference (branch, tag, or commit SHA)
 
         Returns:
@@ -51,7 +51,7 @@ class PluginCache:
         """Check if a plugin is already cached.
 
         Args:
-            remote_url: GitHub repository URL or shorthand
+            remote_url: Git repository URL, provider shorthand, or local path
             ref: Git reference
 
         Returns:
@@ -64,7 +64,7 @@ class PluginCache:
         """Get the path to the plugin's configuration file.
 
         Args:
-            remote_url: GitHub repository URL or shorthand
+            remote_url: Git repository URL, provider shorthand, or local path
             ref: Git reference
 
         Returns:
@@ -77,7 +77,7 @@ class PluginCache:
         """Remove a cached plugin.
 
         Args:
-            remote_url: GitHub repository URL or shorthand
+            remote_url: Git repository URL, provider shorthand, or local path
             ref: Optional git reference. If None, removes all versions.
         """
         repo_url = self._normalize_url(remote_url)
@@ -96,17 +96,43 @@ class PluginCache:
                 shutil.rmtree(repo_path)
 
     def _normalize_url(self, remote_url: str) -> str:
-        """Normalize a GitHub URL or shorthand to a full URL.
+        """Normalize a Git repository URL or path to a canonical form.
+
+        Supports:
+        - GitHub shorthand (owner/repo) -> https://github.com/owner/repo
+        - GitLab URLs (gitlab.com/owner/repo)
+        - Bitbucket URLs (bitbucket.org/owner/repo)
+        - Full HTTPS URLs (any provider)
+        - Local filesystem paths (absolute or relative)
 
         Args:
-            remote_url: GitHub URL or shorthand (owner/repo)
+            remote_url: Git repository URL, shorthand, or local path
 
         Returns:
-            Normalized GitHub URL
+            Normalized URL or path
         """
-        # If it's a shorthand (owner/repo), convert to full URL
-        if "/" in remote_url and not remote_url.startswith(("http://", "https://")):
-            return f"https://github.com/{remote_url}"
+        # If it's a local filesystem path, return as-is (absolute or relative)
+        # Check for common path patterns: starts with /, ./, ../, or ~
+        if remote_url.startswith(("/", "./", "../", "~")):
+            from pathlib import Path
+            return str(Path(remote_url).expanduser().resolve())
+
+        # If it looks like a Windows path (C:\ or similar)
+        if len(remote_url) > 2 and remote_url[1] == ":" and remote_url[2] in ("\\/"):
+            from pathlib import Path
+            return str(Path(remote_url).resolve())
+
+        # If it's a shorthand (owner/repo without protocol), convert to GitHub URL
+        # Must contain exactly one slash and no dots to avoid catching gitlab.com/owner/repo
+        if "/" in remote_url and not remote_url.startswith(("http://", "https://", "git@")):
+            # Check if it's a provider-specific shorthand (e.g., gitlab.com/owner/repo)
+            parts = remote_url.split("/")
+            if len(parts) >= 2 and "." in parts[0]:
+                # It's a domain-based shorthand like gitlab.com/owner/repo
+                return f"https://{remote_url}"
+            else:
+                # It's a GitHub shorthand like owner/repo
+                return f"https://github.com/{remote_url}"
 
         # If it's already a full URL, normalize it
         if remote_url.startswith("http://"):

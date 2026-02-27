@@ -1,4 +1,4 @@
-"""Plugin manager for handling remote GitHub plugins."""
+"""Plugin manager for handling remote Git plugins from any provider."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from socx.core._paths import PROJECT_ROOT_DIR, LOCAL_CONFIG_FILENAME
 
 
 class PluginManager:
-    """Manages remote GitHub plugins."""
+    """Manages remote Git plugins from GitHub, GitLab, Bitbucket, or local repositories."""
 
     def __init__(self, project_root: Path | None = None):
         """Initialize plugin manager.
@@ -36,7 +36,8 @@ class PluginManager:
 
         Args:
             name: Name to give the plugin locally
-            remote_url: GitHub repository URL or shorthand (owner/repo)
+            remote_url: Git repository URL, shorthand (owner/repo for GitHub),
+                       provider URL (gitlab.com/owner/repo), or local path
             ref: Git reference (branch, tag, or commit SHA)
             force: Force re-clone if already cached
 
@@ -168,7 +169,7 @@ class PluginManager:
         """Clone a plugin repository.
 
         Args:
-            remote_url: GitHub repository URL or shorthand
+            remote_url: Git repository URL, provider shorthand, or local path
             ref: Git reference to checkout
             plugin_path: Path to clone into
 
@@ -195,7 +196,7 @@ class PluginManager:
         """Load plugin configuration from cached repository.
 
         Args:
-            remote_url: GitHub repository URL
+            remote_url: Git repository URL or local path
             ref: Git reference
 
         Returns:
