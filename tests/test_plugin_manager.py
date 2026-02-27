@@ -20,9 +20,20 @@ def temp_project_dir():
 
 
 @pytest.fixture
-def mock_manager(temp_project_dir):
-    """Create a PluginManager with a temporary project root."""
-    return PluginManager(project_root=temp_project_dir)
+def temp_cache_dir():
+    """Create a temporary cache directory for testing."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)
+
+
+@pytest.fixture
+def mock_manager(temp_project_dir, temp_cache_dir):
+    """Create a PluginManager with a temporary project root and cache."""
+    from socx.plugins.cache import PluginCache
+    manager = PluginManager(project_root=temp_project_dir)
+    # Override the cache to use a temporary directory
+    manager.cache = PluginCache(cache_dir=temp_cache_dir)
+    return manager
 
 
 def test_manager_initialization(temp_project_dir):
@@ -153,7 +164,7 @@ def test_update_plugin_success(mock_git_repo, mock_manager):
     # Setup: add a plugin first
     cache_path = mock_manager.cache.get_plugin_path("owner/repo", "main")
     cache_path.mkdir(parents=True, exist_ok=True)
-    (cache_path / ".git").mkdir()
+    (cache_path / ".git").mkdir(exist_ok=True)
 
     plugin_config_path = cache_path / ".socx.yaml"
     plugin_config = {

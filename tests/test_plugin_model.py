@@ -37,7 +37,8 @@ def test_plugin_model_script():
     plugin = PluginModel(name="script-plugin", script="./my-script.sh")
 
     assert plugin.name == "script-plugin"
-    assert plugin.script == "./my-script.sh"
+    # Script validator adds shebang if not present
+    assert plugin.script == "#!/bin/sh\n./my-script.sh"
     assert plugin.is_script() is True
     assert plugin.is_command() is False
 
