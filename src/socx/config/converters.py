@@ -634,6 +634,14 @@ class CommandConverter(
         if not value.command:
             return {}
 
+        # Handle remote plugins by adding their cache path to sys.path
+        if value.is_remote():
+            from socx.plugins.cache import PluginCache
+            cache = PluginCache()
+            plugin_path = cache.get_plugin_path(value.remote, value.ref or "main")
+            if plugin_path.exists() and str(plugin_path) not in sys.path:
+                sys.path.insert(0, str(plugin_path))
+
         if "-h" in sys.argv or "--help" in sys.argv:
             ctx = click.get_current_context()
 
