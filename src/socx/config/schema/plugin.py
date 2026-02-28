@@ -121,9 +121,10 @@ class PluginModel(BaseModel):
     remote: str = Field(
         default="",
         description="""
-            GitHub repository URL or shorthand (owner/repo) for remote plugins.
-            If specified, the plugin is hosted on GitHub and will be cloned
-            to the cache directory.
+            Git repository URL, shorthand (e.g. owner/repo), or local path for
+            remote plugins. Supports multiple providers (such as GitHub, GitLab,
+            Bitbucket, self-hosted Git) and will be cloned or fetched into the
+            cache directory when specified.
         """.strip(),
     )
 
