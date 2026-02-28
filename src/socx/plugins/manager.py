@@ -7,9 +7,11 @@ from pathlib import Path
 from typing import Any
 
 import git
+from pydantic import ValidationError
 
 from socx.plugins.cache import PluginCache
 from socx.core._paths import PROJECT_ROOT_DIR, LOCAL_CONFIG_FILENAME
+from socx.config.schema.plugin import PluginModel
 
 
 class PluginManager:
@@ -123,7 +125,7 @@ class PluginManager:
 
         plugin_config = plugins[name]
 
-        if "remote" not in plugin_config:
+        if "remote" not in plugin_config or not plugin_config["remote"]:
             raise ValueError(f"Plugin '{name}' is not a remote plugin")
 
         remote_url = plugin_config["remote"]
@@ -203,7 +205,7 @@ class PluginManager:
             Plugin configuration dict
 
         Raises:
-            ValueError: If configuration file doesn't exist
+            ValueError: If configuration file doesn't exist or validation fails
         """
         config_path = self.cache.get_config_path(remote_url, ref)
 
@@ -213,6 +215,7 @@ class PluginManager:
                 "Remote plugins must have a .socx.yaml file in their root."
             )
 
+        # Load configuration with validation
         with open(config_path, "r") as f:
             config = yaml.safe_load(f) or {}
 
@@ -221,9 +224,25 @@ class PluginManager:
         if not plugins:
             raise ValueError("Plugin configuration must define at least one plugin")
 
-        # Return the first plugin (or merge if multiple)
-        # For simplicity, we'll take the first one
-        return next(iter(plugins.values()))
+        # Get the first plugin and validate it
+        first_plugin_name = next(iter(plugins.keys()))
+        plugin_data = plugins[first_plugin_name]
+
+        # Validate the plugin configuration using PluginModel
+        try:
+            # Add the name to the plugin data if not present
+            if "name" not in plugin_data:
+                plugin_data["name"] = first_plugin_name
+
+            # Validate using Pydantic model to ensure no malicious content
+            validated_plugin = PluginModel.model_validate(plugin_data)
+
+            # Return validated plugin as dict
+            return validated_plugin.model_dump(exclude_none=True)
+        except ValidationError as e:
+            raise ValueError(
+                f"Plugin configuration validation failed: {e}"
+            ) from e
 
     def _load_config(self) -> dict[str, Any]:
         """Load the project's local configuration file.
@@ -234,8 +253,26 @@ class PluginManager:
         if not self.config_file.exists():
             return {}
 
+        # Load and validate configuration
         with open(self.config_file, "r") as f:
-            return yaml.safe_load(f) or {}
+            config = yaml.safe_load(f) or {}
+
+        # Validate plugins if they exist
+        if "plugins" in config:
+            for plugin_name, plugin_data in config["plugins"].items():
+                try:
+                    # Ensure the plugin has a name
+                    if "name" not in plugin_data:
+                        plugin_data["name"] = plugin_name
+
+                    # Validate using PluginModel
+                    PluginModel.model_validate(plugin_data)
+                except ValidationError as e:
+                    raise ValueError(
+                        f"Plugin '{plugin_name}' configuration validation failed: {e}"
+                    ) from e
+
+        return config
 
     def _save_config(self, config: dict[str, Any]) -> None:
         """Save the project's local configuration file.
@@ -245,6 +282,27 @@ class PluginManager:
         """
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
 
+        # Validate plugins in config before saving
+        if "plugins" in config:
+            for plugin_name, plugin_data in config["plugins"].items():
+                try:
+                    # Ensure the plugin has a name
+                    if "name" not in plugin_data:
+                        plugin_data["name"] = plugin_name
+
+                    # Validate using PluginModel
+                    validated = PluginModel.model_validate(plugin_data)
+
+                    # Convert back to dict with strings (not Path objects)
+                    config["plugins"][plugin_name] = validated.model_dump(
+                        mode="json", exclude_none=True
+                    )
+                except ValidationError as e:
+                    raise ValueError(
+                        f"Plugin '{plugin_name}' configuration validation failed: {e}"
+                    ) from e
+
+        # Convert config to YAML format
         with open(self.config_file, "w") as f:
             yaml.safe_dump(config, f, default_flow_style=False, sort_keys=False)
 

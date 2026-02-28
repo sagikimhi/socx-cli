@@ -118,7 +118,7 @@ class PluginCache:
             return str(Path(remote_url).expanduser().resolve())
 
         # If it looks like a Windows path (C:\ or similar)
-        if len(remote_url) > 2 and remote_url[1] == ":" and remote_url[2] in ("\\/"):
+        if len(remote_url) > 2 and remote_url[1:2] == ":" and remote_url[2:3] in "\\/":
             from pathlib import Path
             return str(Path(remote_url).resolve())
 
