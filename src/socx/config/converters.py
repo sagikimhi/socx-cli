@@ -44,8 +44,8 @@ from dynaconf.utils.parse_conf import Lazy
 from click.utils import _detect_program_name
 
 from socx.core.funcs import fill
-from socx.config.schema.types import Script, FilePath
-from socx.config.schema.plugin import PluginModel
+from socx.core.schema.types import Script, FilePath
+from socx.core.schema.plugin import PluginModel
 
 
 AnyCallableT = TypeVar("AnyCallableT", bound=Callable[..., Any])

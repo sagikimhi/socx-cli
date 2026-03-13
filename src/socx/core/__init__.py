@@ -1,21 +1,26 @@
 __all__ = (
     # enums
     "enums",
+    "types",
+    "funcs",
+    "paths",
+    "schema",
+    "metadata",
+    # types
+    "Script",
+    "NewPath",
+    "FilePath",
+    "SocketPath",
+    "DirectoryPath",
+    "PluginModel",
     # metadata
     "__author__",
     "__project__",
     "__version__",
     "__appname__",
     "__directory__",
-    # types
-    "FuncType",
-    "Decorator",
-    "GroupType",
-    "CommandType",
-    "AnyCallable",
-    "GroupDecorator",
-    "CommandDecorator",
     # funcs
+    "desync",
     "deduplicate",
     # paths
     "APP_ROOT_DIR",
@@ -46,6 +51,17 @@ __all__ = (
 
 
 from . import enums as enums
+from . import funcs as funcs
+from . import paths as paths
+from . import schema as schema
+from . import metadata as metadata
+
+from socx.core.schema import Script as Script
+from socx.core.schema import NewPath as NewPath
+from socx.core.schema import FilePath as FilePath
+from socx.core.schema import SocketPath as SocketPath
+from socx.core.schema import DirectoryPath as DirectoryPath
+from socx.core.schema import PluginModel as PluginModel
 
 from socx.core.metadata import __author__ as __author__
 from socx.core.metadata import __project__ as __project__
@@ -53,14 +69,7 @@ from socx.core.metadata import __version__ as __version__
 from socx.core.metadata import __appname__ as __appname__
 from socx.core.metadata import __directory__ as __directory__
 
-from socx.core.types import FuncType as FuncType
-from socx.core.types import Decorator as Decorator
-from socx.core.types import GroupType as GroupType
-from socx.core.types import CommandType as CommandType
-from socx.core.types import AnyCallable as AnyCallable
-from socx.core.types import GroupDecorator as GroupDecorator
-from socx.core.types import CommandDecorator as CommandDecorator
-
+from socx.core.funcs import desync as desync
 from socx.core.funcs import deduplicate as deduplicate
 
 from socx.core.paths import USER_LOG_DIR as USER_LOG_DIR

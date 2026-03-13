@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-from typing import ClassVar
+from typing import Any, ClassVar
+from pathlib import Path
+from collections import ChainMap
 from collections.abc import Iterable
-from collections.abc import Callable
 
+from socx import console, settings
 from textual.app import App
 from textual.app import ComposeResult
 from textual.app import SystemCommand
@@ -15,33 +16,46 @@ from textual.widgets import Header
 from textual.widgets import Footer
 from hoptex.decorator import hoptex
 
-from socx_tui.regression.screens import RegressionScreen
+from socx_tui.regression.widget import RegressionWidget
 
 
 @hoptex()
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
-    SCREENS: ClassVar[dict[str, Callable[[], Screen[Any]]]] = {
-        "regression": RegressionScreen,
-    }
-
-    MODES: ClassVar[dict[str, str | Callable[[], Screen[None]]]] = {
-        "default": "regression",
-    }
+    CSS_PATH: ClassVar[str] = str(
+        Path(settings.paths.app_root_dir)
+        / "src/socx_tui/static/tcss/regression.tcss"
+    )
 
     INLINE_PADDING = 0
 
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
+    @property
+    def regression(self) -> RegressionWidget:
+        return self.query_exactly_one(RegressionWidget)
+
+    def run(self, *args: Any, **kwargs: Any) -> int | None:
+        kwargs = dict(ChainMap(kwargs, dict(inline=True)))
+        return super().run(*args, **kwargs)
+
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
-        yield Header(show_clock=True, name="app_header")
+        yield Header(
+            id="regression-screen-header",
+            name="regression-screen-header",
+            show_clock=True,
+        )
+        yield RegressionWidget()
         yield Footer(classes="-ansi-colors", compact=True)
 
-    async def on_mount(self) -> None:
-        """Run any startup logic once the app attaches to the event loop."""
-        self.call_later(self.push_screen("regression"))
+    def check_action(
+        self,
+        action: str,
+        parameters: tuple[object, ...],
+    ) -> bool:
+        return True
 
     def get_system_commands(
         self, screen: Screen[None]
@@ -49,11 +63,26 @@ class SoCX(App[int]):
         """Expose extra debug commands alongside Textual's defaults."""
         yield from super().get_system_commands(screen)
         yield SystemCommand(
+            title="Load regression from file",
+            help="Load a regression definition from disk.",
+            callback=self.query_exactly_one(
+                RegressionWidget
+            ).action_load_regression_from_file,
+        )
+        yield SystemCommand(
+            "Print DOM Tree",
+            "Print the current DOM Tree to dev log",
+            lambda: console.print(self.tree),
+        )
+        yield SystemCommand(
             "Log DOM Tree",
             "Print the current DOM Tree to dev log",
             lambda: self.log.info(self.tree),
         )
 
-
-if __name__ == "__main__":
-    app: App = SoCX(inline=True)
+    async def action_toggle_maximize(self) -> None:
+        if self.regression.allow_maximize:
+            if self.regression.is_maximized:
+                self.screen.minimize()
+            else:
+                self.screen.maximize(self.regression)

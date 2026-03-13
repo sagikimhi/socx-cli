@@ -1,10 +1,27 @@
 regression:
-  path: ~
-  test_cls: "socx.regression.test:Test"
-  max_runs_in_parallel: 10
+  tui:
+    table:
+      view:
+        opts:
+          cursor_type: row
+          show_header: true
+          show_row_labels: true
+          show_cursor: true
+          zebra_stripes: true
+          fixed_rows: 0
+          fixed_columns: 0
+      model:
+        opts:
+          exclude:
+            - exec
+
   run:
     input:
-      filename: small
-      directory: "@path @jinja {{this.paths.app_root_dir}}/assets/rgr/inputs"
+      filename: ~
+      directory: ~
     output:
       directory: "@path workrun/regression"
+  path: ~
+  test_cls: "socx:Test"
+  regression_cls: "socx:Regression"
+  max_runs_in_parallel: 10

@@ -78,7 +78,11 @@ class OperatorPending(_Mode):
     BINDINGS: ClassVar[list[BindingType]] = []
 
 
-class VimMode(Enum):
+class ModeEnum(list[Binding], Enum):
+    pass
+
+
+class VimModes(ModeEnum):
     """Vim mode."""
 
     Normal = Normal.BINDINGS

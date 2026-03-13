@@ -11,11 +11,11 @@ from collections.abc import Callable
 from pydantic import ValidationError
 import rich_click as click
 
-from socx.core import Decorator, GroupType, CommandType, AnyCallable
+from socx.core.schema.plugin import PluginModel
 from socx.io.log import Level
 from socx.io.console import console
+from socx.utils.decorators import join_decorators
 from socx.config import settings
-from socx.config.schema.plugin import PluginModel
 from socx.cli.callbacks import (
     cwd_cb,
     debug_cb,
@@ -24,7 +24,7 @@ from socx.cli.callbacks import (
     configure_cb,
     config_files_cb,
 )
-from socx.utils.decorators import join_decorators
+from socx.cli.types import Decorator, GroupType, CommandType, AnyCallable
 
 
 def cli_config(**kwargs: Any) -> Decorator:

@@ -2,9 +2,9 @@
 
 __all__ = (
     # "Vim",
-    "VimMode",
+    "VimModes",
 )
 
 
 # from socx_tui.regression.bindings.vim.vim import Vim as Vim
-from socx_tui.regression.bindings.vim.mode import VimMode as VimMode
+from socx_tui.regression.bindings.vim.mode import VimModes as VimModes

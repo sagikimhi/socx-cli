@@ -103,7 +103,7 @@ theme:
       toggle:
         icon: lucide/sun
         name: Switch to system preference
-  logo: assets/images/Hamsta.png
+  logo: assets/images/logo.png
   favicon: "assets/images/Hamsta.png"
   icon:
     tag:

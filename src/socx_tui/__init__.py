@@ -1,4 +1,9 @@
-__all__ = ("SoCX",)
+__all__ = (
+    "app",
+    "SoCX",
+)
 
 
 from socx_tui.regression import SoCX as SoCX
+
+app = SoCX()

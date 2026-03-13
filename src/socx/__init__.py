@@ -38,6 +38,7 @@ __all__ = (
     "APP_CONFIG_FILENAME",
     "Encoder",
     "Serializer",
+    "desync",
     "deduplicate",
     # I/O
     "DEFAULT_LEVEL",
@@ -136,6 +137,46 @@ __all__ = (
     "TestCommand",
 )
 
+from socx.core import enums as enums
+from socx.core import schema as schema
+from socx.core import Script as Script
+from socx.core import NewPath as NewPath
+from socx.core import FilePath as FilePath
+from socx.core import SocketPath as SocketPath
+from socx.core import DirectoryPath as DirectoryPath
+from socx.core import PluginModel as PluginModel
+from socx.core import __author__ as __author__
+from socx.core import __project__ as __project__
+from socx.core import __version__ as __version__
+from socx.core import __appname__ as __appname__
+from socx.core import __directory__ as __directory__
+from socx.core import USER_LOG_DIR as USER_LOG_DIR
+from socx.core import USER_DATA_DIR as USER_DATA_DIR
+from socx.core import USER_CACHE_DIR as USER_CACHE_DIR
+from socx.core import USER_STATE_DIR as USER_STATE_DIR
+from socx.core import USER_CONFIG_DIR as USER_CONFIG_DIR
+from socx.core import USER_RUNTIME_DIR as USER_RUNTIME_DIR
+from socx.core import USER_LOG_FILE as USER_LOG_FILE
+from socx.core import USER_CONFIG_FILE as USER_CONFIG_FILE
+from socx.core import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
+from socx.core import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CONFIG
+from socx.core import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
+from socx.core import USER_LOG_FILENAME as USER_LOG_FILENAME
+from socx.core import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
+from socx.core import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
+from socx.core import APP_ROOT_DIR as APP_ROOT_DIR
+from socx.core import APP_STATIC_DIR as APP_STATIC_DIR
+from socx.core import APP_CONFIG_DIR as APP_CONFIG_DIR
+from socx.core import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
+from socx.core import APP_CONFIG_FILE as APP_CONFIG_FILE
+from socx.core import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
+from socx.core import Encoder as Encoder
+from socx.core import Serializer as Serializer
+from socx.core import desync as desync
+from socx.core import deduplicate as deduplicate
+
+from socx.utils import join_decorators as join_decorators
+
 from socx.io import log as log
 from socx.io import DEFAULT_LEVEL as DEFAULT_LEVEL
 from socx.io import DEFAULT_FORMAT as DEFAULT_FORMAT
@@ -179,61 +220,6 @@ from socx.git import is_local_branch as is_local_branch
 from socx.git import iter_repositories as iter_repositories
 from socx.git import find_repositories as find_repositories
 
-from socx.cli import cli as cli
-from socx.cli import opts as opts
-from socx.cli import group as group
-from socx.cli import command as command
-from socx.cli import color as color
-from socx.cli import debug as debug
-from socx.cli import configure as configure
-from socx.cli import verbosity as verbosity
-
-from socx.core import enums as enums
-from socx.core import __author__ as __author__
-from socx.core import __project__ as __project__
-from socx.core import __version__ as __version__
-from socx.core import __appname__ as __appname__
-from socx.core import __directory__ as __directory__
-from socx.core import USER_LOG_DIR as USER_LOG_DIR
-from socx.core import USER_DATA_DIR as USER_DATA_DIR
-from socx.core import USER_CACHE_DIR as USER_CACHE_DIR
-from socx.core import USER_STATE_DIR as USER_STATE_DIR
-from socx.core import USER_CONFIG_DIR as USER_CONFIG_DIR
-from socx.core import USER_RUNTIME_DIR as USER_RUNTIME_DIR
-from socx.core import USER_LOG_FILE as USER_LOG_FILE
-from socx.core import USER_CONFIG_FILE as USER_CONFIG_FILE
-from socx.core import PROJECT_ROOT_DIR as PROJECT_ROOT_DIR
-from socx.core import PROJECT_ROOT_CONFIG as PROJECT_ROOT_CONFIG
-from socx.core import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE
-from socx.core import USER_LOG_FILENAME as USER_LOG_FILENAME
-from socx.core import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
-from socx.core import LOCAL_CONFIG_FILENAME as LOCAL_CONFIG_FILENAME
-from socx.core import APP_ROOT_DIR as APP_ROOT_DIR
-from socx.core import APP_STATIC_DIR as APP_STATIC_DIR
-from socx.core import APP_CONFIG_DIR as APP_CONFIG_DIR
-from socx.core import APP_TEMPLATES_DIR as APP_TEMPLATES_DIR
-from socx.core import APP_CONFIG_FILE as APP_CONFIG_FILE
-from socx.core import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
-from socx.core import Encoder as Encoder
-from socx.core import FuncType as FuncType
-from socx.core import Decorator as Decorator
-from socx.core import GroupType as GroupType
-from socx.core import CommandType as CommandType
-from socx.core import AnyCallable as AnyCallable
-from socx.core import GroupDecorator as GroupDecorator
-from socx.core import CommandDecorator as CommandDecorator
-from socx.core import Serializer as Serializer
-from socx.core import deduplicate as deduplicate
-
-from socx.utils import join_decorators as join_decorators
-
-from socx.config import schema as schema
-from socx.config import Script as Script
-from socx.config import NewPath as NewPath
-from socx.config import FilePath as FilePath
-from socx.config import SocketPath as SocketPath
-from socx.config import DirectoryPath as DirectoryPath
-from socx.config import PluginModel as PluginModel
 from socx.config import Settings as Settings
 from socx.config import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS
 from socx.config import settings as settings
@@ -275,4 +261,19 @@ from socx.regression import TestBase as TestBase
 from socx.regression import Regression as Regression
 from socx.regression import TestStatus as TestStatus
 from socx.regression import TestResult as TestResult
-from socx.regression import TestCommand as TestCommand
+
+from socx.cli import FuncType as FuncType
+from socx.cli import Decorator as Decorator
+from socx.cli import GroupType as GroupType
+from socx.cli import CommandType as CommandType
+from socx.cli import AnyCallable as AnyCallable
+from socx.cli import GroupDecorator as GroupDecorator
+from socx.cli import CommandDecorator as CommandDecorator
+from socx.cli import opts as opts
+from socx.cli import group as group
+from socx.cli import command as command
+from socx.cli import color as color
+from socx.cli import debug as debug
+from socx.cli import configure as configure
+from socx.cli import verbosity as verbosity
+from socx.cli import cli as cli

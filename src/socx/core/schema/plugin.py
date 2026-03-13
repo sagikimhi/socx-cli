@@ -9,7 +9,7 @@ from box import SBox
 import rich_click as click
 from pydantic import Field, BaseModel, ConfigDict
 
-from socx.config.schema.types import DirectoryPath, Script
+from socx.core.schema.types import DirectoryPath, Script
 
 
 class PluginModel(BaseModel):
