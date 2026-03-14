@@ -20,6 +20,7 @@ __all__ = (
     "__appname__",
     "__directory__",
     # funcs
+    "wrap",
     "desync",
     "deduplicate",
     # paths
@@ -69,6 +70,7 @@ from socx.core.metadata import __version__ as __version__
 from socx.core.metadata import __appname__ as __appname__
 from socx.core.metadata import __directory__ as __directory__
 
+from socx.core.funcs import wrap as wrap
 from socx.core.funcs import desync as desync
 from socx.core.funcs import deduplicate as deduplicate
 

@@ -17,6 +17,14 @@ class VimTree(Tree[object], can_focus=True, inherit_bindings=True):
 
     BINDINGS: ClassVar[list[BindingType]] = Tree.BINDINGS + VimModes.Normal
 
+    ICON_NODE: ClassVar[str] = "👉 "
+
+    ICON_NODE_EXPANDED: ClassVar[str] = "👇 "
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.show_root = False
+
     def action_select_cursor(self) -> None:
         """Expand or collapse the highlighted node when Enter is pressed."""
         node = self.cursor_node

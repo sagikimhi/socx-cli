@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Any, ClassVar
-from pathlib import Path
 from collections import ChainMap
 from collections.abc import Iterable
 
@@ -23,9 +22,8 @@ from socx_tui.regression.widget import RegressionWidget
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
-    CSS_PATH: ClassVar[str] = str(
-        Path(settings.paths.app_root_dir)
-        / "src/socx_tui/static/tcss/regression.tcss"
+    CSS_PATH: ClassVar[str] = (
+        f"{settings.regression.tui.paths.tcss_dir}/app.tcss"
     )
 
     INLINE_PADDING = 0

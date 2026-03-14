@@ -38,6 +38,7 @@ __all__ = (
     "APP_CONFIG_FILENAME",
     "Encoder",
     "Serializer",
+    "wrap",
     "desync",
     "deduplicate",
     # I/O
@@ -134,7 +135,7 @@ __all__ = (
     "Regression",
     "TestStatus",
     "TestResult",
-    "TestCommand",
+    "RegressionProgress",
 )
 
 from socx.core import enums as enums
@@ -172,6 +173,7 @@ from socx.core import APP_CONFIG_FILE as APP_CONFIG_FILE
 from socx.core import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
 from socx.core import Encoder as Encoder
 from socx.core import Serializer as Serializer
+from socx.core import wrap as wrap
 from socx.core import desync as desync
 from socx.core import deduplicate as deduplicate
 
@@ -261,6 +263,7 @@ from socx.regression import TestBase as TestBase
 from socx.regression import Regression as Regression
 from socx.regression import TestStatus as TestStatus
 from socx.regression import TestResult as TestResult
+from socx.regression import RegressionProgress as RegressionProgress
 
 from socx.cli import FuncType as FuncType
 from socx.cli import Decorator as Decorator

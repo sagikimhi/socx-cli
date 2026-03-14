@@ -3,25 +3,25 @@
 from __future__ import annotations
 
 import asyncio as aio
+import anyio
 import logging
 import time
 from collections import OrderedDict
-from collections.abc import AsyncGenerator, Iterable, Mapping
+from collections.abc import AsyncGenerator, Iterable
 from pathlib import Path
 from threading import RLock
-from typing import Self
+from typing import Self, Any
 
 from pydantic import (
     ConfigDict,
-    Field,
+    PrivateAttr,
     TypeAdapter,
     UUID4,
     computed_field,
-    field_validator,
     validate_call,
 )
 
-from socx.config import get_settings, settings
+from socx.config import settings
 from socx.core.schema import FilePath
 from socx.regression.test import Test, TestBase, TestResult, TestStatus
 
@@ -32,134 +32,353 @@ logger = logging.getLogger(__name__)
 class Regression(TestBase):
     """Manage and execute a collection of tests with concurrency control."""
 
-    lock: RLock = Field(default_factory=RLock)
-    done: aio.Queue = Field(default_factory=aio.Queue)
-    pending: aio.Queue = Field(default_factory=aio.Queue)
-    test_map: OrderedDict[UUID4, TestBase] = Field(default_factory=OrderedDict)
     model_config = ConfigDict(
-        use_enum_values=True,
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
 
-    @computed_field
-    @property
-    def tests(self) -> list[TestBase]:
-        return list(self.test_map.values())
+    _lock: RLock = PrivateAttr(default_factory=RLock)
+    _done: aio.Queue[TestBase] = PrivateAttr(default_factory=aio.Queue)
+    _pending: aio.Queue[TestBase | Regression | None] = PrivateAttr(
+        default_factory=aio.Queue
+    )
+    _running: set[UUID4] = PrivateAttr(default_factory=set)
+    _test_map: OrderedDict[UUID4, TestBase] = PrivateAttr(
+        default_factory=OrderedDict
+    )
+    _stop_requested: bool = PrivateAttr(default=False)
+    _pause_event: aio.Event = PrivateAttr(default_factory=aio.Event)
+
+    def __init__(
+        self,
+        name: str,
+        tests: list[TestBase] | None = None,
+        test_map: dict[UUID4, TestBase] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, name=name, **kwargs)
+        tests = tests or []
+        test_map = test_map or {}
+        self._test_map = OrderedDict()
+        self.tests = [*tests, *list(test_map.values())]
 
     @classmethod
     @validate_call()
-    def from_file(cls, path: str | Path, test_cls: type | None = None) -> Self:
-        """Construct a regression from a test configuration file."""
-        path = TypeAdapter(FilePath).validate_python(path)
-        test_cls = test_cls or Test
+    def from_file(
+        cls,
+        path: str | Path,
+        name: str | None = None,
+        test_cls: type[TestBase] | None = None,
+        **kwargs: Any,
+    ) -> Self:
+        return cls._from_file(path, test_cls=test_cls, **kwargs)
 
-        try:
-            data = get_settings(path)
-        except Exception:
-            err = f"Failed to load data from file '{path}'."
-            logger.exception(err)
-            raise
-
-        regressions = []
-        for name, entries in data.regressions.items():
-            tests = [
-                test_cls(name=test.name, command=test.exec or "")
-                for test in entries
-            ]
-            try:
-                regression = cls(name=name, test_map=tests)
-            except Exception:
-                err = (
-                    f"Failed to initialize tests from parsed data for {name}."
+    @computed_field(repr=True)
+    @property
+    def result(self) -> TestResult:
+        with self.lock:
+            if self.test_map:
+                return (
+                    TestResult.Passed
+                    if self.tests
+                    and all(
+                        test.result is TestResult.Passed for test in self.tests
+                    )
+                    else TestResult.Failed
+                    if any(
+                        test.result is TestResult.Failed for test in self.tests
+                    )
+                    else TestResult.NA
                 )
-                logger.exception(err)
-                raise
-            regressions.append(regression)
+            else:
+                return super().result
 
-        if len(regressions) == 1:
-            return regressions[0]
+    @computed_field(repr=True)
+    @property
+    def status(self) -> TestStatus:
+        terminated_statuses = [
+            TestStatus.Idle,
+            TestStatus.Terminated,
+            TestStatus.Finished,
+        ]
+        running_statuses = [TestStatus.Pending, TestStatus.Running]
+        tests = self.tests
+        if all(test.status is TestStatus.Idle for test in tests):
+            return TestStatus.Idle
+        if all(test.status is TestStatus.Finished for test in tests):
+            return TestStatus.Finished
+        if all(test.status in terminated_statuses for test in tests):
+            return TestStatus.Terminated
+        if any(test.status in running_statuses for test in tests):
+            return TestStatus.Running
+        return TestStatus.Paused
 
-        return cls(name=path.stem, test_map=regressions)
+    @computed_field
+    @property
+    def tests(self) -> list[TestBase]:
+        with self.lock:
+            return list(self._test_map.values())
+
+    @tests.setter
+    def tests(self, other: list[TestBase]) -> None:
+        with self.lock:
+            self._test_map = OrderedDict({test.id: test for test in other})
+
+    @computed_field(repr=True)
+    @property
+    def test_map(self) -> dict[UUID4, TestBase]:
+        with self.lock:
+            return self._test_map
+
+    @test_map.setter
+    def test_map(self, other: dict[UUID4, TestBase]) -> None:
+        with self.lock:
+            if isinstance(other, OrderedDict):
+                self._test_map = other
+            else:
+                self._test_map = OrderedDict(other)
+
+    @computed_field(repr=True)
+    @property
+    def run_limit(self) -> int:
+        """Return the maximum number of tests that may run concurrently."""
+        with self.lock:
+            run_limit = settings.regression.max_runs_in_parallel
+        return max(1, min(run_limit, len(self) or 1))
+
+    @property
+    def lock(self) -> RLock:
+        return self._lock
+
+    @property
+    def done(self) -> aio.Queue:
+        return self._done
+
+    @property
+    def running(self) -> set[UUID4]:
+        with self.lock:
+            return self._running.copy()
+
+    @property
+    def pending(self) -> aio.Queue:
+        return self._pending
 
     def __len__(self) -> int:
         """Return the number of tests scheduled within the regression."""
         return len(self.test_map)
 
+    def __getitem__(self, key: int | UUID4):
+        if isinstance(key, int):
+            return self.tests[key]
+        elif isinstance(key, TestBase):
+            return self.test_map[key.id]
+        else:
+            return self.test_map[key]
+
     def __contains__(self, test: TestBase) -> bool:
         """Return ``True`` if ``test`` is tracked by this regression."""
-        return test is not None and test in self.tests
-
-    @property
-    def run_limit(self) -> int:
-        """Return the maximum number of tests that may run concurrently."""
-        return settings.regression.max_runs_in_parallel
+        return test is not None and test.id in self.test_map
 
     async def start(self) -> None:
-        """Start the regression."""
+        """Start or resume a regression."""
+        if self.status is TestStatus.Paused:
+            await self.resume()
+            return
+
+        if self.started:
+            return
+
+        self._stop_requested = False
+        self._pause_event.set()
+        self._running.clear()
+        self._done = aio.Queue()
+        self._pending = aio.Queue()
+        self.finished_time = None
+        self.started_time = time.perf_counter()
         logger.info("regression starting...")
-        self._status = TestStatus.Pending
 
         try:
-            self._status = TestStatus.Running
-            logger.info("regression starting...")
-            self._started_time = time.perf_counter()
-            async with aio.TaskGroup() as tg:
-                if len(self):
-                    tg.create_task(self._schedule_tests())
-                    tg.create_task(self._run_tests())
-                logger.info("regression started.")
+            await self._queue_tests()
+            async with anyio.create_task_group() as tg:
+                for _ in range(self.run_limit):
+                    tg.start_soon(self._runner)
         finally:
             self.finished_time = time.perf_counter()
-            self.result = (
-                TestResult.Passed
-                if all(test.result is TestResult.Passed for test in self.tests)
-                else TestResult.Failed
-            )
-            self._status = (
-                TestStatus.Finished
-                if all(
-                    test.status is TestStatus.Finished for test in self.tests
-                )
-                else TestStatus.Terminated
-            )
-            logger.info(f"regression {self._status.name.lower()}.")
+            self._pause_event.set()
+            self._running.clear()
+            logger.info(f"regression {self.status.name.lower()}.")
+
+    async def pause(self) -> None:
+        """Pause a running regression and any active descendants."""
+        if self.status is not TestStatus.Running:
+            return
+
+        self._pause_event.clear()
+        await aio.gather(
+            *(test.pause() for test in self._active_tests()),
+            return_exceptions=True,
+        )
+
+    async def resume(self) -> None:
+        """Resume a paused regression and any active descendants."""
+        if self.status is not TestStatus.Paused:
+            return
+
+        self._pause_requested = False
+        self._pause_event.set()
+        await aio.gather(
+            *(test.resume() for test in self.tests),
+            return_exceptions=True,
+        )
+
+    async def stop(self) -> None:
+        """Terminate active work within the regression."""
+        if self.status is TestStatus.Terminated:
+            return
+
+        self._stop_requested = True
+        self._pause_event.set()
+        await aio.gather(
+            *(test.stop() for test in self.tests),
+            return_exceptions=True,
+        )
+
+    async def restart(self) -> None:
+        """Terminate, reset, and execute the regression again."""
+        await self.stop()
+        self.reset()
+        await self.start()
+
+    def reset(self) -> None:
+        """Reset the regression and all child tests."""
+        super().reset()
+
+        for test in self.tests:
+            if hasattr(test, "reset"):
+                test.reset()
+
+        self._done = aio.Queue()
+        self._pending = aio.Queue()
+        self._pause_event = aio.Event()
+        self._running.clear()
+        self._stop_requested = False
 
     @classmethod
     async def desync[T](cls, it: Iterable[T]) -> AsyncGenerator[T]:
         for item in it:
             yield item
 
-    async def _schedule_tests(self) -> None:
-        """Spawn scheduler tasks responsible for queueing each test."""
-        async with aio.TaskGroup() as tg:
-            async for test in self.desync(self.tests):
-                tg.create_task(self.pending.put(test))
+    async def _queue_tests(self) -> None:
+        items = list(self.tests)
+        for test in items:
+            if test.status in (TestStatus.Finished, TestStatus.Terminated):
+                test.reset()
+            await self.pending.put(test)
 
-    async def _run_tests(self) -> None:
-        """Run the configured number of worker tasks that execute tests."""
-        async with aio.TaskGroup() as tg:
-            for _ in range(self.run_limit):
-                tg.create_task(self._runner())
+        for _ in range(self.run_limit):
+            await self.pending.put(None)
 
     async def _runner(self) -> None:
-        """Consume tests from the queue and execute them sequentially."""
+        """Consume queued tests and execute them sequentially."""
         while True:
+            test = await self.pending.get()
             try:
-                test = await self.pending.get()
-                await test.start()
+                if test is None:
+                    return
+
+                while not self._pause_event.is_set():
+                    await aio.sleep(0.05)
+
+                if self._stop_requested:
+                    return
+
+                self._running.add(test.id)
+                if test is not None:
+                    await test.start()
                 await self.done.put(test)
             finally:
+                if test is not None:
+                    self._running.discard(test.id)
                 self.pending.task_done()
 
-    @field_validator("test_map", mode="before")
-    @classmethod
-    def _test_map_validator(
-        cls,
-        tests: Mapping[UUID4, TestBase] | Iterable[TestBase] | None,
-    ) -> OrderedDict[UUID4, TestBase]:
-        if tests is None:
-            return OrderedDict()
+    def _active_tests(self) -> list[TestBase]:
+        return [test for test in self.tests if test.id in self._running]
 
-        values = tests.values() if isinstance(tests, Mapping) else tests
-        return OrderedDict((test.id, test) for test in values)
+    @classmethod
+    @validate_call()
+    def _from_file(
+        cls,
+        path: str | Path,
+        name: str | None = None,
+        test_cls: type[TestBase] | None = None,
+    ) -> Self:
+        """Construct a regression from a test configuration file."""
+        from box import Box
+
+        path = TypeAdapter(FilePath).validate_python(path)
+        name = name or path.stem
+        test_cls = test_cls or Test
+
+        match path.suffix.lower():
+            case ".yml" | ".yaml":
+                data = Box.from_yaml(filename=str(path))
+            case ".toml":
+                data = Box.from_toml(filename=str(path))
+            case ".json":
+                data = Box.from_json(filename=str(path))
+            case _:
+                msg = f"Unsupported file format: '{path.suffix}'"
+                raise ValueError(msg)
+
+        settings.update(Box({name: data}), merge=False)
+        return cls._from_data(name, settings[name], test_cls)
+
+    @classmethod
+    def _from_data(
+        cls,
+        name: str,
+        data: dict[str, Any],
+        test_cls: type[TestBase],
+    ) -> Self:
+        regressions = []
+        for child_name, entries in data.items():
+            if isinstance(entries, list):
+                regression = cls(
+                    name=child_name,
+                    tests=[test_cls(**test) for test in entries],
+                )
+            else:
+                regression = cls(
+                    name=child_name,
+                    tests=[
+                        cls._from_data(key, entries[key], test_cls)
+                        for key in entries
+                    ],
+                )
+            regressions.append(regression)
+        return cls(name=name, tests=regressions)
+
+    # @field_validator("test_map", mode="before")
+    # @classmethod
+    # def _test_map_validator(
+    #     cls,
+    #     tests: set[TestBase]
+    #     | list[TestBase]
+    #     | tuple[TestBase, ...]
+    #     | dict[str, TestBase],
+    # ) -> OrderedDict[UUID4, TestBase]:
+    #     if tests is None:
+    #         err = "must not be none"
+    #         raise ValueError(err)
+
+    #     rv = OrderedDict()
+    #     it: Iterator[TestBase] = (
+    #         iter(list(tests.values()))
+    #         if isinstance(tests, dict)
+    #         else iter(tests)
+    #     )
+
+    #     for test in it:
+    #         rv[test.id] = test
+    #     return rv
