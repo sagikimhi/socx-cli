@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import anyio
+import anyio.lowlevel
 import logging
-import asyncio as aio
-from collections.abc import Iterable
 
 from rich.progress import (
     Progress as BaseProgress,
@@ -14,9 +14,12 @@ from rich.progress import (
     SpinnerColumn,
     TimeElapsedColumn,
     MofNCompleteColumn,
+    Task,
 )
 
-from socx.regression.test import Test
+from socx.io.console import console
+from socx.regression.test import TestStatus
+from socx.regression.regression import Regression
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +28,22 @@ class PipelineProgress(BaseProgress):
     def __init__(self) -> None:
         super().__init__(
             *self.get_default_columns(),
-            speed_estimate_period=15,
-            transient=False,
-            expand=True,
+            speed_estimate_period=10,
+            redirect_stderr=True,
+            redirect_stdout=True,
+            console=console,
         )
 
     @classmethod
     def get_default_columns(cls) -> tuple[ProgressColumn, ...]:
         return (
             SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            TaskProgressColumn(),
-            BarColumn(),
-            TextColumn("[green]Completed:"),
+            TextColumn(
+                "[progress.description]{task.description}", justify="right"
+            ),
             MofNCompleteColumn(),
+            BarColumn(),
+            TaskProgressColumn(),
             TextColumn("[yellow]Elapsed:"),
             TimeElapsedColumn(),
             TextColumn("[cyan]Remaining:"),
@@ -47,149 +52,125 @@ class PipelineProgress(BaseProgress):
 
 
 class RegressionProgress:
-    def __init__(
-        self, tests: Iterable[Test], pending: aio.Queue, done: aio.Queue
-    ) -> None:
-        self.total = len(list(tests))
-        self.messages: aio.Queue = aio.Queue()
-        self.progress: BaseProgress = BaseProgress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            TaskProgressColumn(),
-            BarColumn(),
-            "[green]Completed:",
-            MofNCompleteColumn(),
-            "[yellow]Elapsed:",
-            TimeElapsedColumn(),
-            "[cyan]Remaining:",
-            TimeRemainingColumn(),
-            speed_estimate_period=15,
-            transient=False,
-            expand=True,
-        )
+    def __init__(self, regression: Regression) -> None:
+        self.tasks = {}
+        self.total = len(regression)
+        self.regression = regression
+        self.progress_map = {}
+        # for child in self.regression.tests:
+        #     if isinstance(child, Regression):
+        #         self.progress_map[child.id] = PipelineProgress()
+        self.progress_map[self.regression.id] = PipelineProgress()
 
     def __len__(self) -> int:
         """Get the total number of test items in a regression's progress."""
         return self.total
 
-    async def _animate_progress(self) -> None:
+    async def start(
+        self,
+        include: set[str] | None = None,
+        exclude: set[str] | None = None,
+    ) -> None:
         """Update progress tasks and flush log messages while running."""
-        with self.progress:
-            self._scheduler_start()
-            self._runner_start()
-            self._regression_start()
-            await self._process_messages()
+        with (
+            console.status("regression running..."),
+            PipelineProgress() as progress,
+        ):
+            self.progress_map[self.regression.id] = progress
 
-    async def _process_messages(self) -> None:
-        """Drain the message queue and mirror events to the progress log."""
-        while not self.progress.finished:
-            while not self.messages.empty():
-                try:
-                    msg = await self.messages.get()
-                    self.progress.log(msg)
-                finally:
-                    self.messages.task_done()
-            await aio.sleep(0)
+            async with anyio.create_task_group() as tg:
+                for obj in self.regression.tests:
+                    if exclude is not None and obj.name in exclude:
+                        continue
 
-    def _scheduler_start(self) -> None:
-        """Initialise the scheduler progress task if it is not active."""
-        if self._scheduler_tid is None:
-            self._scheduler_tid = self.progress.add_task(
-                description="[red]Schedulers: pending...",
-                total=len(self),
-                start=False,
-                visible=True,
+                    if include is not None and obj.name not in include:
+                        continue
+
+                    if isinstance(obj, Regression):
+                        track_task_func = self.track_regression
+                        track_task_name = f"track_{obj.name}_progress"
+                        tg.start_soon(
+                            track_task_func, obj, name=track_task_name
+                        )
+
+                        run_task_func = obj.start
+                        run_task_name = f"run_{obj.name}"
+                        tg.start_soon(run_task_func, name=run_task_name)
+
+                if include is None and exclude is None:
+                    run_task_func = self.regression.start
+                    run_task_name = f"run_{self.regression.name}"
+                    tg.start_soon(run_task_func, name=run_task_name)
+
+            del self.progress_map[self.regression.id]
+
+    async def track_regression(self, regression: Regression) -> None:
+        progress = self.progress_map[self.regression.id]
+        if regression.id not in self.tasks:
+            self.tasks[regression.id] = progress.add_task(
+                total=len(regression),
+                description=(
+                    f"[light_red]{regression.name}: {regression.status.name}"
+                ),
+            )
+        await self._track_regression(regression)
+
+    async def _track_regression(self, regression: Regression) -> None:
+        finished = 0
+        status = regression.status
+        while True:
+            if regression.finished:
+                await self.update_regression(regression, len(regression))
+                break
+
+            prev_status = status
+            prev_finished = finished
+            status = regression.status
+            finished = await self._count_statuses(
+                regression,
+                TestStatus.Finished,
+                TestStatus.Terminated,
             )
 
-    def _scheduler_advance(self) -> None:
-        """Advance the scheduler progress task based on queued tests."""
-        if self._scheduler_tid is not None:
-            task = self.progress.tasks[self._scheduler_tid]
-            if not task.started:
-                self.progress.start_task(self._scheduler_tid)
-                self.progress.update(
-                    self._scheduler_tid,
-                    total=len(self),
-                    refresh=True,
-                    description="[yellow]Schedulers: working...",
-                )
+            if prev_finished != finished or prev_status != status:
+                await self.update_regression(regression, finished)
 
-            if task.completed + 1 < len(self):
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=task.id,
+            await anyio.sleep(0.1)
+
+    async def advance_regression(self, regression: Regression, n: int) -> None:
+        progress = self.progress_map.get(self.regression.id)
+        tid = self.tasks.get(regression.id)
+        if progress is not None and tid is not None:
+            task = progress.tasks[tid]
+            await self.update_regression(regression, task.completed + n)
+
+    async def update_regression(self, regression: Regression, n: int) -> None:
+        progress = self.progress_map.get(self.regression.id)
+        tid = self.tasks.get(regression.id)
+        if progress is not None and tid is not None:
+            task: Task = progress.tasks[tid]
+            if task.completed >= n:
+                return
+
+            if task.completed < n:
+                description = (
+                    f"[yellow]{regression.name}: {regression.status.name}"
                 )
             else:
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=task.id,
-                    description="[light_green]Schedulers: done.",
+                description = (
+                    f"[green]{regression.name}: {regression.status.name}"
                 )
 
-    def _runner_start(self) -> None:
-        """Initialise the runner progress task if it is not active."""
-        if self._runner_tid is None:
-            self._runner_tid = self.progress.add_task(
-                description="[red]Runners: pending...",
-                total=len(self),
-                start=False,
-                visible=True,
+            progress.update(
+                tid,
+                completed=min(n, task.total),
+                description=description,
             )
 
-    def _runner_advance(self) -> None:
-        """Advance the runner progress task for each completed test."""
-        if self._runner_tid is not None:
-            task = self.progress.tasks[self._runner_tid]
-            if not task.started:
-                self.progress.start_task(self._runner_tid)
-                self.progress.update(
-                    refresh=True,
-                    visible=True,
-                    task_id=self._runner_tid,
-                    description="[yellow]Runners: working...",
-                )
-
-            if task.completed + 1 < len(self):
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=self._runner_tid,
-                )
-            else:
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=self._runner_tid,
-                    description="[light_green]Runners: done.",
-                )
-
-    def _regression_start(self) -> None:
-        """Initialise the overall regression progress task."""
-        if self._regression_tid is None:
-            self._regression_tid = self.progress.add_task(
-                total=len(self),
-                start=True,
-                visible=True,
-                description="[yellow]Regression: in progress...",
+    async def _count_statuses(
+        self, regression: Regression, *statuses: TestStatus
+    ) -> int:
+        with self.regression.lock:
+            return sum(
+                1 for test in regression.tests if test.status in statuses
             )
-
-    def _regression_advance(self) -> None:
-        """Advance the overall regression progress task once work begins."""
-        if self._regression_tid is not None:
-            task = self.progress.tasks[self._regression_tid]
-            if task.completed + 1 < len(self):
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=task.id,
-                )
-            else:
-                self.progress.update(
-                    total=len(self),
-                    refresh=True,
-                    task_id=task.id,
-                    completed=len(self),
-                    description="[light_green]Regression: done.",
-                )

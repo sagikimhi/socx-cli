@@ -1,0 +1,103 @@
+Screen {
+    # max_height: 80vh;
+    padding: 0 0;
+    margin: 0 0;
+}
+
+RegressionWidget {
+  align: center middle;
+  width: 1fr;
+  height: 1fr;
+  layout: vertical;
+  background: $surface;
+  padding: 0;
+  margin: 0;
+}
+
+RegressionDetails {
+  align: center middle;
+}
+
+ActionDialog {
+  align: center middle;
+
+  Dialog {
+    width: 80%;
+    height: 80%;
+    border: round $primary;
+    background: $surface;
+    border-title-color: $text;
+    border-title-background: $panel;
+    border-subtitle-color: $text;
+    border-subtitle-background: $error;
+
+    OptionList, OptionList:focus {
+        background: $panel;
+        background-tint: $panel;
+    }
+  }
+}
+
+#regression-content {
+    width: 100%;
+    height: 1fr;
+    layout: horizontal;
+    padding: 1;
+    margin: 0;
+}
+
+#regression-tree {
+    width: 1fr;
+    height: 1fr;
+    background: transparent;
+    border: round $accent;
+    padding: 0 1;
+    margin: 0 1 0 0;
+}
+
+#regression-details {
+    width: 1fr;
+    height: 1fr;
+    background: transparent;
+    border: round $accent;
+    padding: 0 1;
+    margin: 0 0 0 1;
+}
+
+#regression-tree:focus,
+#regression-details:focus {
+    border: round $primary;
+}
+
+.button {
+    margin: 0;
+    text-align: center;
+}
+
+Button:hover {
+    color: $accent;
+}
+
+#button-layout {
+    width: 100%;
+    height: auto;
+    layout: horizontal;
+    align: center bottom;
+    dock: bottom;
+    padding: 0 1 1 1;
+    margin: 1 0 0 0;
+}
+
+Header {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 0;
+}
+
+Footer {
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 0;
+}

@@ -1,0 +1,15 @@
+PreviewWindow {
+  width: 1fr;
+  height: 1fr;
+  border: heavy blank;
+  overflow-y: scroll;
+  &:focus { border: heavy ansi_blue; }
+  #content { width: auto; }
+  &.-preview-unavailable {
+    overflow: auto;
+    hatch: right ansi_black;
+    align: center middle;
+    text-style: bold;
+    color: ansi_red;
+  }
+}

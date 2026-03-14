@@ -2,32 +2,29 @@
 
 from __future__ import annotations
 
+import asyncio as aio
+import os
+import signal
+import time
 import uuid
-from enum import auto, IntEnum, StrEnum
+from enum import StrEnum, IntEnum, auto
 
-from pydantic import BaseModel, ConfigDict, Field, UUID4
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    UUID4,
+    computed_field,
+)
+from psutil import Process
 
-from socx.patterns import Visitor
 from socx.core.schema import Script
+from socx.patterns import Visitor
 
 
 class TestResult(StrEnum):
-    """Represents the result of a test that had finished and exited normally.
-
-    Members
-    -------
-    NA: StrEnum
-        Test has not yet finished running and therefore result is
-        non-applicable.
-
-    Passed: StrEnum
-        Test had finished and terminated normally with no errors and a 0 exit
-        code.
-
-    Failed: StrEnum
-        Test had finished either normally or abnormally with a non-zero exit
-        code.
-    """
+    """Represents the result of a test after execution."""
 
     NA = "n/a"
     Passed = "passed"
@@ -35,33 +32,12 @@ class TestResult(StrEnum):
 
 
 class TestStatus(IntEnum):
-    """TestStatus representation of a test process as an `IntEnum`.
-
-    Members
-    -------
-    Idle: IntEnum
-        Idle, waiting to be scheduled for execution.
-
-    Pending: IntEnum
-        Test is scheduled for execution in an active session.
-
-    Running: IntEnum
-        Test is currently running.
-
-    Stopped: IntEnum
-        Test has been stopped intentionally.
-
-    Finished: IntEnum
-        Test had finished running normally with an exit code 0.
-
-    Terminated: IntEnum
-        Test was intentionally terminated by a signal.
-    """
+    """Lifecycle state of a test process."""
 
     Idle = 0
     Pending = auto()
     Running = auto()
-    Stopped = auto()
+    Paused = auto()
     Finished = auto()
     Terminated = auto()
 
@@ -70,38 +46,65 @@ class TestBase(BaseModel):
     """Base class for tests."""
 
     id: UUID4 = Field(default_factory=uuid.uuid4)
-    """Unique identifier for the test run."""
-
     name: str = Field(...)
-    """Name of the test."""
-
-    exec: Script | None = Field(None, alias="command")
-    """
-    Executable script, command, or list of commands to call when test is
-    started.
-    """
-
-    result: TestResult = TestResult.NA
-    """Result of the test execution."""
-
-    status: TestStatus = TestStatus.Idle
-    """Current status of the test."""
-
-    started_time: float | None = None
-    """Timestamp when the test started (seconds since epoch), or None."""
-
-    finished_time: float | None = None
-    """Timestamp when the test finished (seconds since epoch) or None."""
+    exec: Script | None = Field(None)
+    started_time: float | None = Field(None)
+    finished_time: float | None = Field(None)
 
     model_config = ConfigDict(
-        use_enum_values=True,
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
 
-    def accept(self, v: Visitor[TestBase]) -> None:
-        """Accept a visit from a `Visitor`."""
-        v.visit(self)
+    _stdout: str = PrivateAttr("")
+    _stderr: str = PrivateAttr("")
+    _result: TestResult = PrivateAttr(TestResult.NA)
+    _status: TestStatus = PrivateAttr(TestStatus.Idle)
+    _process: aio.subprocess.Process | None = PrivateAttr(default=None)
+    _termination_requested: bool = PrivateAttr(default=False)
+
+    @computed_field(repr=False)
+    @property
+    def stdout(self) -> str:
+        return self._stdout
+
+    @stdout.setter
+    def stdout(self, value: str) -> None:
+        self._stdout = value
+
+    @computed_field(repr=False)
+    @property
+    def stderr(self) -> str:
+        return self._stderr
+
+    @stderr.setter
+    def stderr(self, value: str) -> None:
+        self._stderr = value
+
+    @computed_field(repr=True)
+    @property
+    def result(self) -> TestResult:
+        return self._result
+
+    @result.setter
+    def result(self, value: TestResult) -> None:
+        self._result = value
+
+    @computed_field(repr=True)
+    @property
+    def status(self) -> TestStatus:
+        return self._status
+
+    @status.setter
+    def status(self, value: TestStatus) -> None:
+        self._status = value
+
+    @computed_field(repr=False)
+    @property
+    def process(self) -> Process | None:
+        if self._process is None:
+            return None
+        return Process(self._process.pid)
 
     @property
     def started(self) -> bool:
@@ -130,28 +133,146 @@ class TestBase(BaseModel):
             self.terminated or self.finished
         ) and self.result == TestResult.Failed
 
+    def accept(self, v: Visitor[TestBase]) -> None:
+        """Accept a visit from a `Visitor`."""
+        v.visit(self)
+
     def is_idle(self) -> bool:
         """True if test has no active process and has not yet started."""
         return self.status is TestStatus.Idle
 
-    def is_pending(self):
+    def is_pending(self) -> bool:
         """Return ``True`` if the test is queued but not yet running."""
         return self.status is TestStatus.Pending
 
     def is_suspended(self) -> bool:
         """Return ``True`` if the subprocess is currently stopped."""
-        return self.status is TestStatus.Stopped
+        return self.status is TestStatus.Paused
 
     def is_running(self) -> bool:
         """True if test is currently running in a dedicated process."""
         return self.status is TestStatus.Running
 
+    async def pause(self) -> None:
+        """Pause a running test with ``SIGSTOP``."""
+        if self._process is None or self.status is not TestStatus.Running:
+            return
+
+        os.killpg(self._process.pid, signal.SIGSTOP)
+        self.status = TestStatus.Paused
+
+    async def start(self) -> None:
+        """Execute the test executable to start the test."""
+        raise NotImplementedError()
+
+    async def resume(self) -> None:
+        """Resume a paused test with ``SIGCONT``."""
+        if self._process is None or self.status is not TestStatus.Paused:
+            return
+
+        os.killpg(self._process.pid, signal.SIGCONT)
+        self.status = TestStatus.Running
+
+    async def stop(self) -> None:
+        """Terminate the active test process."""
+        if self._process is None or self.status in (
+            TestStatus.Idle,
+            TestStatus.Finished,
+            TestStatus.Terminated,
+        ):
+            return
+
+        self._termination_requested = True
+        if self.status is TestStatus.Paused:
+            await self.resume()
+        if (
+            self._termination_requested
+            and self.status != TestStatus.Terminated
+        ):
+            self._termination_requested = False
+            os.killpg(self._process.pid, signal.SIGTERM)
+            await self._process.wait()
+        self.status = TestStatus.Terminated
+
+    def reset(self) -> None:
+        """Reset runtime state so the test may be executed again."""
+        self._result = TestResult.NA
+        self._status = TestStatus.Idle
+        self.started_time = None
+        self.finished_time = None
+        self._stdout = ""
+        self._stderr = ""
+        self._process = None
+        self._termination_requested = False
+
+    async def restart(self) -> None:
+        """Terminate, reset, and execute the test again."""
+        await self.stop()
+        self.reset()
+        await self.start()
+
 
 class Test(TestBase):
-    """Concrete [TestBase] class."""
+    """Concrete test model with subprocess execution support."""
 
     model_config = ConfigDict(
         use_enum_values=True,
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
+
+    async def start(self) -> None:
+        """Execute the test executable to start the test."""
+        if self.is_running():
+            return
+
+        if self.is_suspended():
+            await self.resume()
+            return
+
+        self._termination_requested = False
+        self.result = TestResult.NA
+        self.stdout = ""
+        self.stderr = ""
+        self.started_time = time.perf_counter()
+        self.finished_time = None
+        self.status = TestStatus.Pending
+
+        if not self.exec:
+            self.status = TestStatus.Terminated
+            self.result = TestResult.Failed
+            self.finished_time = time.perf_counter()
+            return
+
+        process = await aio.create_subprocess_exec(
+            "/bin/sh",
+            "-c",
+            str(self.exec),
+            stdout=aio.subprocess.PIPE,
+            stderr=aio.subprocess.PIPE,
+            start_new_session=True,
+        )
+        self._process = process
+        self.status = TestStatus.Running
+
+        stdout, stderr = None, None
+
+        try:
+            stdout, stderr = await process.communicate()
+        finally:
+            self.finished_time = time.perf_counter()
+            self.stderr = stderr.decode() if stderr else ""
+            self.stdout = stdout.decode() if stdout else ""
+            returncode = process.returncode or 0
+
+            if self._termination_requested or returncode < 0:
+                self.status = TestStatus.Terminated
+                self.result = TestResult.Failed
+            elif returncode == 0:
+                self.status = TestStatus.Finished
+                self.result = TestResult.Passed
+            else:
+                self.status = TestStatus.Finished
+                self.result = TestResult.Failed
+
+            self._process = None

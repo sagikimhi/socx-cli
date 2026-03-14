@@ -26,7 +26,9 @@ class Normal(_Mode):
         Binding("ctrl+u", "page_up", "Page Up", show=False),
         Binding("ctrl+d", "page_down", "Page Down", show=False),
         Binding("g", "scroll_top", "Cursor Bottom", show=False),
+        Binding("g", "scroll_home", "Cursor Bottom", show=False),
         Binding("G", "scroll_bottom", "Cursor Top", show=False),
+        Binding("G", "scroll_end", "Cursor Top", show=False),
         Binding(
             "dollar_sign",
             "scroll_end",

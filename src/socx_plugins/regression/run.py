@@ -2,27 +2,18 @@
 
 from __future__ import annotations
 
-import asyncio
+import anyio
+import logging
 
-from socx import settings, group, command
+from socx import command
 
-from socx_plugins.rgr._rgr import options, run_regression
-
-
-@group()
-def cli() -> None:
-    """Perform various regression related actions."""
+from socx_plugins.regression._run import options, run_regression
 
 
-@command(parent=cli)
-def tui() -> None:
-    """Open regression dashboard TUI (Terminal User Interface)."""
-    from socx_tui import SoCX as SoCX
-
-    SoCX().run(inline=True)
+logger = logging.getLogger(__name__)
 
 
-@command(parent=cli, no_args_is_help=True)
+@command(no_args_is_help=True)
 @options()
 def run():
     r"""Run a regression of multiple tests defined in FILE.
@@ -46,13 +37,11 @@ def run():
     ```
     """
     try:
-        regression = asyncio.run(
-            run_regression(),
-            debug=settings.cli.params.debug,
-        )
-    except (asyncio.CancelledError, KeyboardInterrupt):
+        regression = anyio.run(run_regression)
+    except* Exception:
+        logger.exception("Regression run was interrupted by user.")
         rv = 0x80 + 2  # SIGINT
     else:
-        rv = sum(1 if test.failed else 0 for test in regression)
+        rv = sum(1 if test.failed else 0 for test in regression.tests)
 
     return rv

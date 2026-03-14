@@ -1,5 +1,13 @@
 regression:
   tui:
+    paths:
+      app_dir: >-
+        @jinja {{'{}/src/socx_tui'.format(this.paths.app_root_dir) | realpath}}
+      static_dir: >-
+        @jinja {{'{}/static'.format(this.regression.tui.paths.app_dir) | realpath}}
+      tcss_dir: >-
+        @jinja {{'{}/tcss/regression'.format(this.regression.tui.paths.static_dir) | realpath}}
+
     table:
       view:
         opts:
@@ -10,6 +18,7 @@ regression:
           zebra_stripes: true
           fixed_rows: 0
           fixed_columns: 0
+
       model:
         opts:
           exclude:
