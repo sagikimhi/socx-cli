@@ -29,7 +29,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.13.0"
+version = "0.13.1"
 license = "Apache-2.0"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -81,6 +81,7 @@ dependencies = [
     "pydantic-extra-types>=2.11.0",
     "pydantic-settings>=2.12.0",
     "sqlmodel>=0.0.31",
+    "anyio>=4.12.1",
 ]
 
 [project.urls]
