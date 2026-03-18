@@ -6,8 +6,8 @@ import os
 import logging
 from typing import Any
 from pathlib import Path
+from contextlib import chdir
 
-from plumbum import local
 from rich_click import Context
 from rich_click import Parameter
 from rich_click import RichContext
@@ -38,7 +38,7 @@ def multi_param_cb(_: Context, param: Parameter, value: Any) -> Any:
 @log_it(logger=logger)
 def cwd_cb(ctx: Context, param: Parameter, value: Path) -> Path:
     settings.cli.params[param.name] = value
-    ctx.with_resource(local.cwd(value))
+    ctx.with_resource(chdir(value))
     return value
 
 

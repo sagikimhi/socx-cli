@@ -6,7 +6,7 @@ from pathlib import Path
 from functools import cache
 
 
-class AutoNumber(int, enum.Enum):
+class AutoNumber(int, enum.ReprEnum):
     def __new__(cls, *args) -> Self:
         value = len(set(cls._member_map_.values())) + 1
         obj = int.__new__(cls, value)
@@ -24,13 +24,13 @@ class SettingsFormat(AutoNumber):
     Toml = ".toml"
     Python = ".python"
 
+    def __init__(self, extension: str, *extensions: str) -> None:
+        self.extension = extension
+        self.extensions = [extension, *extensions]
+
     @classmethod
     @cache
     def from_path(cls, path: str | Path) -> SettingsFormat:
         if isinstance(path, str):
             path = Path(path)
         return cls(path.suffix)
-
-    def __init__(self, extension: str, *extensions: str) -> None:
-        self.extension = extension
-        self.extensions = [extension, *extensions]

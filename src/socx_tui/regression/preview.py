@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import asyncio
 import mimetypes
-from pathlib import Path
+from typing import ClassVar
 
+import anyio
+from anyio import Path
+from socx import settings
+from rich.syntax import Syntax
 from textual import work
 from textual.app import ComposeResult
-from rich.syntax import Syntax
 from textual.widgets import Static
 from textual.worker import get_current_worker
 from textual.containers import ScrollableContainer
@@ -22,27 +24,13 @@ class PreviewWindow(ScrollableContainer):
 
     """
 
-    ALLOW_MAXIMIZE = True
-    DEFAULT_CSS = """
-    PreviewWindow {
-        width: 1fr;
-        height: 1fr;
-        border: heavy blank;
-        overflow-y: scroll;
-        &:focus { border: heavy ansi_blue; }
-        #content { width: auto; }
-        &.-preview-unavailable {
-            overflow: auto;
-            hatch: right ansi_black;
-            align: center middle;
-            text-style: bold;
-            color: ansi_red;
-        }
-    }
-    """
-    DEFAULT_CLASSES = "-ansi-scrollbar"
+    CSS_PATH: ClassVar[str] = (
+        settings.regression.tui.paths.tcss_dir / "preview.tcss"
+    )
+    ALLOW_MAXIMIZE: ClassVar[bool] = True
+    DEFAULT_CLASSES: ClassVar[str] = "-ansi-scrollbar"
 
-    path: var[Path] = var(Path)
+    path: var[Path] = var[Path](Path)
 
     @work(exclusive=True)
     async def update_syntax(self, path: Path) -> None:
@@ -57,21 +45,10 @@ class PreviewWindow(ScrollableContainer):
         content = self.query_one("#content", Static)
         if path.is_file():
             _file_type, encoding = mimetypes.guess_type(str(path))
+            async with await anyio.open_file(path, encoding=encoding) as file:
+                lines = await file.readlines()
 
-            # A text file, we can attempt to syntax highlight it
-            def read_lines() -> list[str] | None:
-                """Read lines from a path in another thread."""
-                try:
-                    with open(path, encoding=encoding or "utf-8") as text_file:
-                        return text_file.readlines(1024 * 32)
-                except Exception:
-                    # We could be more precise with error handling here, but
-                    # for now we will treat all errors as fails.
-                    return None
-
-            # Read the lines in a thread so as not to pause the UI
-            lines = await asyncio.to_thread(read_lines)
-            if lines is None:
+            if not lines:
                 self.call_later(content.update, "Preview not available")
                 self.add_class("-preview-unavailable")
                 return
@@ -83,15 +60,13 @@ class PreviewWindow(ScrollableContainer):
             lexer = Syntax.guess_lexer(str(path), code)
             try:
                 syntax = Syntax(
-                    code,
-                    lexer,
-                    word_wrap=False,
-                    indent_guides=True,
-                    line_numbers=True,
-                    theme="ansi_light",
+                    code=code,
+                    lexer=lexer,
+                    **settings.regression.tui.preview.syntax,
                 )
             except Exception:
                 return
+
             content.update(syntax)
             self.remove_class("-preview-unavailable")
 

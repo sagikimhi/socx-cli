@@ -1,8 +1,7 @@
 """Formatting helpers for rendering Dynaconf settings with Rich."""
 
 import abc
-from typing import Any
-from typing import override
+from typing import Any, override
 
 from rich import box
 from rich.style import Style

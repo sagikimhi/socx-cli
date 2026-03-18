@@ -38,5 +38,5 @@ plugins:
     panel: Commands
     enabled: true
     aliases: []
-    command: "socx_plugins.rgr:cli"
+    command: "socx_plugins.regression:cli"
     short_help: Perform various regression related actions.

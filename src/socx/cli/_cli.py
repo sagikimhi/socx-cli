@@ -8,10 +8,10 @@ from collections.abc import Callable
 
 import rich_click as click
 
-from socx.cli import params
-from socx.core import AnyCallable
+from socx.core.schema.plugin import PluginModel
 from socx.config import settings, CommandConverter, ShConverter
-from socx.config.schema.plugin import PluginModel
+from socx.cli import params
+from socx.cli.types import AnyCallable
 
 
 logger: logging.Logger = logging.getLogger(__name__)

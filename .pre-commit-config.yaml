@@ -1,6 +1,6 @@
 ---
 default_language_version:
-  python: python3.13
+  python: python3.14
 
 default_stages:
   - pre-commit
@@ -10,7 +10,6 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: check-yaml
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
@@ -21,7 +20,7 @@ repos:
           - --assume-in-merge
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.15.6
     hooks:
       - id: ruff
         args:

@@ -1,13 +1,14 @@
 """Entrypoint helpers for launching the Textual-based SoCX TUI application."""
 
-from .app import SoCX
 
-
-def main() -> int:
+def main():
     """Start the TUI application and return the process exit status."""
-    app = SoCX()
-    return app.run(inline=True)
+    from socx_tui.regression.app import SoCX
+
+    SoCX().run(inline=False)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    sys.exit(main())

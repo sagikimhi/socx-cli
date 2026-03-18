@@ -1,14 +1,6 @@
 """Aggregate configuration utilities and metadata for SoCX."""
 
 __all__ = (
-    # Schema
-    "schema",
-    "Script",
-    "NewPath",
-    "FilePath",
-    "SocketPath",
-    "DirectoryPath",
-    "PluginModel",
     # Settings
     "SETTINGS_DEFAULTS",
     "Settings",
@@ -41,16 +33,6 @@ __all__ = (
     "TreeFormatter",
 )
 
-
-from . import schema as schema
-
-
-from socx.config.schema import Script as Script
-from socx.config.schema import NewPath as NewPath
-from socx.config.schema import FilePath as FilePath
-from socx.config.schema import SocketPath as SocketPath
-from socx.config.schema import DirectoryPath as DirectoryPath
-from socx.config.schema import PluginModel as PluginModel
 
 from socx.config._settings import Settings as Settings
 from socx.config._settings import SETTINGS_DEFAULTS as SETTINGS_DEFAULTS

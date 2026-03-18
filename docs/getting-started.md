@@ -30,6 +30,10 @@ tags:
     projects that are coupled and depend on multiple separate smaller projects
     maintained by multiple independent teams.
 
+    ![socx-cli](assets/images/socx-cli.svg){ width="800" loading=lazy }
+    /// caption
+    ///
+
 </div>
 <div class="grid cards" markdown>
 
