@@ -124,14 +124,14 @@ class RegressionProgress:
     async def advance_regression(self, regression: Regression, n: int) -> None:
         progress = self.progress_map.get(regression.id)
         tid = self.tasks.get(regression.id)
-        if progress and tid:
+        if progress is not None and tid is not None:
             task = progress.tasks[tid]
             await self.update_regression(regression, task.completed + n)
 
     async def update_regression(self, regression: Regression, n: int) -> None:
         progress = self.progress_map.get(regression.id)
         tid = self.tasks.get(regression.id)
-        if progress and tid:
+        if progress is not None and tid is not None:
             task = progress.tasks[tid]
             if task.completed == n:
                 return
