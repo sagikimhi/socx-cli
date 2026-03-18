@@ -2,348 +2,383 @@
 
 from __future__ import annotations
 
-import time
-import logging
 import asyncio as aio
-from typing import Any, TypeVar
-from typing import override
+import anyio
+import logging
+import time
+from collections import OrderedDict
+from collections.abc import AsyncGenerator, Iterable
+from pathlib import Path
 from threading import RLock
-from dataclasses import dataclass, field
-from collections import deque
-from collections.abc import Iterator
-from collections.abc import Iterable
-from collections.abc import AsyncIterator
+from typing import Self, Any
 
-from rich.progress import Progress
-from rich.progress import TextColumn
-from rich.progress import BarColumn
-from rich.progress import TaskProgressColumn
-from rich.progress import TimeRemainingColumn
-from rich.progress import SpinnerColumn
-from rich.progress import TimeElapsedColumn
-from rich.progress import MofNCompleteColumn
+from pydantic import (
+    ConfigDict,
+    PrivateAttr,
+    TypeAdapter,
+    UUID4,
+    computed_field,
+    validate_call,
+)
 
 from socx.config import settings
-from socx.regression.test import Test
-from socx.regression.test import TestBase
-from socx.regression.test import TestStatus
-from socx.regression.test import TestResult
+from socx.core.schema import FilePath
+from socx.regression.test import Test, TestBase, TestResult, TestStatus
 
 
 logger = logging.getLogger(__name__)
 
 
-__all__ = ("Regression",)
-
-TestType = TypeVar("TestType", bound=Test)
-
-
-@dataclass(init=False)
 class Regression(TestBase):
     """Manage and execute a collection of tests with concurrency control."""
 
-    _tests: deque[Test] = field(default_factory=deque)
+    model_config = ConfigDict(
+        from_attributes=True,
+        arbitrary_types_allowed=True,
+    )
+
+    _lock: RLock = PrivateAttr(default_factory=RLock)
+    _done: aio.Queue[TestBase] = PrivateAttr(default_factory=aio.Queue)
+    _pending: aio.Queue[TestBase | Regression | None] = PrivateAttr(
+        default_factory=aio.Queue
+    )
+    _running: set[UUID4] = PrivateAttr(default_factory=set)
+    _test_map: OrderedDict[UUID4, TestBase] = PrivateAttr(
+        default_factory=OrderedDict
+    )
+    _stop_requested: bool = PrivateAttr(default=False)
+    _pause_event: aio.Event = PrivateAttr(default_factory=aio.Event)
 
     def __init__(
-        self, name: str, tests: Iterable[TestType], *args: Any, **kwargs: Any
+        self,
+        name: str,
+        tests: list[TestBase] | None = None,
+        test_map: dict[UUID4, TestBase] | None = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
-        TestBase.__init__(self, name, *args, **kwargs)
-        tests = set(tests)
-        self.done: aio.Queue = aio.Queue()
-        self.pending: aio.Queue = aio.Queue(self.run_limit)
-        self.messages: aio.Queue = aio.Queue()
-        self._lock = RLock()
-        self._tests = deque(tests)
-        self._runner_tid = None
-        self._scheduler_tid = None
-        self._regression_tid = None
-        self._progress: Progress = Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            TaskProgressColumn(),
-            BarColumn(),
-            "[green]Completed:",
-            MofNCompleteColumn(),
-            "[yellow]Elapsed:",
-            TimeElapsedColumn(),
-            "[cyan]Remaining:",
-            TimeRemainingColumn(),
-            speed_estimate_period=15,
-            transient=False,
-            expand=True,
-        )
-
-    def __len__(self) -> int:
-        """Return the number of tests scheduled within the regression."""
-        return len(self._tests)
-
-    def __iter__(self) -> Iterator[Test]:
-        """Iterate over tests defined in a regression."""
-        return iter(self._tests)
-
-    async def __aiter__(self) -> AsyncIterator[Test]:
-        """Allow asynchronous iteration over the regression tests."""
-        for test in self._tests:
-            yield test
-
-    def __contains__(self, test: Test) -> bool:
-        """Return ``True`` if ``test`` is tracked by this regression."""
-        return test is not None and test in self._tests
+        super().__init__(*args, name=name, **kwargs)
+        tests = tests or []
+        test_map = test_map or {}
+        self._test_map = OrderedDict()
+        self.tests = [*tests, *list(test_map.values())]
 
     @classmethod
-    def from_lines(
-        cls, name: str, lines: Iterable[str], test_cls: type | None = None
-    ) -> Regression:
-        """Construct a regression from serialized command lines."""
-        test_cls = test_cls or Test
-        tests = [test_cls(line) for line in lines]
-        return Regression(name, tests)
+    @validate_call()
+    def from_file(
+        cls,
+        path: str | Path,
+        name: str | None = None,
+        test_cls: type[TestBase] | None = None,
+        **kwargs: Any,
+    ) -> Self:
+        return cls._from_file(path, test_cls=test_cls, **kwargs)
 
+    @computed_field(repr=True)
     @property
-    def tests(self) -> deque[Test]:
-        """An iterable of all tests defined in the regression."""
-        with self._lock:
-            return self._tests
+    def result(self) -> TestResult:
+        with self.lock:
+            if self.test_map:
+                return (
+                    TestResult.Passed
+                    if self.tests
+                    and all(
+                        test.result is TestResult.Passed for test in self.tests
+                    )
+                    else TestResult.Failed
+                    if any(
+                        test.result is TestResult.Failed for test in self.tests
+                    )
+                    else TestResult.NA
+                )
+            else:
+                return super().result
 
+    @computed_field(repr=True)
     @property
-    def progress(self):
-        """Expose the ``Progress`` instance tracking regression status."""
-        with self._lock:
-            return self._progress
+    def status(self) -> TestStatus:
+        terminated_statuses = [
+            TestStatus.Idle,
+            TestStatus.Terminated,
+            TestStatus.Finished,
+        ]
+        running_statuses = [TestStatus.Pending, TestStatus.Running]
+        tests = self.tests
+        if all(test.status is TestStatus.Idle for test in tests):
+            return TestStatus.Idle
+        if all(test.status is TestStatus.Finished for test in tests):
+            return TestStatus.Finished
+        if all(test.status in terminated_statuses for test in tests):
+            return TestStatus.Terminated
+        if any(test.status in running_statuses for test in tests):
+            return TestStatus.Running
+        return TestStatus.Paused
 
+    @computed_field
+    @property
+    def tests(self) -> list[TestBase]:
+        with self.lock:
+            return list(self._test_map.values())
+
+    @tests.setter
+    def tests(self, other: list[TestBase]) -> None:
+        with self.lock:
+            self._test_map = OrderedDict({test.id: test for test in other})
+
+    @computed_field(repr=True)
+    @property
+    def test_map(self) -> dict[UUID4, TestBase]:
+        with self.lock:
+            return self._test_map
+
+    @test_map.setter
+    def test_map(self, other: dict[UUID4, TestBase]) -> None:
+        with self.lock:
+            if isinstance(other, OrderedDict):
+                self._test_map = other
+            else:
+                self._test_map = OrderedDict(other)
+
+    @computed_field(repr=True)
     @property
     def run_limit(self) -> int:
         """Return the maximum number of tests that may run concurrently."""
-        return settings.regression.max_runs_in_parallel
+        with self.lock:
+            run_limit = settings.regression.max_runs_in_parallel
+        return max(1, min(run_limit, len(self) or 1))
 
-    @override
+    @property
+    def lock(self) -> RLock:
+        return self._lock
+
+    @property
+    def done(self) -> aio.Queue:
+        return self._done
+
+    @property
+    def running(self) -> set[UUID4]:
+        with self.lock:
+            return self._running.copy()
+
+    @property
+    def pending(self) -> aio.Queue:
+        return self._pending
+
+    def __len__(self) -> int:
+        """Return the number of tests scheduled within the regression."""
+        return len(self.test_map)
+
+    def __getitem__(self, key: int | UUID4):
+        if isinstance(key, int):
+            return self.tests[key]
+        elif isinstance(key, TestBase):
+            return self.test_map[key.id]
+        else:
+            return self.test_map[key]
+
+    def __contains__(self, test: TestBase) -> bool:
+        """Return ``True`` if ``test`` is tracked by this regression."""
+        return test is not None and test.id in self.test_map
+
     async def start(self) -> None:
-        """Start the regression."""
+        """Start or resume a regression."""
+        if self.status is TestStatus.Paused:
+            await self.resume()
+            return
+
+        if self.started:
+            return
+
+        self._stop_requested = False
+        self._pause_event.set()
+        self._running.clear()
+        self._done = aio.Queue()
+        self._pending = aio.Queue()
+        self.finished_time = None
+        self.started_time = time.perf_counter()
         logger.info("regression starting...")
-        self._status = TestStatus.Pending
 
         try:
-            self._status = TestStatus.Running
-            logger.info("regression starting...")
-            self._started_time = time.perf_counter()
-            async with aio.TaskGroup() as tg:
-                if len(self):
-                    tg.create_task(self._animate_progress())
-                    tg.create_task(self._schedule_tests())
-                    tg.create_task(self._run_tests())
-                logger.info("regression started.")
-        finally:
-            self._finished_time = time.perf_counter()
-            self._result = (
-                TestResult.Passed
-                if all(test.passed for test in self)
-                else TestResult.Failed
-            )
-            self._status = (
-                TestStatus.Finished
-                if all(test.status == TestStatus.Finished for test in self)
-                else TestStatus.Terminated
-            )
-            logger.info(f"regression {self._status.name.lower()}.")
-
-    @override
-    def suspend(self) -> None:
-        """Suspend the execution of a running test."""
-        for test in self.tests:
-            test.suspend()
-        if self._status == TestStatus.Running:
-            self._status = TestStatus.Stopped
-
-    @override
-    def resume(self) -> None:
-        """Resume the execution of a paused test."""
-        for test in self.tests:
-            test.resume()
-        if self._status == TestStatus.Stopped:
-            self._status = TestStatus.Running
-
-    @override
-    def interrupt(self) -> None:
-        """Interrupt the execution of a running test with a SIGINT signal."""
-        for test in self.tests:
-            test.interrupt()
-
-    @override
-    def terminate(self) -> None:
-        """Interrupt the execution of a running test with a SIGTERM signal."""
-        for test in self.tests:
-            test.terminate()
-
-    @override
-    def kill(self) -> None:
-        """Interrupt the execution of a running test with a SIGKILL signal."""
-        for test in self.tests:
-            test.kill()
-
-    async def _schedule_tests(self) -> None:
-        """Spawn scheduler tasks responsible for queueing each test."""
-        try:
-            await self.messages.put("Scheduling tests...")
-            async with aio.TaskGroup() as tg:
-                async for test in self:  # removed async cause it was 2 fast
-                    tg.create_task(self._scheduler(test))
-        finally:
-            await self.messages.put("All tests scheduled.")
-
-    async def _scheduler(self, test) -> None:
-        """Queue an individual test for execution."""
-        await self.messages.put(f"Scheduler({test.name}): scheduling test...")
-        await self.pending.put(test)
-        await self.messages.put(f"Scheduler({test.name}): test scheduled.")
-        self._scheduler_advance()
-
-    async def _run_tests(self) -> None:
-        """Run the configured number of worker tasks that execute tests."""
-        try:
-            async with aio.TaskGroup() as tg:
+            await self._queue_tests()
+            async with anyio.create_task_group() as tg:
                 for _ in range(self.run_limit):
-                    tg.create_task(self._runner())
+                    tg.start_soon(self._runner)
         finally:
-            await self.messages.put("All tests finished.")
+            self.finished_time = time.perf_counter()
+            self._pause_event.set()
+            self._running.clear()
+            logger.info(f"regression {self.status.name.lower()}.")
+
+    async def pause(self) -> None:
+        """Pause a running regression and any active descendants."""
+        if self.status is not TestStatus.Running:
+            return
+
+        self._pause_event.clear()
+        await aio.gather(
+            *(test.pause() for test in self._active_tests()),
+            return_exceptions=True,
+        )
+
+    async def resume(self) -> None:
+        """Resume a paused regression and any active descendants."""
+        if self.status is not TestStatus.Paused:
+            return
+
+        self._pause_requested = False
+        self._pause_event.set()
+        await aio.gather(
+            *(test.resume() for test in self.tests),
+            return_exceptions=True,
+        )
+
+    async def stop(self) -> None:
+        """Terminate active work within the regression."""
+        if self.status is TestStatus.Terminated:
+            return
+
+        self._stop_requested = True
+        self._pause_event.set()
+        await aio.gather(
+            *(test.stop() for test in self.tests),
+            return_exceptions=True,
+        )
+
+    async def restart(self) -> None:
+        """Terminate, reset, and execute the regression again."""
+        await self.stop()
+        self.reset()
+        await self.start()
+
+    def reset(self) -> None:
+        """Reset the regression and all child tests."""
+        super().reset()
+
+        for test in self.tests:
+            if hasattr(test, "reset"):
+                test.reset()
+
+        self._done = aio.Queue()
+        self._pending = aio.Queue()
+        self._pause_event = aio.Event()
+        self._running.clear()
+        self._stop_requested = False
+
+    @classmethod
+    async def desync[T](cls, it: Iterable[T]) -> AsyncGenerator[T]:
+        for item in it:
+            yield item
+
+    async def _queue_tests(self) -> None:
+        items = list(self.tests)
+        for test in items:
+            if test.status in (TestStatus.Finished, TestStatus.Terminated):
+                test.reset()
+            await self.pending.put(test)
+
+        for _ in range(self.run_limit):
+            await self.pending.put(None)
 
     async def _runner(self) -> None:
-        """Consume tests from the queue and execute them sequentially."""
-        while not self.progress.finished:
-            if self.pending.empty():
-                await aio.sleep(0)
-                continue
-
+        """Consume queued tests and execute them sequentially."""
+        while True:
+            test = await self.pending.get()
             try:
-                test: Test = await self.pending.get()
-                await self.messages.put(f"Runner({test.name}): running...")
-                self._runner_advance()
-                await test.start()
-                await self.messages.put(
-                    f"Runner({test.name}): test {test.result}."
-                )
-                self._regression_advance()
+                if test is None:
+                    return
+
+                while not self._pause_event.is_set():
+                    await aio.sleep(0.05)
+
+                if self._stop_requested:
+                    return
+
+                self._running.add(test.id)
+                if test is not None:
+                    await test.start()
                 await self.done.put(test)
             finally:
+                if test is not None:
+                    self._running.discard(test.id)
                 self.pending.task_done()
 
-    async def _animate_progress(self) -> None:
-        """Update progress tasks and flush log messages while running."""
-        with self.progress:
-            self._scheduler_start()
-            self._runner_start()
-            self._regression_start()
-            await self._process_messages()
+    def _active_tests(self) -> list[TestBase]:
+        return [test for test in self.tests if test.id in self._running]
 
-    async def _process_messages(self) -> None:
-        """Drain the message queue and mirror events to the progress log."""
-        while not self.progress.finished:
-            while not self.messages.empty():
-                try:
-                    msg = await self.messages.get()
-                    self.progress.log(msg)
-                finally:
-                    self.messages.task_done()
-            await aio.sleep(0)
+    @classmethod
+    @validate_call()
+    def _from_file(
+        cls,
+        path: str | Path,
+        name: str | None = None,
+        test_cls: type[TestBase] | None = None,
+    ) -> Self:
+        """Construct a regression from a test configuration file."""
+        from box import Box
 
-    def _scheduler_start(self) -> None:
-        """Initialise the scheduler progress task if it is not active."""
-        if self._scheduler_tid is None:
-            self._scheduler_tid = self.progress.add_task(
-                description="[red]Schedulers: pending...",
-                total=len(self),
-                start=False,
-                visible=True,
-            )
+        path = TypeAdapter(FilePath).validate_python(path)
+        name = name or path.stem
+        test_cls = test_cls or Test
 
-    def _scheduler_advance(self) -> None:
-        """Advance the scheduler progress task based on queued tests."""
-        if self._scheduler_tid is not None:
-            task = self.progress.tasks[self._scheduler_tid]
-            if not task.started:
-                self.progress.start_task(self._scheduler_tid)
-                self.progress.update(
-                    self._scheduler_tid,
-                    total=len(self),
-                    refresh=True,
-                    description="[yellow]Schedulers: working...",
-                )
+        match path.suffix.lower():
+            case ".yml" | ".yaml":
+                data = Box.from_yaml(filename=str(path))
+            case ".toml":
+                data = Box.from_toml(filename=str(path))
+            case ".json":
+                data = Box.from_json(filename=str(path))
+            case _:
+                msg = f"Unsupported file format: '{path.suffix}'"
+                raise ValueError(msg)
 
-            if task.completed + 1 < len(self):
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=task.id,
+        settings.update(Box({name: data}), merge=False)
+        return cls._from_data(name, settings[name], test_cls)
+
+    @classmethod
+    def _from_data(
+        cls,
+        name: str,
+        data: dict[str, Any],
+        test_cls: type[TestBase],
+    ) -> Self:
+        regressions = []
+        for child_name, entries in data.items():
+            if isinstance(entries, list):
+                regression = cls(
+                    name=child_name,
+                    tests=[test_cls(**test) for test in entries],
                 )
             else:
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=task.id,
-                    description="[light_green]Schedulers: done.",
+                regression = cls(
+                    name=child_name,
+                    tests=[
+                        cls._from_data(key, entries[key], test_cls)
+                        for key in entries
+                    ],
                 )
+            regressions.append(regression)
+        return cls(name=name, tests=regressions)
 
-    def _runner_start(self) -> None:
-        """Initialise the runner progress task if it is not active."""
-        if self._runner_tid is None:
-            self._runner_tid = self.progress.add_task(
-                description="[red]Runners: pending...",
-                total=len(self),
-                start=False,
-                visible=True,
-            )
+    # @field_validator("test_map", mode="before")
+    # @classmethod
+    # def _test_map_validator(
+    #     cls,
+    #     tests: set[TestBase]
+    #     | list[TestBase]
+    #     | tuple[TestBase, ...]
+    #     | dict[str, TestBase],
+    # ) -> OrderedDict[UUID4, TestBase]:
+    #     if tests is None:
+    #         err = "must not be none"
+    #         raise ValueError(err)
 
-    def _runner_advance(self) -> None:
-        """Advance the runner progress task for each completed test."""
-        if self._runner_tid is not None:
-            task = self.progress.tasks[self._runner_tid]
-            if not task.started:
-                self.progress.start_task(self._runner_tid)
-                self.progress.update(
-                    refresh=True,
-                    visible=True,
-                    task_id=self._runner_tid,
-                    description="[yellow]Runners: working...",
-                )
+    #     rv = OrderedDict()
+    #     it: Iterator[TestBase] = (
+    #         iter(list(tests.values()))
+    #         if isinstance(tests, dict)
+    #         else iter(tests)
+    #     )
 
-            if task.completed + 1 < len(self):
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=self._runner_tid,
-                )
-            else:
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=self._runner_tid,
-                    description="[light_green]Runners: done.",
-                )
-
-    def _regression_start(self) -> None:
-        """Initialise the overall regression progress task."""
-        if self._regression_tid is None:
-            self._regression_tid = self.progress.add_task(
-                total=len(self),
-                start=True,
-                visible=True,
-                description="[yellow]Regression: in progress...",
-            )
-
-    def _regression_advance(self) -> None:
-        """Advance the overall regression progress task once work begins."""
-        if self._regression_tid is not None:
-            task = self.progress.tasks[self._regression_tid]
-            if task.completed + 1 < len(self):
-                self.progress.update(
-                    advance=1,
-                    refresh=True,
-                    task_id=task.id,
-                )
-            else:
-                self.progress.update(
-                    total=len(self),
-                    refresh=True,
-                    task_id=task.id,
-                    completed=len(self),
-                    description="[light_green]Regression: done.",
-                )
+    #     for test in it:
+    #         rv[test.id] = test
+    #     return rv

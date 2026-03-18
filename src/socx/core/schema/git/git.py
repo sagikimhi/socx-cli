@@ -54,7 +54,6 @@ class RepositoryUrl(Url):
     """A type that accepts a git remote repository url over https or ssh."""
 
     _constraints = UrlConstraints(
-        default_host="bitbucket.org",
         host_required=True,
         allowed_schemes=[
             "git",

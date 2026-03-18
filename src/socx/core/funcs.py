@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextvars import ContextVar
 from typing import TypeVar
+from collections.abc import AsyncIterable
 from textwrap import (
     TextWrapper,
     dedent as _dedent,
@@ -49,3 +50,8 @@ def wrap(text: str) -> str:
 def deduplicate[T](iterable: Iterable[T]) -> list[T]:
     seen = set()
     return [v for v in iterable if v not in seen and seen.add(v) is None]
+
+
+async def desync[T](iterable: Iterable[T]) -> AsyncIterable[T]:
+    for item in iterable:
+        yield item

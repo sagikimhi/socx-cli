@@ -51,9 +51,10 @@ class Settings(LazySettings):
     def __init__(self, wrapped=None, **kwargs: Any) -> None:
         kwargs = dict(ChainMap(kwargs, SETTINGS_DEFAULTS))
         LazySettings.__init__(self, wrapped=wrapped, **kwargs)
-        for file in self.dynaconf_include:
-            if file not in self.loaded_files:
-                self.load_file(path=file)
+        if hasattr(self, "dynaconf_include"):
+            for file in self.dynaconf_include:
+                if file not in self.loaded_files:
+                    self.load_file(path=file)
 
     def __contains__(self, key):
         return self.exists(key) or (
