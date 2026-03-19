@@ -40,7 +40,6 @@
 !*.yaml
 !*.toml
 !*.json
-!*.example
 
 !LICENSE
 !Makefile
@@ -50,3 +49,5 @@
 !CHANGELOG.md
 !CONTRIBUTING.md
 !CODE_OF_CONDUCT.md
+
+workrun/

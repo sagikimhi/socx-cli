@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import Any, ClassVar
 from collections import ChainMap
 from collections.abc import Iterable
@@ -37,6 +38,16 @@ class SoCX(App[int]):
     def run(self, *args: Any, **kwargs: Any) -> int | None:
         kwargs = dict(ChainMap(kwargs, dict(inline=True)))
         return super().run(*args, **kwargs)
+
+    def exit(
+        self,
+        result: int | None = None,
+        return_code: int = 0,
+        message: Any | None = None,
+    ) -> None:
+        with suppress(Exception):
+            self.regression.persist_loaded_regression_state()
+        super().exit(result=result, return_code=return_code, message=message)
 
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""

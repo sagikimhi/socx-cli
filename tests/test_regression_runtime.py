@@ -52,10 +52,63 @@ def test_regression_can_restart_children(tmp_path) -> None:
         await regression.start()
         assert regression.status is TestStatus.Finished
         assert marker.read_text().splitlines() == ["run"]
+        assert regression.elapsed_time is not None
+        assert regression.total_test_count == 1
+        assert regression.completed_test_count == 1
+        assert regression.progress_ratio == 1.0
+        assert regression.estimated_remaining_time == 0.0
 
         await regression.restart()
 
         assert regression.status is TestStatus.Finished
         assert marker.read_text().splitlines() == ["run", "run"]
+
+    asyncio.run(run_test())
+
+
+def test_regression_state_round_trips_with_test_outputs(tmp_path) -> None:
+    async def run_test() -> None:
+        regression = Regression(
+            name="smoke",
+            tests=[
+                Test(
+                    name="alpha",
+                    exec="printf 'alpha out'; printf 'alpha err' >&2",
+                )
+            ],
+        )
+        session_dir = tmp_path / "session"
+        regression.assign_output_dir(session_dir / regression.name)
+        test = regression.tests[0]
+
+        task = asyncio.create_task(regression.start())
+        await _wait_for(
+            lambda: (
+                test.output_dir is not None
+                and test.output_dir.is_dir()
+                and test.stdout_path is not None
+                and test.stdout_path.exists()
+                and test.stderr_path is not None
+                and test.stderr_path.exists()
+            )
+        )
+        await task
+
+        state_file = regression.dump_state(session_dir)
+        loaded = Regression.load(state_file)
+        loaded_test = loaded.tests[0]
+
+        assert regression.started_time is not None
+        assert regression.started_time > 946684800
+        assert state_file.exists()
+        assert isinstance(loaded_test, Test)
+        assert loaded_test.stdout == "alpha out"
+        assert loaded_test.stderr == "alpha err"
+        assert loaded_test.finished
+        assert loaded_test.output_dir is not None
+        assert loaded_test.stdout_path is not None
+        assert loaded_test.stdout_path.read_text() == "alpha out"
+        assert loaded_test.stderr_path is not None
+        assert loaded_test.stderr_path.read_text() == "alpha err"
 
     asyncio.run(run_test())
