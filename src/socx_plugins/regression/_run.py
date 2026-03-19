@@ -219,6 +219,7 @@ async def run_regression(
     path_in = file or _get_input_path()
     regression = populate_regression(path_in)
     output_dir = _get_output_path(regression)
+    regression.assign_output_dir(output_dir / regression.name)
     names_set = _get_names_to_run()
     progress = RegressionProgress(regression)
 
