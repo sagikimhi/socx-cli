@@ -8,6 +8,7 @@ import signal
 import time
 import uuid
 from enum import StrEnum, IntEnum, auto
+from pathlib import Path
 
 from pydantic import (
     BaseModel,
@@ -59,6 +60,7 @@ class TestBase(BaseModel):
     _status: TestStatus = PrivateAttr(TestStatus.Idle)
     _process: aio.subprocess.Process | None = PrivateAttr(default=None)
     _termination_requested: bool = PrivateAttr(default=False)
+    _output_dir: Path | None = PrivateAttr(default=None)
 
     @computed_field
     @property
@@ -84,11 +86,40 @@ class TestBase(BaseModel):
             return None
         return Process(self._process.pid)
 
+    @property
+    def output_dir(self) -> Path | None:
+        return self._output_dir
+
+    @output_dir.setter
+    def output_dir(self, value: Path | None) -> None:
+        self._output_dir = value
+
+    @property
+    def stdout_path(self) -> Path | None:
+        if self.output_dir is None:
+            return None
+        return self.output_dir / "stdout.txt"
+
+    @property
+    def stderr_path(self) -> Path | None:
+        if self.output_dir is None:
+            return None
+        return self.output_dir / "stderr.txt"
+
     @computed_field
     @property
     def started(self) -> bool:
         """Return ``True`` once ``start`` has spawned the subprocess."""
         return self.status > TestStatus.Pending
+
+    @property
+    def elapsed_time(self) -> float | None:
+        """Return the elapsed runtime derived from wall-clock timestamps."""
+        if self.started_time is None:
+            return None
+
+        end_time = self.finished_time or time.time()
+        return max(0.0, end_time - self.started_time)
 
     @property
     def finished(self) -> bool:
@@ -188,6 +219,15 @@ class TestBase(BaseModel):
         self.reset()
         await self.start()
 
+    def _prepare_output_files(self) -> None:
+        if self.output_dir is None:
+            return
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        for path in (self.stdout_path, self.stderr_path):
+            if path is not None:
+                path.write_text("", encoding="utf-8")
+
 
 class Test(TestBase):
     """Concrete test model with subprocess execution support."""
@@ -237,14 +277,16 @@ class Test(TestBase):
         self.result = TestResult.NA
         self.stdout = ""
         self.stderr = ""
-        self.started_time = time.perf_counter()
+        self.started_time = time.time()
         self.finished_time = None
         self.status = TestStatus.Pending
+        self._prepare_output_files()
 
         if not self.exec:
             self.status = TestStatus.Terminated
             self.result = TestResult.Failed
-            self.finished_time = time.perf_counter()
+            self.finished_time = time.time()
+            self._write_output_files()
             return
 
         process = await aio.create_subprocess_exec(
@@ -263,9 +305,10 @@ class Test(TestBase):
         try:
             stdout, stderr = await process.communicate()
         finally:
-            self.finished_time = time.perf_counter()
+            self.finished_time = time.time()
             self.stderr = stderr.decode() if stderr else ""
             self.stdout = stdout.decode() if stdout else ""
+            self._write_output_files()
             returncode = process.returncode or 0
 
             if self._termination_requested or returncode < 0:
@@ -279,3 +322,11 @@ class Test(TestBase):
                 self.result = TestResult.Failed
 
             self._process = None
+
+    def _write_output_files(self) -> None:
+        for path, content in (
+            (self.stdout_path, self.stdout),
+            (self.stderr_path, self.stderr),
+        ):
+            if path is not None:
+                path.write_text(content, encoding="utf-8")

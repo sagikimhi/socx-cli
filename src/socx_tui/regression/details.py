@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from textwrap import wrap
 from typing import ClassVar
 
@@ -79,9 +80,11 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
                     f"**✅ Passed:** {self.count_results(model, TestResult.Passed)}",  # noqa: E501
                     f"**💡 Status:** {self.format_status(model.status)}",
                     f"**🚩 Result:** {self.format_result(model.result)}",
-                    # f"**⌛ Elapsed Time:** {self.format_timedelta(model.time_elapsed)}",  # noqa: E501, W505
+                    f"**⌛ Elapsed Time:** {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
                     f"**⌛ Started Time:** {self.format_time(model.started_time)}",  # noqa: E501
                     f"**⌛ Finished Time:** {self.format_time(model.finished_time)}",  # noqa: E501
+                    f"**📊 Progress:** `{self.format_progress(model)}`",
+                    f"**⏳ ETA:** {self.format_timedelta(model.estimated_remaining_time)}",  # noqa: E501
                 ]
             )
         else:
@@ -89,7 +92,7 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
                 [
                     f"**💡 Status:** {self.format_status(model.status)}",
                     f"**🚩 Result:** {self.format_result(model.result)}",
-                    # f"**⌛ Elapsed Time:** {self.format_timedelta(model.time_elapsed)}",  # noqa: E501, W505
+                    f"**⌛ Elapsed Time:** {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
                     f"**⌛ Started Time:** {self.format_time(model.started_time)}",  # noqa: E501
                     f"**⌛ Finished Time:** {self.format_time(model.finished_time)}",  # noqa: E501
                     "",
@@ -123,7 +126,20 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
         return status.name.lower()
 
     def format_time(self, value: float | None) -> str:
-        return "n/a" if value is None else f"{value:.3f}"
+        if value is None:
+            return "n/a"
+
+        try:
+            if value >= 946684800:
+                return (
+                    datetime.fromtimestamp(value)
+                    .astimezone()
+                    .strftime("%Y-%m-%d %H:%M:%S %Z")
+                )
+        except (OverflowError, OSError, ValueError):
+            pass
+
+        return f"{value:.3f}s"
 
     def format_timedelta(self, value: int | float | None) -> str:
         if value is None:
@@ -135,4 +151,15 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
         return f"{hours:02}h:{minutes:02}m:{seconds:02}s"
 
     def count_results(self, regression: Regression, result: TestResult) -> int:
-        return sum(1 for test in regression.tests if test.result is result)
+        return sum(
+            1 for test in regression.iter_leaf_tests() if test.result is result
+        )
+
+    def format_progress(self, regression: Regression, width: int = 24) -> str:
+        total = regression.total_test_count
+        completed = regression.completed_test_count
+        ratio = regression.progress_ratio
+        filled = min(width, round(ratio * width))
+        bar = "#" * filled + "-" * (width - filled)
+        percent = int(ratio * 100)
+        return f"[{bar}] {completed}/{total} ({percent}%)"
