@@ -6,7 +6,7 @@ __all__ = (
     "PtrMixin",
     "UIDMixin",
     "ProxyMixin",
-    "Structure",
+    "StructureProxy",
     "Traversal",
     "Singleton",
     "ByLevelTraversal",
@@ -21,8 +21,8 @@ from socx.patterns.mixins import ProxyMixin as ProxyMixin
 
 from socx.patterns.visitor import Node as Node
 from socx.patterns.visitor import Visitor as Visitor
-from socx.patterns.visitor import Structure as Structure
 from socx.patterns.visitor import Traversal as Traversal
+from socx.patterns.visitor import StructureProxy as StructureProxy
 from socx.patterns.visitor import ByLevelTraversal as ByLevelTraversal
 from socx.patterns.visitor import TopDownTraversal as TopDownTraversal
 from socx.patterns.visitor import BottomUpTraversal as BottomUpTraversal

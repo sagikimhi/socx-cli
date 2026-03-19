@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Protocol
-from collections.abc import Iterable
+from collections.abc import Generator
 
 
 class Visitor[NODE](Protocol):
@@ -11,7 +11,7 @@ class Visitor[NODE](Protocol):
 
     __slots__ = ()
 
-    def visit(self, n: NODE) -> None:
+    def visit(self, node: NODE) -> None:
         """Visit a node of a structure."""
         ...
 
@@ -21,19 +21,19 @@ class Node[NODE](Protocol):
 
     __slots__ = ()
 
-    def accept(self, v: Visitor[NODE]) -> None:
+    def accept(self, visitor: Visitor[NODE]) -> None:
         """Accept a visit from a `Visitor`."""
         ...
 
 
-class Structure[NODE](Protocol):
+class StructureProxy[STRUCTURE](Protocol):
     """Protocol for structures exposing child relationships."""
 
     __slots__ = ()
 
     @classmethod
-    def children(cls, s: NODE) -> Iterable[NODE]:
-        """Return the immediate children of ``s``."""
+    def children(cls, structure: STRUCTURE) -> Generator[STRUCTURE]:
+        """Return the immediate children of ``structure``."""
         ...
 
 
@@ -43,6 +43,11 @@ class Traversal[NODE](Protocol):
     __slots__ = ()
 
     @classmethod
-    def accept(cls, n: NODE, v: Visitor[NODE], p: Structure[NODE]) -> None:
-        """Accept visits of a `NODE` n from a `Visitor` v."""
+    def accept(
+        cls,
+        structure: NODE,
+        visitor: Visitor[NODE],
+        proxy: StructureProxy[NODE],
+    ) -> None:
+        """Accept visits of a `NODE` node from a `Visitor` visitor."""
         ...

@@ -123,9 +123,9 @@ __all__ = (
     # Patterns
     "Node",
     "Visitor",
-    "Structure",
     "Traversal",
     "Singleton",
+    "StructureProxy",
     "ByLevelTraversal",
     "TopDownTraversal",
     "BottomUpTraversal",
@@ -248,15 +248,15 @@ from socx.config import validate_all as validate_all
 
 from socx.patterns import Node as Node
 from socx.patterns import Visitor as Visitor
-from socx.patterns import Structure as Structure
 from socx.patterns import Traversal as Traversal
-from socx.patterns import UIDMixin as UIDMixin
-from socx.patterns import PtrMixin as PtrMixin
-from socx.patterns import ProxyMixin as ProxyMixin
-from socx.patterns import Singleton as Singleton
+from socx.patterns import StructureProxy as StructureProxy
 from socx.patterns import TopDownTraversal as TopDownTraversal
 from socx.patterns import BottomUpTraversal as BottomUpTraversal
 from socx.patterns import ByLevelTraversal as ByLevelTraversal
+from socx.patterns import UIDMixin as UIDMixin
+from socx.patterns import PtrMixin as PtrMixin
+from socx.patterns import Singleton as Singleton
+from socx.patterns import ProxyMixin as ProxyMixin
 
 from socx.regression import Test as Test
 from socx.regression import TestBase as TestBase
