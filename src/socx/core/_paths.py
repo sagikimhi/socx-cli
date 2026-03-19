@@ -55,7 +55,7 @@ def find_project_root(start_path: Path) -> Path:
 # Application Paths
 # -----------------------------------------------------------------------------
 
-APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[3].resolve()
+APP_ROOT_DIR: Path = Path(getfile(lambda: None)).parents[1].resolve()
 """Absolute path to directory where application is installed."""
 
 APP_STATIC_DIR: Path = __directory__ / "static"

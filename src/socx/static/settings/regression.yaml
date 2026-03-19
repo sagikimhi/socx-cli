@@ -2,7 +2,7 @@ regression:
   tui:
     paths:
       app_dir: >-
-        @jinja {{'{}/src/socx_tui'.format(this.paths.app_root_dir) | realpath}}
+        @jinja {{'{}/../socx_tui'.format(this.paths.app_root_dir) | realpath}}
       static_dir: >-
         @jinja {{'{}/static'.format(this.regression.tui.paths.app_dir) | realpath}}
       tcss_dir: >-
