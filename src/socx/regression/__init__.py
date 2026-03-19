@@ -6,6 +6,7 @@ __all__ = (
     "TestStatus",
     "TestResult",
     "Regression",
+    "RegressionTree",
     "RegressionProgress",
 )
 
@@ -14,4 +15,5 @@ from socx.regression.test import TestBase as TestBase
 from socx.regression.test import TestStatus as TestStatus
 from socx.regression.test import TestResult as TestResult
 from socx.regression.regression import Regression as Regression
+from socx.regression.regression import RegressionTree as RegressionTree
 from socx.regression.progress import RegressionProgress as RegressionProgress

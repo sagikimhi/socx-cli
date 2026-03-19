@@ -29,7 +29,7 @@ socx = 'socx.__main__:main'
 [project]
 name = "socx-cli"
 readme = "README.md"
-version = "0.13.1"
+version = "0.13.2"
 license = "Apache-2.0"
 authors = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
 maintainers = [{ name = "Sagi Kimhi", email = "sagi.kim5@gmail.com" }]
@@ -67,7 +67,7 @@ dependencies = [
     "textual",
     "plumbum",
     "pydantic",
-    "dynaconf",
+    "dynaconf<3.2.12",
     "paramiko",
     "werkzeug>=3.1.4",
     "gitpython",
@@ -163,6 +163,9 @@ installer = "uv"
 packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
 
 [tool.hatch.build.targets.wheel]
+packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
+
+[tool.hatch.build.targets.binary]
 packages = ["src/socx", "src/socx_tui", "src/socx_plugins"]
 
 # -----------------------------------------------------------------------------

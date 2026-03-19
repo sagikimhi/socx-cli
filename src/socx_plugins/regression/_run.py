@@ -1,15 +1,19 @@
 """Shared helpers for the regression rerun (rgr) CLI plugin."""
 
+from socx.regression.visitor import RegressionVisitor
+
 import time
 import logging
 import anyio
 import anyio.lowlevel
 from pathlib import Path
-from contextlib import ExitStack
 
+import box
 import rich_click as click
 
 from socx import (
+    Test,
+    TestBase,
     Regression,
     RegressionProgress,
     Decorator,
@@ -126,54 +130,77 @@ def _get_names_to_run() -> set[str] | None:
     return names if bool(names) else None
 
 
+class StateWriter(RegressionVisitor):
+    stack: list[TestBase]
+    output_dir: Path
+
+    def __init__(self, output_dir: Path):
+        self.structure = None
+        self.output_dir = output_dir
+
+    def visit(self, node: TestBase) -> None:
+        if isinstance(node, Test):
+            self.visit_test(node)
+        elif isinstance(node, Regression):
+            self.visit_regression(node)
+
+    def visit_regression(self, node: Regression):
+        if self.structure is None:
+            self.structure = node
+            self.output_dir = self.output_dir / node.name
+        elif node.name != self.output_dir.name:
+            self.structure = node
+            self.output_dir = self.output_dir.parent / node.name
+
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        state_file = self.output_dir / "state.json"
+        state_data = node.model_dump(
+            mode="json",
+            include={
+                "id",
+                "name",
+                "exec",
+                "tests",
+                "status",
+                "result",
+                "started_time",
+                "finished_time",
+            },
+            exclude={"stdout", "stderr"},
+            round_trip=True,
+        )
+        state_file.touch(exist_ok=False)
+        box.DDBox(state_data).to_yaml(str(state_file))
+
+    def visit_test(self, node: Test) -> None:
+        self.output_dir = self.output_dir / node.name
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        if node.stdout:
+            stdout_file = self.output_dir / "stdout.txt"
+            stdout_file.touch(exist_ok=False)
+            stdout_file.write_text(node.stdout)
+
+        if node.stderr:
+            stderr_file = self.output_dir / "stderr.txt"
+            stderr_file.touch(exist_ok=False)
+            stderr_file.write_text(node.stderr)
+
+        self.output_dir = self.output_dir.parent
+
+
 def write_test_results(regression: Regression, output_dir: Path) -> None:
     """Write the regression command results to their respective files."""
-    fail_out = output_dir / "failed.json"
-    pass_out = output_dir / "passed.json"
-    state_out = output_dir / "state.json"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    logger.info("saving regression results to disk...")
-    with (
-        click.open_file(fail_out, "w", atomic=True) as fail_fd,
-        click.open_file(pass_out, "w", atomic=True) as pass_fd,
-    ):
-        for test in regression.tests:
-            f = pass_fd if test.passed else fail_fd
-
-            if bool(test.stdout) or bool(test.stderr):
-                test_dir = output_dir / test.name
-
-            if bool(test.stdout):
-                out_file = test_dir / "stdout.txt"
-                test_dir.mkdir(parents=True, exist_ok=True)
-                out_file.touch(exist_ok=True)
-                out_file.write_text(test.stdout)
-
-            if bool(test.stderr):
-                err_file = test_dir / "stderr.txt"
-                err_file.touch(exist_ok=True)
-                test_dir.mkdir(parents=True, exist_ok=True)
-                err_file.write_text(test.stderr)
-
-            f.write(
-                test.model_dump_json(
-                    exclude_unset=True, exclude={"stdout", "stderr"}
-                )
-            )
-
-    logger.info(f"results saved to: '{output_dir}'")
-
-    with click.open_file(state_out, "w", atomic=True) as regression_state_fd:
-        logger.info("saving regression state to disk...")
-        regression_state_fd.write(
-            regression.model_dump_json(
-                exclude_unset=True, exclude={"stdout", "stderr"}
-            )
-        )
-
-    logger.info(f"state saved to: '{state_out}'")
-    logger.info("both state and results were successfully written to disk.")
+    logger.info("saving regression state and results to disk...")
+    file = output_dir / regression.name / "state.yaml"
+    state = regression.model_dump(
+        mode="json", round_trip=True, serialize_as_any=True
+    )
+    file.parent.mkdir(parents=True, exist_ok=True)
+    file.touch(exist_ok=False)
+    box.DDBox(state).to_yaml(str(file))
+    logger.info(f"state and results saved to: '{output_dir}'.")
 
 
 def populate_regression(filepath: str | Path | anyio.Path) -> Regression:
@@ -185,38 +212,20 @@ def populate_regression(filepath: str | Path | anyio.Path) -> Regression:
     return Regression.from_file(filepath, test_cls=test_cls)
 
 
-async def wait_for(predicate, max_wait: float | None = None):
-    deadline = max_wait and time.perf_counter() + max_wait
-    while deadline is None or time.perf_counter() < deadline:
-        if predicate():
-            return
-        await anyio.lowlevel.checkpoint()
-    msg = "Condition was not met before timeout."
-    raise AssertionError(msg)
-
-
 async def run_regression(
     file: str | Path | None = None, *names: str
 ) -> Regression:
     """Run a regression using file inputs and persist the results."""
-    ctx = click.get_current_context()
     path_in = file or _get_input_path()
     regression = populate_regression(path_in)
     output_dir = _get_output_path(regression)
     names_set = _get_names_to_run()
+    progress = RegressionProgress(regression)
 
-    assert ctx is not None
-
-    @ctx.call_on_close
-    def write_results():
-        write_test_results(regression, output_dir)
-
-    with ExitStack() as stack:
-        stack.enter_context(anyio.CancelScope(shield=True))
-        stack.callback(write_test_results, regression, output_dir)
-
+    with anyio.CancelScope(shield=True):
         try:
-            await RegressionProgress(regression).start(include=names_set)
+            async with anyio.create_task_group() as tg:
+                tg.start_soon(progress.start, names_set, name=regression.name)
         except anyio.get_cancelled_exc_class():
             logger.info("Task cancelled, aborting...")
             raise
@@ -226,5 +235,7 @@ async def run_regression(
                 "Task failed due to an unexpected exception. aborting..."
             )
             raise
+        finally:
+            regression.dump_state(output_dir)
 
     return regression

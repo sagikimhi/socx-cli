@@ -135,6 +135,7 @@ __all__ = (
     "Regression",
     "TestStatus",
     "TestResult",
+    "RegressionTree",
     "RegressionProgress",
 )
 
@@ -263,6 +264,7 @@ from socx.regression import TestBase as TestBase
 from socx.regression import Regression as Regression
 from socx.regression import TestStatus as TestStatus
 from socx.regression import TestResult as TestResult
+from socx.regression import RegressionTree as RegressionTree
 from socx.regression import RegressionProgress as RegressionProgress
 
 from socx.cli import FuncType as FuncType

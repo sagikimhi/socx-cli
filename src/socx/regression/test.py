@@ -47,7 +47,6 @@ class TestBase(BaseModel):
 
     id: UUID4 = Field(default_factory=uuid.uuid4)
     name: str = Field(...)
-    exec: Script | None = Field(None)
     started_time: float | None = Field(None)
     finished_time: float | None = Field(None)
 
@@ -56,32 +55,12 @@ class TestBase(BaseModel):
         arbitrary_types_allowed=True,
     )
 
-    _stdout: str = PrivateAttr("")
-    _stderr: str = PrivateAttr("")
     _result: TestResult = PrivateAttr(TestResult.NA)
     _status: TestStatus = PrivateAttr(TestStatus.Idle)
     _process: aio.subprocess.Process | None = PrivateAttr(default=None)
     _termination_requested: bool = PrivateAttr(default=False)
 
-    @computed_field(repr=False)
-    @property
-    def stdout(self) -> str:
-        return self._stdout
-
-    @stdout.setter
-    def stdout(self, value: str) -> None:
-        self._stdout = value
-
-    @computed_field(repr=False)
-    @property
-    def stderr(self) -> str:
-        return self._stderr
-
-    @stderr.setter
-    def stderr(self, value: str) -> None:
-        self._stderr = value
-
-    @computed_field(repr=True)
+    @computed_field
     @property
     def result(self) -> TestResult:
         return self._result
@@ -90,7 +69,7 @@ class TestBase(BaseModel):
     def result(self, value: TestResult) -> None:
         self._result = value
 
-    @computed_field(repr=True)
+    @computed_field
     @property
     def status(self) -> TestStatus:
         return self._status
@@ -99,13 +78,13 @@ class TestBase(BaseModel):
     def status(self, value: TestStatus) -> None:
         self._status = value
 
-    @computed_field(repr=False)
     @property
     def process(self) -> Process | None:
         if self._process is None:
             return None
         return Process(self._process.pid)
 
+    @computed_field
     @property
     def started(self) -> bool:
         """Return ``True`` once ``start`` has spawned the subprocess."""
@@ -145,13 +124,13 @@ class TestBase(BaseModel):
         """Return ``True`` if the test is queued but not yet running."""
         return self.status is TestStatus.Pending
 
-    def is_suspended(self) -> bool:
-        """Return ``True`` if the subprocess is currently stopped."""
-        return self.status is TestStatus.Paused
-
     def is_running(self) -> bool:
         """True if test is currently running in a dedicated process."""
         return self.status is TestStatus.Running
+
+    def is_suspended(self) -> bool:
+        """Return ``True`` if the subprocess is currently stopped."""
+        return self.status is TestStatus.Paused
 
     async def pause(self) -> None:
         """Pause a running test with ``SIGSTOP``."""
@@ -196,12 +175,10 @@ class TestBase(BaseModel):
 
     def reset(self) -> None:
         """Reset runtime state so the test may be executed again."""
-        self._result = TestResult.NA
-        self._status = TestStatus.Idle
         self.started_time = None
         self.finished_time = None
-        self._stdout = ""
-        self._stderr = ""
+        self._result = TestResult.NA
+        self._status = TestStatus.Idle
         self._process = None
         self._termination_requested = False
 
@@ -215,11 +192,37 @@ class TestBase(BaseModel):
 class Test(TestBase):
     """Concrete test model with subprocess execution support."""
 
+    exec: Script | None = Field(None)
     model_config = ConfigDict(
         use_enum_values=True,
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
+    _stdout: str = PrivateAttr("")
+    _stderr: str = PrivateAttr("")
+
+    @computed_field
+    @property
+    def stdout(self) -> str:
+        return self._stdout
+
+    @stdout.setter
+    def stdout(self, value: str) -> None:
+        self._stdout = value
+
+    @computed_field
+    @property
+    def stderr(self) -> str:
+        return self._stderr
+
+    @stderr.setter
+    def stderr(self, value: str) -> None:
+        self._stderr = value
+
+    def reset(self) -> None:
+        super().reset()
+        self._stdout = ""
+        self._stderr = ""
 
     async def start(self) -> None:
         """Execute the test executable to start the test."""

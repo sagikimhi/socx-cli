@@ -126,7 +126,7 @@ class RegressionProgress:
             prev_status = status
             prev_finished = finished
             status = regression.status
-            finished = await self._count_statuses(
+            finished = self._count_statuses(
                 regression,
                 TestStatus.Finished,
                 TestStatus.Terminated,
@@ -167,7 +167,7 @@ class RegressionProgress:
                 description=description,
             )
 
-    async def _count_statuses(
+    def _count_statuses(
         self, regression: Regression, *statuses: TestStatus
     ) -> int:
         with self.regression.lock:

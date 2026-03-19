@@ -10,15 +10,20 @@ from collections import OrderedDict
 from collections.abc import AsyncGenerator, Iterable
 from pathlib import Path
 from threading import RLock
-from typing import Self, Any
+from typing import Self, Any, Annotated
 
+import box
 from pydantic import (
+    Field,
     ConfigDict,
+    BaseModel,
     PrivateAttr,
     TypeAdapter,
     UUID4,
     computed_field,
     validate_call,
+    SerializeAsAny,
+    PlainValidator,
 )
 
 from socx.config import settings
@@ -28,26 +33,28 @@ from socx.regression.test import Test, TestBase, TestResult, TestStatus
 
 logger = logging.getLogger(__name__)
 
+semaphore = anyio.Semaphore(max(1, settings.regression.max_runs_in_parallel))
+
 
 class Regression(TestBase):
     """Manage and execute a collection of tests with concurrency control."""
 
+    test_map: OrderedDict[UUID4, SerializeAsAny[TestBase]] = Field(
+        default_factory=OrderedDict, repr=True, title="Test Map"
+    )
     model_config = ConfigDict(
+        title="Regression",
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
-
     _lock: RLock = PrivateAttr(default_factory=RLock)
     _done: aio.Queue[TestBase] = PrivateAttr(default_factory=aio.Queue)
-    _pending: aio.Queue[TestBase | Regression | None] = PrivateAttr(
+    _pending: aio.Queue[TestBase | None] = PrivateAttr(
         default_factory=aio.Queue
     )
     _running: set[UUID4] = PrivateAttr(default_factory=set)
-    _test_map: OrderedDict[UUID4, TestBase] = PrivateAttr(
-        default_factory=OrderedDict
-    )
-    _stop_requested: bool = PrivateAttr(default=False)
     _pause_event: aio.Event = PrivateAttr(default_factory=aio.Event)
+    _stop_requested: bool = PrivateAttr(default=False)
 
     def __init__(
         self,
@@ -58,10 +65,9 @@ class Regression(TestBase):
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, name=name, **kwargs)
-        tests = tests or []
         test_map = test_map or {}
-        self._test_map = OrderedDict()
-        self.tests = [*tests, *list(test_map.values())]
+        tests = [*list(test_map.values()), *(tests or [])]
+        self.test_map = OrderedDict({test.id: test for test in tests})
 
     @classmethod
     @validate_call()
@@ -74,7 +80,7 @@ class Regression(TestBase):
     ) -> Self:
         return cls._from_file(path, test_cls=test_cls, **kwargs)
 
-    @computed_field(repr=True)
+    @computed_field
     @property
     def result(self) -> TestResult:
         with self.lock:
@@ -94,7 +100,7 @@ class Regression(TestBase):
             else:
                 return super().result
 
-    @computed_field(repr=True)
+    @computed_field
     @property
     def status(self) -> TestStatus:
         terminated_statuses = [
@@ -102,50 +108,36 @@ class Regression(TestBase):
             TestStatus.Terminated,
             TestStatus.Finished,
         ]
-        running_statuses = [TestStatus.Pending, TestStatus.Running]
+        running_statuses = [TestStatus.Running]
         tests = self.tests
         if all(test.status is TestStatus.Idle for test in tests):
             return TestStatus.Idle
         if all(test.status is TestStatus.Finished for test in tests):
             return TestStatus.Finished
-        if all(test.status in terminated_statuses for test in tests):
-            return TestStatus.Terminated
         if any(test.status in running_statuses for test in tests):
             return TestStatus.Running
-        return TestStatus.Paused
+        if any(test.status is TestStatus.Paused for test in tests):
+            return TestStatus.Paused
+        if all(test.status in terminated_statuses for test in tests):
+            return TestStatus.Terminated
+        return TestStatus.Pending
 
     @computed_field
     @property
     def tests(self) -> list[TestBase]:
         with self.lock:
-            return list(self._test_map.values())
+            return list(self.test_map.values())
 
     @tests.setter
     def tests(self, other: list[TestBase]) -> None:
         with self.lock:
-            self._test_map = OrderedDict({test.id: test for test in other})
+            self.test_map = OrderedDict({test.id: test for test in other})
 
-    @computed_field(repr=True)
-    @property
-    def test_map(self) -> dict[UUID4, TestBase]:
-        with self.lock:
-            return self._test_map
-
-    @test_map.setter
-    def test_map(self, other: dict[UUID4, TestBase]) -> None:
-        with self.lock:
-            if isinstance(other, OrderedDict):
-                self._test_map = other
-            else:
-                self._test_map = OrderedDict(other)
-
-    @computed_field(repr=True)
+    @computed_field
     @property
     def run_limit(self) -> int:
         """Return the maximum number of tests that may run concurrently."""
-        with self.lock:
-            run_limit = settings.regression.max_runs_in_parallel
-        return max(1, min(run_limit, len(self) or 1))
+        return int(max(1, int(settings.regression.max_runs_in_parallel)))
 
     @property
     def lock(self) -> RLock:
@@ -275,13 +267,13 @@ class Regression(TestBase):
             if test.status in (TestStatus.Finished, TestStatus.Terminated):
                 test.reset()
             await self.pending.put(test)
-
         for _ in range(self.run_limit):
             await self.pending.put(None)
 
     async def _runner(self) -> None:
         """Consume queued tests and execute them sequentially."""
         while True:
+            await semaphore.acquire()
             test = await self.pending.get()
             try:
                 if test is None:
@@ -294,13 +286,28 @@ class Regression(TestBase):
                     return
 
                 self._running.add(test.id)
-                if test is not None:
-                    await test.start()
+                await test.start()
                 await self.done.put(test)
             finally:
                 if test is not None:
                     self._running.discard(test.id)
                 self.pending.task_done()
+                semaphore.release()
+
+    def dump_state(self, output_dir: Path) -> None:
+        """Write the regression command results to their respective files."""
+        logger.info("saving regression state and results to disk...")
+        file = output_dir / self.name / "state.yaml"
+        state = self.model_dump(
+            mode="json",
+            round_trip=True,
+            serialize_as_any=True,
+            include={"result", "status"},
+        )
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.touch(exist_ok=False)
+        box.DDBox(state).to_yaml(str(file))
+        logger.info(f"state and results saved to: '{output_dir}'.")
 
     def _active_tests(self) -> list[TestBase]:
         return [test for test in self.tests if test.id in self._running]
@@ -359,26 +366,42 @@ class Regression(TestBase):
             regressions.append(regression)
         return cls(name=name, tests=regressions)
 
-    # @field_validator("test_map", mode="before")
-    # @classmethod
-    # def _test_map_validator(
-    #     cls,
-    #     tests: set[TestBase]
-    #     | list[TestBase]
-    #     | tuple[TestBase, ...]
-    #     | dict[str, TestBase],
-    # ) -> OrderedDict[UUID4, TestBase]:
-    #     if tests is None:
-    #         err = "must not be none"
-    #         raise ValueError(err)
 
-    #     rv = OrderedDict()
-    #     it: Iterator[TestBase] = (
-    #         iter(list(tests.values()))
-    #         if isinstance(tests, dict)
-    #         else iter(tests)
-    #     )
+TreeNode = Annotated[
+    TestBase,
+    PlainValidator(lambda x: x, TestBase),
+    SerializeAsAny[Test | Regression],
+]
 
-    #     for test in it:
-    #         rv[test.id] = test
-    #     return rv
+
+class RegressionTree(BaseModel):
+    root_node: TreeNode = Field(..., title="Root Node", repr=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        arbitrary_types_allowed=True,
+    )
+
+
+# @field_validator("test_map", mode="before")
+# @classmethod
+# def _test_map_validator(
+#     cls,
+#     tests: set[TestBase]
+#     | list[TestBase]
+#     | tuple[TestBase, ...]
+#     | dict[str, TestBase],
+# ) -> OrderedDict[UUID4, TestBase]:
+#     if tests is None:
+#         err = "must not be none"
+#         raise ValueError(err)
+
+#     rv = OrderedDict()
+#     it: Iterator[TestBase] = (
+#         iter(list(tests.values()))
+#         if isinstance(tests, dict)
+#         else iter(tests)
+#     )
+
+#     for test in it:
+#         rv[test.id] = test
+#     return rv
