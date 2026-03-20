@@ -21,7 +21,7 @@ icon: lucide/file-code
 </div>
 <div class="grid cards" markdown>
 
--   ### ::: socx_plugins.rgr
+-   ### ::: socx_plugins.regression
 
 </div>
 <div class="grid cards" markdown>
