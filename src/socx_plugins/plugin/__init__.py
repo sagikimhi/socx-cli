@@ -37,10 +37,10 @@ def schema():
 @click.option("--ref", default="main", help="Git reference (branch, tag, or commit)")
 @click.option("--force", is_flag=True, help="Force re-clone if already cached")
 def add(name: str, remote: str, ref: str, force: bool):
-    """Add a remote plugin from GitHub.
+    """Add a plugin from a Git repository or local path.
 
     NAME: Local name for the plugin
-    REMOTE: GitHub repository URL or shorthand (owner/repo)
+    REMOTE: Git repository URL, shorthand (owner/repo), or local path
     """
     from socx import console
     from socx.plugins.manager import PluginManager
