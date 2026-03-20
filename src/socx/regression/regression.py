@@ -3,23 +3,17 @@
 from __future__ import annotations
 
 import asyncio as aio
-import anyio
-import logging
-import re
-import time
 from collections import OrderedDict
-from collections.abc import AsyncGenerator, Iterable, Mapping
+from collections.abc import AsyncGenerator, Iterable
 from pathlib import Path
 from threading import RLock
-from typing import Self, Any, Annotated
+from typing import Self, Any, Annotated, Literal
 
-import box
 from pydantic import (
     Field,
     ConfigDict,
     BaseModel,
     PrivateAttr,
-    TypeAdapter,
     UUID4,
     computed_field,
     validate_call,
@@ -28,37 +22,15 @@ from pydantic import (
 )
 
 from socx.config import settings
-from socx.core.schema import FilePath
 from socx.regression.test import Test, TestBase, TestResult, TestStatus
-
-
-logger = logging.getLogger(__name__)
-
-semaphore = anyio.Semaphore(max(1, settings.regression.max_runs_in_parallel))
-
-
-def _safe_dir_name(name: str, node_id: UUID4) -> str:
-    slug = re.sub(r"[^A-Za-z0-9._-]+", "-", name).strip("-").lower()
-    return f"{slug or 'item'}-{node_id}"
-
-
-def _coerce_status(value: TestStatus | int | str) -> TestStatus:
-    if isinstance(value, TestStatus):
-        return value
-    if isinstance(value, int):
-        return TestStatus(value)
-    return TestStatus[value.strip().lower().title()]
-
-
-def _coerce_result(value: TestResult | str) -> TestResult:
-    if isinstance(value, TestResult):
-        return value
-    return TestResult(value)
+from socx.regression.manager import default_regression_manager
+from socx.regression.serializers import _safe_dir_name
 
 
 class Regression(TestBase):
     """Manage and execute a collection of tests with concurrency control."""
 
+    kind: Literal["regression"] = Field(default="regression")
     test_map: OrderedDict[UUID4, SerializeAsAny[TestBase]] = Field(
         default_factory=OrderedDict, repr=True, title="Test Map"
     )
@@ -98,7 +70,9 @@ class Regression(TestBase):
         test_cls: type[TestBase] | None = None,
         **kwargs: Any,
     ) -> Self:
-        return cls._from_file(path, name=name, test_cls=test_cls, **kwargs)
+        return default_regression_manager.from_file(
+            cls, path, name=name, test_cls=test_cls, **kwargs
+        )
 
     @classmethod
     @validate_call()
@@ -109,17 +83,9 @@ class Regression(TestBase):
         test_cls: type[TestBase] | None = None,
         **kwargs: Any,
     ) -> Self:
-        path = TypeAdapter(FilePath).validate_python(path)
-        data = cls._read_data(path)
-
-        if cls._looks_like_state(data):
-            return cls._from_state_data(
-                data,
-                output_dir=path.parent,
-                test_cls=test_cls or Test,
-            )
-
-        return cls._from_file(path, name=name, test_cls=test_cls, **kwargs)
+        return default_regression_manager.load(
+            cls, path, name=name, test_cls=test_cls, **kwargs
+        )
 
     @computed_field
     @property
@@ -213,89 +179,33 @@ class Regression(TestBase):
         """Return ``True`` if ``test`` is tracked by this regression."""
         return test is not None and test.id in self.test_map
 
-    async def start(self) -> None:
+    async def start(self, runner=None) -> None:
         """Start or resume a regression."""
-        if self.status is TestStatus.Paused:
-            await self.resume()
-            return
-
-        if self.started:
-            return
-
-        self._stop_requested = False
-        self._pause_event.set()
-        self._running.clear()
-        self._done = aio.Queue()
-        self._pending = aio.Queue()
-        self.finished_time = None
-        self.started_time = time.time()
-        logger.info("regression starting...")
-
-        try:
-            await self._queue_tests()
-            async with anyio.create_task_group() as tg:
-                for _ in range(self.run_limit):
-                    tg.start_soon(self._runner)
-        finally:
-            self.finished_time = time.time()
-            self._pause_event.set()
-            self._running.clear()
-            logger.info(f"regression {self.status.name.lower()}.")
+        await default_regression_manager.start(self, runner=runner)
 
     async def pause(self) -> None:
         """Pause a running regression and any active descendants."""
-        if self.status is not TestStatus.Running:
-            return
-
-        self._pause_event.clear()
-        await aio.gather(
-            *(test.pause() for test in self._active_tests()),
-            return_exceptions=True,
-        )
+        await default_regression_manager.pause(self)
 
     async def resume(self) -> None:
         """Resume a paused regression and any active descendants."""
-        if self.status is not TestStatus.Paused:
-            return
-
-        self._pause_requested = False
-        self._pause_event.set()
-        await aio.gather(
-            *(test.resume() for test in self.tests),
-            return_exceptions=True,
-        )
+        await default_regression_manager.resume(self)
 
     async def stop(self) -> None:
         """Terminate active work within the regression."""
-        if self.status is TestStatus.Terminated:
-            return
-
-        self._stop_requested = True
-        self._pause_event.set()
-        await aio.gather(
-            *(test.stop() for test in self.tests),
-            return_exceptions=True,
-        )
+        await default_regression_manager.stop(self)
 
     async def restart(self) -> None:
         """Terminate, reset, and execute the regression again."""
-        await self.stop()
-        self.reset()
-        await self.start()
+        await default_regression_manager.restart(self)
 
     def reset(self) -> None:
         """Reset the regression and all child tests."""
-        super().reset()
+        default_regression_manager.reset(self)
 
-        for test in self.tests:
-            if hasattr(test, "reset"):
-                test.reset()
-
-        self._done = aio.Queue()
-        self._pending = aio.Queue()
-        self._pause_event = aio.Event()
-        self._running.clear()
-        self._stop_requested = False
+    def soft_reset(self) -> None:
+        """Reset this regression unless it has already passed."""
+        default_regression_manager.soft_reset(self)
 
     @classmethod
     async def desync[T](cls, it: Iterable[T]) -> AsyncGenerator[T]:
@@ -303,37 +213,11 @@ class Regression(TestBase):
             yield item
 
     async def _queue_tests(self) -> None:
-        items = list(self.tests)
+        items = [test for test in self.tests if not test.passed]
         for test in items:
-            if test.status in (TestStatus.Finished, TestStatus.Terminated):
-                test.reset()
             await self.pending.put(test)
         for _ in range(self.run_limit):
             await self.pending.put(None)
-
-    async def _runner(self) -> None:
-        """Consume queued tests and execute them sequentially."""
-        while True:
-            await semaphore.acquire()
-            test = await self.pending.get()
-            try:
-                if test is None:
-                    return
-
-                while not self._pause_event.is_set():
-                    await aio.sleep(0.05)
-
-                if self._stop_requested:
-                    return
-
-                self._running.add(test.id)
-                await test.start()
-                await self.done.put(test)
-            finally:
-                if test is not None:
-                    self._running.discard(test.id)
-                self.pending.task_done()
-                semaphore.release()
 
     def assign_output_dir(self, output_dir: Path) -> Path:
         self.output_dir = output_dir
@@ -352,22 +236,7 @@ class Regression(TestBase):
 
     def dump_state(self, output_dir: Path | None = None) -> Path:
         """Write the regression state and test artifacts to disk."""
-        root_output_dir = self.output_dir
-        if output_dir is not None:
-            root_output_dir = self.assign_output_dir(output_dir / self.name)
-
-        if root_output_dir is None:
-            msg = "Regression output directory is not configured."
-            raise ValueError(msg)
-
-        logger.info("saving regression state and results to disk...")
-        self._persist_test_outputs()
-        file = root_output_dir / "state.yaml"
-        state = self._serialize_state(root_output_dir)
-        file.parent.mkdir(parents=True, exist_ok=True)
-        box.DDBox(state).to_yaml(str(file))
-        logger.info(f"state and results saved to: '{file}'.")
-        return file
+        return default_regression_manager.dump_state(self, output_dir=output_dir)
 
     def _active_tests(self) -> list[TestBase]:
         return [test for test in self.tests if test.id in self._running]
@@ -434,201 +303,6 @@ class Regression(TestBase):
             ):
                 child._prepare_output_files()
                 child._write_output_files()
-
-    def _serialize_state(self, root_output_dir: Path) -> dict[str, Any]:
-        return self._serialize_node(self, root_output_dir)
-
-    @classmethod
-    def _serialize_node(
-        cls, node: TestBase, root_output_dir: Path
-    ) -> dict[str, Any]:
-        state = {
-            "kind": "regression" if isinstance(node, Regression) else "test",
-            "id": str(node.id),
-            "name": node.name,
-            "started_time": node.started_time,
-            "finished_time": node.finished_time,
-            "status": node.status.name.lower(),
-            "result": node.result.value,
-        }
-
-        if node.output_dir is not None and node.output_dir != root_output_dir:
-            state["output_dir"] = str(
-                node.output_dir.relative_to(root_output_dir)
-            )
-
-        if isinstance(node, Regression):
-            state["tests"] = [
-                cls._serialize_node(child, root_output_dir)
-                for child in node.tests
-            ]
-            return state
-
-        state["exec"] = str(node.exec) if node.exec is not None else None
-        if node.stdout_path is not None and node.stdout_path.exists():
-            state["stdout_path"] = str(
-                node.stdout_path.relative_to(root_output_dir)
-            )
-        if node.stderr_path is not None and node.stderr_path.exists():
-            state["stderr_path"] = str(
-                node.stderr_path.relative_to(root_output_dir)
-            )
-        return state
-
-    @classmethod
-    @validate_call()
-    def _from_file(
-        cls,
-        path: str | Path,
-        name: str | None = None,
-        test_cls: type[TestBase] | None = None,
-    ) -> Self:
-        """Construct a regression from a test configuration file."""
-        from box import Box
-
-        path = TypeAdapter(FilePath).validate_python(path)
-        name = name or path.stem
-        test_cls = test_cls or Test
-        data = cls._read_data(path)
-
-        settings.update(Box({name: data}), merge=False)
-        return cls._from_data(name, settings[name], test_cls)
-
-    @staticmethod
-    def _read_data(path: Path) -> Mapping[str, Any]:
-        from box import Box
-
-        match path.suffix.lower():
-            case ".yml" | ".yaml":
-                return Box.from_yaml(filename=str(path))
-            case ".toml":
-                return Box.from_toml(filename=str(path))
-            case ".json":
-                return Box.from_json(filename=str(path))
-            case _:
-                msg = f"Unsupported file format: '{path.suffix}'"
-                raise ValueError(msg)
-
-    @staticmethod
-    def _looks_like_state(data: Mapping[str, Any]) -> bool:
-        return data.get("kind") == "regression" and "tests" in data
-
-    @classmethod
-    def _from_data(
-        cls,
-        name: str,
-        data: dict[str, Any],
-        test_cls: type[TestBase],
-    ) -> Self:
-        regressions = []
-        for child_name, entries in data.items():
-            if isinstance(entries, list):
-                regression = cls(
-                    name=child_name,
-                    tests=[test_cls(**test) for test in entries],
-                )
-            else:
-                regression = cls(
-                    name=child_name,
-                    tests=[
-                        cls._from_data(key, entries[key], test_cls)
-                        for key in entries
-                    ],
-                )
-            regressions.append(regression)
-        return cls(name=name, tests=regressions)
-
-    @classmethod
-    def _from_state_data(
-        cls,
-        data: Mapping[str, Any],
-        output_dir: Path,
-        test_cls: type[TestBase],
-    ) -> Self:
-        node = cls._deserialize_node(
-            data,
-            root_output_dir=output_dir,
-            test_cls=test_cls,
-            parent_output_dir=None,
-        )
-        if not isinstance(node, Regression):
-            msg = "State file must contain a root regression."
-            raise ValueError(msg)
-        return node
-
-    @classmethod
-    def _deserialize_node(
-        cls,
-        data: Mapping[str, Any],
-        root_output_dir: Path,
-        test_cls: type[TestBase],
-        parent_output_dir: Path | None,
-    ) -> TestBase:
-        kind = str(data.get("kind", "")).strip().lower()
-        output_dir = cls._resolve_output_dir(
-            data,
-            root_output_dir=root_output_dir,
-            parent_output_dir=parent_output_dir,
-        )
-
-        if kind == "regression":
-            regression = cls(
-                id=data["id"],
-                name=data["name"],
-                started_time=data.get("started_time"),
-                finished_time=data.get("finished_time"),
-                tests=[],
-            )
-            regression.output_dir = output_dir
-            regression.tests = [
-                cls._deserialize_node(
-                    child,
-                    root_output_dir=root_output_dir,
-                    test_cls=test_cls,
-                    parent_output_dir=regression.output_dir,
-                )
-                for child in data.get("tests", [])
-            ]
-            return regression
-
-        test = test_cls(
-            id=data["id"],
-            name=data["name"],
-            exec=data.get("exec"),
-            started_time=data.get("started_time"),
-            finished_time=data.get("finished_time"),
-        )
-        test.output_dir = output_dir
-        test.status = _coerce_status(data.get("status", TestStatus.Idle))
-        test.result = _coerce_result(data.get("result", TestResult.NA))
-
-        if isinstance(test, Test):
-            for attr, relpath in (
-                ("stdout", data.get("stdout_path")),
-                ("stderr", data.get("stderr_path")),
-            ):
-                if relpath:
-                    file = root_output_dir / str(relpath)
-                    if file.exists():
-                        setattr(test, attr, file.read_text(encoding="utf-8"))
-
-        return test
-
-    @classmethod
-    def _resolve_output_dir(
-        cls,
-        data: Mapping[str, Any],
-        *,
-        root_output_dir: Path,
-        parent_output_dir: Path | None,
-    ) -> Path:
-        relative_output_dir = data.get("output_dir")
-        if relative_output_dir:
-            return root_output_dir / str(relative_output_dir)
-        if parent_output_dir is None:
-            return root_output_dir
-        return parent_output_dir / _safe_dir_name(data["name"], data["id"])
-
 
 TreeNode = Annotated[
     TestBase,

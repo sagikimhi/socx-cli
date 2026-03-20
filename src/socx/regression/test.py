@@ -9,6 +9,7 @@ import time
 import uuid
 from enum import StrEnum, IntEnum, auto
 from pathlib import Path
+from typing import Literal
 
 from pydantic import (
     BaseModel,
@@ -50,6 +51,7 @@ class TestBase(BaseModel):
     name: str = Field(...)
     started_time: float | None = Field(None)
     finished_time: float | None = Field(None)
+    kind: Literal["test"] = Field(default="test")
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -171,7 +173,7 @@ class TestBase(BaseModel):
         os.killpg(self._process.pid, signal.SIGSTOP)
         self.status = TestStatus.Paused
 
-    async def start(self) -> None:
+    async def start(self, runner=None) -> None:
         """Execute the test executable to start the test."""
         raise NotImplementedError()
 
@@ -212,6 +214,13 @@ class TestBase(BaseModel):
         self._status = TestStatus.Idle
         self._process = None
         self._termination_requested = False
+
+
+    def soft_reset(self) -> None:
+        """Reset this test unless it has already passed."""
+        if self.passed:
+            return
+        self.reset()
 
     async def restart(self) -> None:
         """Terminate, reset, and execute the test again."""
@@ -264,64 +273,13 @@ class Test(TestBase):
         self._stdout = ""
         self._stderr = ""
 
-    async def start(self) -> None:
-        """Execute the test executable to start the test."""
-        if self.is_running():
-            return
+    async def start(self, runner=None) -> None:
+        """Execute this test using an injected or default runner."""
+        if runner is None:
+            from socx.regression.runners import default_test_runner
 
-        if self.is_suspended():
-            await self.resume()
-            return
-
-        self._termination_requested = False
-        self.result = TestResult.NA
-        self.stdout = ""
-        self.stderr = ""
-        self.started_time = time.time()
-        self.finished_time = None
-        self.status = TestStatus.Pending
-        self._prepare_output_files()
-
-        if not self.exec:
-            self.status = TestStatus.Terminated
-            self.result = TestResult.Failed
-            self.finished_time = time.time()
-            self._write_output_files()
-            return
-
-        process = await aio.create_subprocess_exec(
-            "/bin/sh",
-            "-c",
-            str(self.exec),
-            stdout=aio.subprocess.PIPE,
-            stderr=aio.subprocess.PIPE,
-            start_new_session=True,
-        )
-        self._process = process
-        self.status = TestStatus.Running
-
-        stdout, stderr = None, None
-
-        try:
-            stdout, stderr = await process.communicate()
-        finally:
-            self.finished_time = time.time()
-            self.stderr = stderr.decode() if stderr else ""
-            self.stdout = stdout.decode() if stdout else ""
-            self._write_output_files()
-            returncode = process.returncode or 0
-
-            if self._termination_requested or returncode < 0:
-                self.status = TestStatus.Terminated
-                self.result = TestResult.Failed
-            elif returncode == 0:
-                self.status = TestStatus.Finished
-                self.result = TestResult.Passed
-            else:
-                self.status = TestStatus.Finished
-                self.result = TestResult.Failed
-
-            self._process = None
+            runner = default_test_runner
+        await runner.run(self)
 
     def _write_output_files(self) -> None:
         for path, content in (
