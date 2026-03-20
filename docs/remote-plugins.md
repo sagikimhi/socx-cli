@@ -1,10 +1,10 @@
 # Remote Plugin Support
 
-This document describes the remote plugin feature for socx-cli, which allows you to add, manage, and use plugins hosted on GitHub.
+This document describes the remote plugin feature for socx-cli, which allows you to add, manage, and use plugins from remote Git repositories (for example, GitHub, GitLab, Bitbucket, or self-hosted instances) as well as local filesystem paths.
 
 ## Overview
 
-Remote plugins are GitHub repositories that contain socx plugin configurations and implementations. They are automatically cloned to your local cache and can be managed on a per-project basis, allowing different projects to use different versions of the same plugin.
+Remote plugins are Git repositories (hosted on providers such as GitHub, GitLab, Bitbucket, or self-hosted instances) or local filesystem paths that contain socx plugin configurations and implementations. They are automatically cloned or referenced in your local cache and can be managed on a per-project basis, allowing different projects to use different versions of the same plugin.
 
 ## Cache Structure
 
