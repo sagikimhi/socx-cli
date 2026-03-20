@@ -81,12 +81,12 @@ def test_list_plugins_with_data(mock_manager):
     assert "another-plugin" in plugins
 
 
-@patch("socx.plugins.manager.git.Repo")
-def test_add_plugin_success(mock_git_repo, mock_manager, temp_project_dir):
+@patch("socx.plugins.manager.git.clone_repository")
+def test_add_plugin_success(mock_git_clone, mock_manager, temp_project_dir):
     """Test successfully adding a remote plugin."""
     # Mock the git clone operation
     mock_repo_instance = MagicMock()
-    mock_git_repo.clone_from.return_value = mock_repo_instance
+    mock_git_clone.return_value = mock_repo_instance
 
     # Create a mock plugin config in the cache
     cache_path = mock_manager.cache.get_plugin_path("owner/repo", "main")
@@ -129,7 +129,7 @@ def test_add_plugin_already_exists(mock_manager):
         mock_manager.add_plugin("test-plugin", "owner/repo", "main")
 
 
-@patch("socx.plugins.manager.git.Repo")
+@patch("socx.plugins.manager.git.Repository")
 def test_remove_plugin_success(mock_git_repo, mock_manager):
     """Test successfully removing a plugin."""
     # Setup: add a plugin first
@@ -158,7 +158,7 @@ def test_remove_plugin_not_found(mock_manager):
         mock_manager.remove_plugin("nonexistent")
 
 
-@patch("socx.plugins.manager.git.Repo")
+@patch("socx.plugins.manager.git.Repository")
 def test_update_plugin_success(mock_git_repo, mock_manager):
     """Test successfully updating a plugin."""
     # Setup: add a plugin first
@@ -193,6 +193,7 @@ def test_update_plugin_success(mock_git_repo, mock_manager):
 
     # Mock the git operations
     mock_repo_instance = MagicMock()
+    mock_repo_instance.remotes = []  # No remotes, so update will skip fetch
     mock_git_repo.return_value = mock_repo_instance
 
     # Update the plugin
