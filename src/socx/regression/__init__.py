@@ -8,6 +8,7 @@ __all__ = (
     "Regression",
     "RegressionTree",
     "RegressionProgress",
+    "RegressionManager",
 )
 
 from socx.regression.test import Test as Test
@@ -17,3 +18,5 @@ from socx.regression.test import TestResult as TestResult
 from socx.regression.regression import Regression as Regression
 from socx.regression.regression import RegressionTree as RegressionTree
 from socx.regression.progress import RegressionProgress as RegressionProgress
+
+from socx.regression.manager import RegressionManager as RegressionManager
