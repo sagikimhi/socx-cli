@@ -59,11 +59,23 @@ socx plugin add <name> <remote> [--ref <ref>] [--force]
 # Add a plugin from GitHub using shorthand
 socx plugin add hello-world user/hello-world-plugin
 
-# Add a plugin with a specific version
+# Add a plugin with a specific version from GitHub
 socx plugin add hello-world user/hello-world-plugin --ref v1.0.0
 
-# Force re-clone
+# Force re-clone from GitHub
 socx plugin add hello-world user/hello-world-plugin --force
+
+# Add a plugin from GitLab using a full URL
+socx plugin add gitlab-plugin https://gitlab.com/my-group/my-socx-plugin.git
+
+# Add a plugin from Bitbucket using a full URL
+socx plugin add bitbucket-plugin https://bitbucket.org/my-team/my-socx-plugin.git
+
+# Add a plugin from a local filesystem path (absolute)
+socx plugin add local-plugin /path/to/local/plugin/repo
+
+# Add a plugin from a local filesystem path (relative to current directory)
+socx plugin add local-plugin-relative ./plugins/my-local-plugin
 ```
 
 ### Remove a Plugin
