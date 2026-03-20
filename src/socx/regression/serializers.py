@@ -283,9 +283,18 @@ class YamlRegressionSerializer(RegressionSerializer):
         root_output_dir: Path,
         parent_output_dir: Path | None,
     ) -> Path:
+        # Ensure we are working with normalized absolute paths
+        root_output_dir = root_output_dir.resolve()
         relative_output_dir = data.get("output_dir")
         if relative_output_dir:
-            return root_output_dir / str(relative_output_dir)
+            # Join and normalize the path, then verify it is within root_output_dir
+            candidate = (root_output_dir / str(relative_output_dir)).resolve()
+            try:
+                candidate.relative_to(root_output_dir)
+            except ValueError as exc:
+                msg = "Invalid output_dir in state file: must be within root_output_dir"
+                raise ValueError(msg) from exc
+            return candidate
         if parent_output_dir is None:
             return root_output_dir
         return parent_output_dir / _safe_dir_name(data["name"], data["id"])
