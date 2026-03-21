@@ -243,9 +243,12 @@ def get_level(logger_: logging.Logger | None = None) -> Level:
 
 
 def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
-    """Set the log level on the provided logger (defaults to module logger)."""
+    """Set the log level on ``logger_`` and all currently attached handlers."""
     logger_ = logger_ or logger
     logger_.setLevel(level)
+
+    for handler in logger_.handlers:
+        handler.setLevel(level)
 
 
 def add_filter(
