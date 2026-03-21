@@ -1,8 +1,6 @@
 """Expose logging, console, and decorator utilities for I/O facilities."""
 
 __all__ = (
-    # Modules
-    "log",
     # Constants
     "DEFAULT_LEVEL",
     "DEFAULT_FORMAT",
@@ -32,12 +30,6 @@ __all__ = (
     "print_command_outputs",
 )
 
-from socx.io import log as log
-
-from socx.io.log import DEFAULT_LEVEL as DEFAULT_LEVEL
-from socx.io.log import DEFAULT_FORMAT as DEFAULT_FORMAT
-from socx.io.log import DEFAULT_HANDLERS as DEFAULT_HANDLERS
-from socx.io.log import DEFAULT_TIME_FORMAT as DEFAULT_TIME_FORMAT
 from socx.io.log import Level as Level
 from socx.io.log import logger as logger
 from socx.io.log import get_level as get_level

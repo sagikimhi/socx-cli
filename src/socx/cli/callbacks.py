@@ -12,7 +12,7 @@ from rich_click import Context
 from rich_click import Parameter
 from rich_click import RichContext
 
-import socx.io.log as log
+from socx.io.log import Level, set_level, get_level, _get_logger
 from socx.io.console import console
 from socx.io.decorators import log_it
 from socx.config._config import settings
@@ -45,10 +45,11 @@ def cwd_cb(ctx: Context, param: Parameter, value: Path) -> Path:
 @log_it(logger=logger)
 def debug_cb(_: Context, param: Parameter, value: bool) -> bool:
     """Enable debug logging and persist the CLI switch to settings."""
+    socx_logger = _get_logger()
     settings.cli.params[param.name] = value
     if value:
-        log.set_level(log.Level.DEBUG)
-        settings.cli.params["verbosity"] = log.get_level().name
+        set_level(Level.DEBUG, socx_logger)
+        settings.cli.params["verbosity"] = get_level().name
     return value
 
 
@@ -88,10 +89,11 @@ def configure_cb(ctx: Context, param: Parameter, value: str) -> str:
 @log_it(logger=logger)
 def verbosity_cb(_: Context, param: Parameter, value: str) -> str:
     """Update the global log level while respecting existing overrides."""
-    level = log.Level[value.upper()]
+    socx_logger = _get_logger()
+    level = Level[value.upper()]
     if not settings.cli.params.debug:
-        log.set_level(level)
-    settings.cli.params[param.name] = log.get_level().name
+        set_level(level, socx_logger)
+    settings.cli.params[param.name] = get_level().name
     return settings.cli.params[param.name]
 
 
