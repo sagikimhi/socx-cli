@@ -9,15 +9,13 @@ from dataclasses import dataclass
 from collections.abc import Callable, Iterable
 from typing import Literal
 
-from dynaconf.base import Lazy
 from git import Repo
 from rich.json import JSON
 from socx import settings, get_console, console
 from rich.text import Text
 from rich.table import Table
 from rich.console import Console, ConsoleOptions, RenderResult
-from dynaconf.utils.boxing import DynaBox
-from dynaconf.utils.parse_conf import apply_converter
+import box
 
 from socx_plugins.git.utils import (
     get_repo_name,
@@ -36,9 +34,9 @@ class Summary:
     """Compute and present a multi-repository summary view."""
 
     repos: list[Repo]
-    style: DynaBox
+    style: box.Box
     console: Console
-    columns: list[DynaBox]
+    columns: list[box.Box]
     headers: list[Text]
     records: list[list[Text]]
 
@@ -57,7 +55,7 @@ class Summary:
         }
 
     @classmethod
-    def get_header(cls, column: DynaBox, style: DynaBox) -> Text:
+    def get_header(cls, column: box.Box, style: box.Box) -> Text:
         """Build a styled header string for a summary column."""
         header = column.get("name", "")
         header_style = " ".join(
@@ -66,16 +64,15 @@ class Summary:
         return Text.from_markup(text=header, style=header_style)
 
     @classmethod
-    def get_column_func(cls, column: DynaBox) -> Callable[[Repo], str]:
+    def get_column_func(cls, column: box.Box) -> Callable[[Repo], str]:
         func = column.func
         if isinstance(func, str):
-            func = apply_converter("@symbol", column.func, settings)
-        if isinstance(func, Lazy):
-            func = func(settings)
+            from socx.config.converters import SymbolConverter
+            func = SymbolConverter()(column.func)
         return func
 
     @classmethod
-    def get_column_value(cls, column: DynaBox, repo: Repo) -> Text:
+    def get_column_value(cls, column: box.Box, repo: Repo) -> Text:
         """Render the column content for a single repository."""
         text = str(cls.get_column_func(column)(repo))
         style = column.get("style") or ""
@@ -83,19 +80,19 @@ class Summary:
         return content
 
     @classmethod
-    def get_record(cls, columns: Iterable[DynaBox], repo: Repo) -> list[Text]:
+    def get_record(cls, columns: Iterable[box.Box], repo: Repo) -> list[Text]:
         """Return all column values for ``repo``."""
         return [cls.get_column_value(c, repo) for c in columns]
 
     @classmethod
-    def get_headers(cls, columns: list[DynaBox], style: DynaBox) -> list[Text]:
+    def get_headers(cls, columns: list[box.Box], style: box.Box) -> list[Text]:
         """Return the summary headers with style applied."""
         rv = [cls.get_header(c, style) for c in columns]
         return rv
 
     @classmethod
     def get_records(
-        cls, columns: Iterable[DynaBox], repos: Iterable[Repo]
+        cls, columns: Iterable[box.Box], repos: Iterable[Repo]
     ) -> list[list[Text]]:
         """Convert repository metadata into row-wise records."""
         return [cls.get_record(columns, repo) for repo in repos]

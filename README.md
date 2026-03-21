@@ -96,7 +96,7 @@ pipx upgrade socx-cli
 > License-Expression: Apache-2.0
 > Location: /home/skimhi/.project/git/users/sagikimhi/python/socx-worktree/develop/.venv/lib/python3.14/site-packages
 > Editable project location: /home/skimhi/.project/git/users/sagikimhi/python/socx-worktree/develop
-> Requires: click, copier, dynaconf, gitpython, hoptex, jinja2, paramiko, pip,
+> Requires: click, copier, gitpython, hoptex, jinja2, paramiko, pip,
 > platformdirs, plumbum, prompt-toolkit, psutil, pydantic, pygit2, python-box,
 > rich, rich-click, sh, textual, textual-speedups, typer, uv, werkzeug
 > Required-by:

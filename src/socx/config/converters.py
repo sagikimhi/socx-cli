@@ -38,9 +38,19 @@ from pydantic import (
     validate_call,
     ConfigDict,
 )
-from dynaconf import add_converter
-from dynaconf.utils.boxing import DynaBox
-from dynaconf.utils.parse_conf import Lazy
+import box
+
+DynaBox = box.Box
+
+class Lazy:
+    def __init__(self, value=None, casting=None):
+        self.value=value
+        self.casting=casting
+    def set_casting(self, casting):
+        self.casting=casting
+        return self
+
+_CONVERTERS: dict[str, Converter] = {}
 from click.utils import _detect_program_name
 
 from socx.core.funcs import fill
@@ -860,15 +870,13 @@ class GenericConverter[TI, TO](Converter[TI, TO]):
 def add_converters(converters: Iterable[Converter]) -> None:
     """Register converters with Dynaconf using their inferred names."""
     for converter in converters:
-        add_converter(converter.name, converter)
+        _CONVERTERS[converter.name] = converter
 
 
 def get_converters() -> Iterable[tuple[str, Converter]]:
     """Yield converter registrations, wrapping raw callables as needed."""
-    from dynaconf.utils.parse_conf import converters
-
     rv = []
-    for name, cvt in converters.items():
+    for name, cvt in _CONVERTERS.items():
         if not isinstance(cvt, Converter):
             cvt = GenericConverter(name, cvt)
         rv.append((name, cvt))

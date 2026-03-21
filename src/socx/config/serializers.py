@@ -6,10 +6,10 @@ from types import ModuleType
 from typing import Any, override
 
 from pydantic_core import to_jsonable_python
-from dynaconf import LazySettings
-from dynaconf.utils.boxing import DynaBox
+import box
 
 from socx.core.serializer import Serializer
+from socx.config._settings import Settings
 
 
 class ModuleSerializer(Serializer[ModuleType]):
@@ -27,18 +27,18 @@ class ModuleSerializer(Serializer[ModuleType]):
         return {name: attrs}
 
 
-class SettingsSerializer(Serializer[LazySettings]):
+class SettingsSerializer(Serializer[Settings]):
     @classmethod
     @override
     def serialize(
         cls,
-        obj: LazySettings,
+        obj: Settings,
         key: str | None = None,
         merge: bool = False,
         *args: Any,
         **kwargs: Any,
-    ) -> DynaBox:
-        """Serialize a ``LazySettings`` obj into a python ``dict``."""
+    ) -> box.Box:
+        """Serialize a ``Settings`` obj into a python ``dict``."""
         if key is None:
-            return DynaBox(obj.to_dict())
-        return obj.get(key, cast=False, fresh=True)
+            return box.Box(obj.to_dict())
+        return box.Box(obj.get(key))
