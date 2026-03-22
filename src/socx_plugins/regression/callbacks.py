@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from collections.abc import Iterable
 
-from socx import settings, log, log_it
+from socx import settings, log_it
 from rich_click import Context, Parameter
 
 
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @log_it(logger=logger)

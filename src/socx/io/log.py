@@ -1,19 +1,21 @@
 """Logging helpers that standardise Rich-powered output across SoCX."""
 
 from __future__ import annotations
+from types import ModuleType
 
-import os
 import enum
 import logging
 import logging.handlers
-from typing import Any
+from typing import Any, IO
 from pathlib import Path
 from collections import ChainMap
 from collections.abc import Iterable
 
 from rich.console import Console
 from rich.logging import RichHandler
-from platformdirs import user_log_path
+
+from socx.config._config import settings
+from socx.core.metadata import __appname__
 
 __all__ = (
     # Logging
@@ -39,10 +41,7 @@ __all__ = (
     # Types
     "Level",
     # Defaults
-    "DEFAULT_LEVEL",
-    "DEFAULT_FORMAT",
     "DEFAULT_HANDLERS",
-    "DEFAULT_TIME_FORMAT",
 )
 
 
@@ -59,95 +58,189 @@ class Level(enum.IntEnum):
     CRITICAL = logging.CRITICAL
 
 
-def _get_console_handler(level: Level = Level.INFO) -> logging.Handler:
-    """Create a Rich console handler configured for interactive output."""
-    console = Console(tab_size=4, markup=True, force_terminal=True)
-    return RichHandler(
-        level=level,
-        console=console,
-        tracebacks_suppress=("rich-click", "click"),
-        rich_tracebacks=True,
-        tracebacks_show_locals=True,
+def _get_console(
+    file: IO | None = None,
+    stderr: bool = False,
+    markup: bool = True,
+    tab_size: int = 4,
+    force_terminal: bool = True,
+    **kwargs: Any,
+) -> Console:
+    defaults = dict(
+        file=file,
+        markup=markup,
+        stderr=stderr,
+        tab_size=tab_size,
+        force_terminal=force_terminal,
     )
+    kwargs = dict(ChainMap(kwargs, defaults))
+    return Console(**kwargs)
 
 
-def _get_file_handler(
-    path: str | Path, level: Level = Level.NOTSET
+def _get_level(level: str | int | Level) -> Level:
+    if isinstance(level, str):
+        level = Level[level]
+    elif isinstance(level, int):
+        level = Level(level)
+    return level
+
+
+def _get_console_handler(
+    file: IO | None = None,
+    level: int | str | Level = Level.INFO,
+    stderr: bool = False,
+    tab_size: int = 4,
+    tracebacks: bool = True,
+    force_terminal: bool = True,
+    tracebacks_theme: str | None = None,
+    tracebacks_suppress: Iterable[ModuleType] | None = None,
+    tracebacks_show_locals: bool = True,
 ) -> logging.Handler:
-    """Create a Rich handler that writes log output to ``path``."""
-    handler = logging.handlers.RotatingFileHandler(
-        path, maxBytes=1024 * 1024 * 5, backupCount=5
+    """Create a Rich console handler configured for interactive output."""
+    import click
+    import rich_click
+
+    level = _get_level(level)
+    tracebacks_theme = tracebacks_theme or "ansi_dark"
+    tracebacks_suppress = tracebacks_suppress or [click, rich_click]
+    if file is None and stderr is None:
+        from socx.io.console import console
+    else:
+        console = _get_console(
+            file=file,
+            stderr=stderr,
+            tab_size=tab_size,
+            force_terminal=force_terminal,
+        )
+    handler = RichHandler(
+        console=console,
+        rich_tracebacks=tracebacks,
+        tracebacks_theme=tracebacks_theme,
+        tracebacks_suppress=tracebacks_suppress,
+        tracebacks_show_locals=tracebacks_show_locals,
     )
+    formatter = logging.Formatter(**settings.logging.formatters.child)
     handler.setLevel(level)
-    handler.setFormatter(
-        logging.Formatter(DEFAULT_CHILD_FORMAT, DEFAULT_TIME_FORMAT)
-    )
+    handler.setFormatter(formatter)
     return handler
 
 
-APP_LIB_NAME = __name__.partition(".")[0]
-"""Application library namespace used for loggers."""
+def _get_file_handler(
+    path: str | Path,
+    mode: str | None = None,
+    level: Level = Level.INFO,
+    stderr: bool = False,
+    tab_size: int = 4,
+    tracebacks: bool = True,
+    force_terminal: bool = False,
+    tracebacks_theme: str | None = None,
+    tracebacks_suppress: Iterable[ModuleType] | None = None,
+    tracebacks_show_locals: bool = True,
+) -> logging.Handler:
+    import atexit
 
-DEFAULT_ENCODING: str = "utf-8"
-"""Default text encoding for emitted log files."""
+    def close_if_open(file: IO) -> None:
+        if not file.closed:
+            file.close()
 
-DEFAULT_LEVEL: Level = Level[os.environ.get("SOCX_VERBOSITY", "FATAL")]
-"""Default logger level, a.k.a verbosity."""
+    mode = mode or "a"
+    file = open(path, mode=mode)  # noqa: SIM115
+    atexit.register(close_if_open, file)
+    return _get_console_handler(
+        file=file,
+        level=level,
+        stderr=stderr,
+        tab_size=tab_size,
+        tracebacks=tracebacks,
+        force_terminal=force_terminal,
+        tracebacks_theme=tracebacks_theme,
+        tracebacks_suppress=tracebacks_suppress,
+        tracebacks_show_locals=tracebacks_show_locals,
+    )
 
-DEFAULT_FORMAT: str = os.environ.get("SOCX_LOG_FORMAT", "%(message)s")
-"""Default log message format used by the root handler."""
 
-DEFAULT_TIME_FORMAT: str = os.environ.get("SOCX_TIME_FORMAT", "[%x %X]")
-"""Default timestamp format injected into log records."""
+def _get_rotating_file_handler(
+    path: str | Path,
+    level: Level = Level.DEBUG,
+    stderr: bool = False,
+    mode: str | None = None,
+) -> logging.Handler:
+    """Create a Rich handler that writes log output to ``path``."""
 
-DEFAULT_CHILD_FORMAT: str = os.environ.get(
-    "SOCX_LOG_FORMAT",
-    "%(asctime)s %(levelname)5s - %(filename)5s:%(lineno)-4d - %(message)s",
+    def MBs(n: int) -> int:  # noqa: N802
+        return 1024 * 1024 * n
+
+    mode = mode or "w"
+    handler = logging.handlers.RotatingFileHandler(
+        # no particular reason for size or backup count - arbitrarily chosen
+        path,
+        mode=mode,
+        maxBytes=MBs(10),
+        backupCount=5,
+    )
+    handler.setLevel(level)
+    handler.setFormatter(DEFAULT_CHILD_FORMATTER)
+    return handler
+
+
+def _get_handler(handler: str) -> logging.Handler | None:
+    match handler:
+        case "file":
+            return _get_file_handler(**settings.logging.handlers.file)
+        case "console":
+            return _get_console_handler(**settings.logging.handlers.console)
+        case "rotating_file":
+            return _get_rotating_file_handler(
+                **settings.logging.handlers.rotating_file
+            )
+        case _:
+            return None
+
+
+def _get_logger() -> logging.Logger:
+    """Initialise and return the module-level root logger."""
+    socx_logger = logging.getLogger(__appname__)
+
+    if not socx_logger.hasHandlers():
+        unknown_handlers = []
+
+        for handler_name in settings.logging.handlers:
+            handler = _get_handler(handler_name)
+            if handler is not None:
+                socx_logger.addHandler(handler)
+            else:
+                unknown_handlers.append(handler_name)
+
+        for handler in unknown_handlers:
+            msg = f"Ignored unknown handler configuration: '{handler}'"
+            socx_logger.warning(msg)
+
+    return socx_logger
+
+
+DEFAULT_FORMATTER: logging.Formatter = logging.Formatter(
+    **settings.logging.formatters.default
 )
-"""Message format for child loggers that also emit timestamps."""
+"""Default application logging formatter."""
 
 DEFAULT_CHILD_FORMATTER: logging.Formatter = logging.Formatter(
-    DEFAULT_CHILD_FORMAT, DEFAULT_TIME_FORMAT
+    **settings.logging.formatters.child
 )
 """Formatter applied to file handlers registered on child loggers."""
 
-DEFAULT_LOG_DIRECTORY: Path = Path(
-    os.environ.get(
-        "SOCX_LOG_DIR",
-        user_log_path(appname=APP_LIB_NAME, ensure_exists=True),
-    )
-)
-"""Default application log directory."""
-
-DEFAULT_LOG_FILE: str = os.environ.get("SOCX_LOG_FILE", f"{APP_LIB_NAME}.log")
-"""Default application log file."""
-
 DEFAULT_HANDLERS: list[logging.Handler] = [
-    _get_console_handler(DEFAULT_LEVEL),
-    _get_file_handler(DEFAULT_LOG_DIRECTORY / DEFAULT_LOG_FILE),
+    _get_file_handler(**settings.logging.handlers.file),
+    _get_console_handler(**settings.logging.handlers.console),
+    _get_rotating_file_handler(**settings.logging.handlers.rotating_file),
 ]
 """Handlers attached to the module-level logger by default."""
-
-DEFAULT_LOGGING_CONFIG: dict[str, Any] = dict(
-    level=DEFAULT_LEVEL,
-    format=DEFAULT_FORMAT,
-    handlers=DEFAULT_HANDLERS,
-    encoding=DEFAULT_ENCODING,
-    datefmt=DEFAULT_TIME_FORMAT,
-)
-
-
-def _get_logger(**kwargs: Any) -> logging.Logger:
-    """Initialise and return the module-level root logger."""
-    logging.basicConfig(**dict(ChainMap(kwargs, DEFAULT_LOGGING_CONFIG)))
-    return logging.getLogger(APP_LIB_NAME)
 
 
 def get_logger(name: str, filename: str | None = None) -> logging.Logger:
     """Return a child logger configured with optional file output."""
     rv = logger.getChild(name)
     if filename is not None:
-        handler = _get_file_handler(filename)
+        handler = _get_rotating_file_handler(filename)
         handler.setFormatter(DEFAULT_CHILD_FORMATTER)
         rv.addHandler(handler)
     return rv
@@ -243,8 +336,11 @@ def get_level(logger_: logging.Logger | None = None) -> Level:
 
 
 def set_level(level: Level, logger_: logging.Logger | None = None) -> None:
-    """Set the log level on the provided logger (defaults to module logger)."""
+    """Set the log level on ``logger_`` and all currently attached handlers."""
     logger_ = logger_ or logger
+    level = level if isinstance(level, str | int) else level.value
+    for handler in logger_.handlers:
+        handler.setLevel(level)
     logger_.setLevel(level)
 
 

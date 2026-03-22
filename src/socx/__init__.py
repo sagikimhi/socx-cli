@@ -47,7 +47,6 @@ __all__ = (
     "DEFAULT_HANDLERS",
     "DEFAULT_TIME_FORMAT",
     "Level",
-    "log",
     "log_it",
     "logger",
     "console",
@@ -180,11 +179,6 @@ from socx.core import deduplicate as deduplicate
 
 from socx.utils import join_decorators as join_decorators
 
-from socx.io import log as log
-from socx.io import DEFAULT_LEVEL as DEFAULT_LEVEL
-from socx.io import DEFAULT_FORMAT as DEFAULT_FORMAT
-from socx.io import DEFAULT_HANDLERS as DEFAULT_HANDLERS
-from socx.io import DEFAULT_TIME_FORMAT as DEFAULT_TIME_FORMAT
 from socx.io import Level as Level
 from socx.io import log_it as log_it
 from socx.io import logger as logger

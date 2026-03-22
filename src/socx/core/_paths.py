@@ -109,14 +109,20 @@ USER_LOG_DIR: Path = user_log_path(
 ).resolve()
 """Absolute path to platform's native application logs directory."""
 
-USER_LOG_FILENAME: str = f"{__appname__}.log"
-"""File name of application's native log file used for debug and tracing."""
+USER_LOG_FILENAME: str = f"{__appname__}_log.log"
+"""File name of application's log file."""
+
+USER_ROTATING_LOG_FILENAME: str = f"rotating_{__appname__}_log.log"
+"""File name of application's rotating log file."""
 
 USER_CONFIG_FILENAME: str = f"{__appname__}.yaml"
 """File name searched in user's config directory to load user configs."""
 
 USER_LOG_FILE: Path = USER_LOG_DIR / USER_LOG_FILENAME
 """Absolute path to application's main log for the current local user."""
+
+USER_ROTATING_LOG_FILE: Path = USER_LOG_DIR / USER_ROTATING_LOG_FILENAME
+"""Absolute path to application's rotating log for the current local user."""
 
 USER_CONFIG_FILE: Path = USER_CONFIG_DIR / USER_CONFIG_FILENAME
 """Absolute path to application's user config file."""
