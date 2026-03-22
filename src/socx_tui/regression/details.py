@@ -11,7 +11,7 @@ from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.widget import Widget
 from textual.widgets import Markdown
-from socx import Regression, TestBase, TestResult, TestStatus, Script
+from socx import Test, Regression, TestBase, TestResult, TestStatus, Script
 
 from socx_tui.regression.bindings.vim.mode import VimModes
 
@@ -35,6 +35,7 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
 
     @property
     def document(self) -> Markdown:
+        """Get the current markdown document instance."""
         return self._document
 
     def compose(self) -> ComposeResult:
@@ -87,7 +88,7 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
                     f"**⏳ ETA:** {self.format_timedelta(model.estimated_remaining_time)}",  # noqa: E501
                 ]
             )
-        else:
+        elif isinstance(model, Test):
             lines.extend(
                 [
                     f"**💡 Status:** {self.format_status(model.status)}",
