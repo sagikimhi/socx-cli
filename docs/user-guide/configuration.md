@@ -23,7 +23,7 @@ At startup, `socx` builds one settings object from multiple sources.
 In practice, you should think about these layers:
 
 1. Built-in defaults shipped with `socx` (`src/socx/static/settings/*.yaml`).
-2. Optional user config (`$XDG_CONFIG_HOME/socx/settings.yaml`).
+2. Optional user config (`$XDG_CONFIG_HOME/socx/socx.yaml`).
 3. Local project config files named `.socx.yaml` discovered in the current
    directory and parent directories.
 4. Optional extra files passed with `--config-file` (highest priority among
