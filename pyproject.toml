@@ -59,6 +59,7 @@ dependencies = [
     "pip",
     "rich",
     "click",
+    "declare",
     "typer~=0.19",
     "jinja2",
     "psutil",
