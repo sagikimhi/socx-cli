@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from textwrap import dedent
 
-from dynaconf.utils.boxing import DynaBox
+import box
 import rich
 from rich.syntax import Syntax
 from rich.json import JSON
@@ -144,7 +144,7 @@ def history(limit: int, format_: str, pager: bool, key: str | None = None):
     history = []
     entries = settings.encode(settings.get_history(key=key, limit=limit))
     for entry in entries:
-        code = getattr(DynaBox(entry), f"to_{format_}", noop)()
+        code = getattr(box.Box(entry), f"to_{format_}", noop)()
         if format_ == "json":
             code = JSON(code).text.plain
         history.append(Syntax(code=code, lexer=format_, theme="ansi_dark"))

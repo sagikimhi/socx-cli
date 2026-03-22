@@ -9,7 +9,7 @@ from collections.abc import Generator, Iterable
 import git
 from socx import settings
 from rich.text import Text
-from dynaconf.utils.files import glob, deduplicate
+from glob import glob
 
 
 def get_repo(path: str | Path) -> git.Repo | None:
@@ -142,7 +142,7 @@ def find_repositories(
         root = cast(Path, root)
 
     def deduplicate_paths(paths: Iterable[Path]) -> list[Path]:
-        return list(map(Path, deduplicate([str(p) for p in paths])))
+        return list(dict.fromkeys(Path(p) for p in paths))
 
     def match_directories(
         root: Path,
@@ -163,9 +163,8 @@ def find_repositories(
                 (root / path).relative_to(Path.cwd(), walk_up=True)
                 for path in glob(
                     pattern,
-                    root_dir=root,
+                    root_dir=str(root),
                     recursive=recursive,
-                    include_hidden=include_hidden,
                 )
             ]
             rv.extend(filter(Path.is_dir, paths))

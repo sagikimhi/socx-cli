@@ -10,10 +10,9 @@ from typing import Any
 from pathlib import Path
 from collections import ChainMap
 
-from dynaconf.utils import ensure_a_list
+from socx.config._settings import ensure_a_list
 from werkzeug.local import LocalProxy
 
-from socx.config import converters
 from socx.core import (
     LOCAL_CONFIG_FILENAME,
     LOCAL_CONFIG_FILE,
@@ -151,7 +150,6 @@ def get_settings(
     return rv
 
 
-converters.init()
 
 _tokens = []
 

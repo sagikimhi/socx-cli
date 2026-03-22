@@ -67,7 +67,6 @@ dependencies = [
     "textual",
     "plumbum",
     "pydantic",
-    "dynaconf<3.2.12",
     "paramiko",
     "werkzeug>=3.1.4",
     "gitpython",
