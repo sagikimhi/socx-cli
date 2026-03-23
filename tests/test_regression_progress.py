@@ -14,7 +14,7 @@ def test_update_regression_handles_zero_task_id() -> None:
             name="suite", tests=[Test(name="t1", exec="true")]
         )
         progress = RegressionProgress(regression)
-        pipeline = progress.progress_map[regression.id]
+        pipeline = progress.progress
 
         with pipeline:
             task_id = pipeline.add_task(total=1, description="suite")

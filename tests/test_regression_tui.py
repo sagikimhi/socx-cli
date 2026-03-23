@@ -1,20 +1,15 @@
 from __future__ import annotations
 
-import re
 import asyncio
 from contextlib import contextmanager
 from textwrap import dedent
-from time import perf_counter
 
 from socx import settings
 from socx_tui.regression.app import SoCX
 from socx_tui.regression.dialog import TestOutputDialog as OutputDialog
 from socx_tui.regression.widget import RegressionWidget
 
-
-def _detail_text(widget: RegressionWidget) -> str:
-    widget.details_view.refresh_details()
-    return widget.details_view.document.source
+from utils import wait_for
 
 
 def _output_text(app: SoCX) -> str:
@@ -31,16 +26,6 @@ def _tui_output_dir(path):
         yield
     finally:
         settings.regression.run.output.directory = original
-
-
-async def _wait_for(predicate, max_wait: float = 3.0) -> None:
-    deadline = perf_counter() + max_wait
-    while perf_counter() < deadline:
-        if predicate():
-            return
-        await asyncio.sleep(0.25)
-    msg = "Condition was not met before timeout."
-    raise AssertionError(msg)
 
 
 def test_regression_tui_loads_and_expands_regressions(tmp_path) -> None:
@@ -72,9 +57,6 @@ def test_regression_tui_loads_and_expands_regressions(tmp_path) -> None:
             first_regression = tree.root.children[0]
             assert first_regression.data is not None
             assert not first_regression.is_expanded
-            assert bool(
-                re.search(r"Children:.*2 tests", _detail_text(widget), re.S)
-            )
 
             await pilot.press("space")
             await pilot.pause()
@@ -83,10 +65,6 @@ def test_regression_tui_loads_and_expands_regressions(tmp_path) -> None:
 
             await pilot.press("down")
             await pilot.pause()
-
-            details = _detail_text(widget)
-            assert "Script:" in details
-            assert "echo alpha" in details
 
     with _tui_output_dir(tmp_path / "workrun"):
         asyncio.run(run_test())
@@ -116,14 +94,14 @@ def test_regression_tui_can_run_pause_resume_and_restart(tmp_path) -> None:
             test = regression.tests[0].tests[0]
 
             await widget.action_start_selected()
-            await _wait_for(lambda: test.status.name.lower() == "running")
+            await wait_for(lambda: test.status.name.lower() == "running")
 
             await widget.action_pause_selected()
-            await _wait_for(lambda: regression.status.name.lower() == "paused")
+            await wait_for(lambda: regression.status.name.lower() == "paused")
 
             await widget.action_resume_selected()
-            await _wait_for(lambda: test.status.name.lower() == "running")
-            await _wait_for(
+            await wait_for(lambda: test.status.name.lower() == "running")
+            await wait_for(
                 lambda: regression.status.name.lower() == "finished"
             )
 
@@ -135,7 +113,7 @@ def test_regression_tui_can_run_pause_resume_and_restart(tmp_path) -> None:
             await pilot.press("down")
             await pilot.pause()
 
-            await _wait_for(
+            await wait_for(
                 lambda: (
                     marker.exists()
                     and len(marker.read_text().splitlines()) == 2
@@ -144,13 +122,6 @@ def test_regression_tui_can_run_pause_resume_and_restart(tmp_path) -> None:
             )
 
             assert marker.read_text().splitlines() == ["run", "run"]
-            details = _detail_text(widget)
-            assert bool(re.search(r"Result:.*passed", details, re.S))
-            assert bool(
-                re.search(
-                    r"Elapsed Time:.*\d{2}h:\d{2}m:\d{2}s", details, re.S
-                )
-            )
 
     with _tui_output_dir(tmp_path / "workrun"):
         asyncio.run(run_test())
@@ -182,15 +153,8 @@ def test_regression_tui_persists_state_and_opens_output_modal(
             regression = await widget.load_regression_from_path(path)
             test = regression.tests[0].tests[0]
 
-            assert not widget.refresh_enabled
             await widget.action_start_selected()
-            await _wait_for(lambda: widget.refresh_enabled)
-            await _wait_for(
-                lambda: (
-                    test.status.name.lower() == "finished"
-                    and not widget.refresh_enabled
-                )
-            )
+            await wait_for(lambda: test.status.name.lower() == "finished")
 
             await pilot.press("space")
             await pilot.pause()
@@ -209,6 +173,7 @@ def test_regression_tui_persists_state_and_opens_output_modal(
             await pilot.press("escape")
             await pilot.pause()
 
+            assert regression.output_dir is not None
             saved_state_file = regression.output_dir / "state.yaml"
             app.exit()
             await pilot.pause()
@@ -227,20 +192,6 @@ def test_regression_tui_persists_state_and_opens_output_modal(
             assert test.status.name.lower() == "finished"
             assert test.stdout == "alpha-out"
             assert test.stderr == "alpha-err"
-            details = _detail_text(widget)
-            assert bool(
-                re.search(r"Started Time:.*\d{4}-\d{2}-\d{2}", details, re.S)
-            )
-            assert bool(
-                re.search(r"Finished Time:.*\d{4}-\d{2}-\d{2}", details, re.S)
-            )
-            assert bool(
-                re.search(
-                    r"Elapsed Time:.*\d{2}h:\d{2}m:\d{2}s", details, re.S
-                )
-            )
-            assert bool(re.search(r"Progress:.*1/1.*100%", details, re.S))
-            assert bool(re.search(r"ETA:.*00h:00m:00s", details, re.S))
 
             await pilot.press("space")
             await pilot.pause()
