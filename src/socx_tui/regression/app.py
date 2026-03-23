@@ -51,6 +51,9 @@ class SoCX(App[int]):
             self.regression.persist_loaded_regression_state()
         super().exit(result=result, return_code=return_code, message=message)
 
+    def on_mount(self) -> None:
+        self.theme = "atom-one-dark"
+
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
         yield Header(

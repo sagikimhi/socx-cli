@@ -1,24 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime
-from textwrap import wrap
 from typing import ClassVar
+from textwrap import dedent
 
-from rich.text import Text
-from textual import work
+from rich.markdown import Markdown
 from textual.reactive import reactive
-from textual.app import ComposeResult
-from textual.binding import BindingType
-from textual.widget import Widget
-from textual.widgets import Markdown
+from textual.app import RenderResult
+from textual.widgets import Static
 from socx import Test, Regression, TestBase, TestResult, TestStatus, Script
 
-from socx_tui.regression.bindings.vim.mode import VimModes
 
-
-class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
-    BINDINGS: ClassVar[list[BindingType]] = Markdown.BINDINGS + VimModes.Normal
-
+class RegressionDetails(Static):
     DEFAULT_CSS: ClassVar[str] = """
     RegressionDetails {
         content-align: center middle;
@@ -27,92 +20,91 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
 
     model: reactive[TestBase | None] = reactive(None)
 
-    def __init__(self, *args, wrap_code: bool = True, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._refresh_timer = None
-        self._wrap_code = wrap_code
-        self._document = Markdown()
-
-    @property
-    def document(self) -> Markdown:
-        """Get the current markdown document instance."""
-        return self._document
-
-    def compose(self) -> ComposeResult:
-        yield self._document
+    def render(self) -> RenderResult:
+        return self.format_details(self.model)
 
     def watch_model(self, model: TestBase) -> None:
-        self.document.update(self.format_details(self.model))
+        self.refresh()
 
-    def refresh_details(self) -> None:
-        self.show_details(self.model)
+    def show_details(self, model: TestBase | None) -> None:
+        self.model = model
+        self.refresh()
 
-    @work(exclusive=False)
-    async def show_text(self, message: str | Text) -> None:
-        if isinstance(message, Text):
-            message = message.plain
-        await self.document.update(message)
-
-    @work(exclusive=False)
-    async def show_details(self, model: TestBase | None) -> None:
-        self.show_text(self.format_details(model))
-
-    def format_details(self, model: TestBase | None = None) -> str:
+    def format_details(self, model: TestBase | None = None) -> RenderResult:
         if model is None:
-            return "\n\n".join(
-                [
-                    "No regression selected.",
-                    "Load a regression file with o or ctrl+o.",
-                ]
-            )
+            return Markdown(
+                dedent("""
+            **No regression selected.**
 
-        lines = [
-            f"# {model.name} ({type(model).__name__})",
-        ]
+            > **Tip**:
+            > Use `o` or `ctrl-o` to select a file to load regressions from.
+            > Supported file formats are: `.yaml`, `.yml`, `.toml`, `.json`
+            >
+            > Example:
+            >
+            > ```yaml
+            > ---
+            > my_regression:
+            >   - name: my_test
+            >     exec: |
+            >       #!/bin/bash
+            >       /my/custom/run_script arg1 arg2
+            > ```
+            """)
+            )
 
         if isinstance(model, Regression):
             kind = (
                 "regressions" if self.contains_regressions(model) else "tests"
             )
-            lines.extend(
+            text = "\n\n".join(
                 [
-                    f"**👨‍👩‍👧‍👦 Children:** {len(model.tests)} {kind}",
-                    f"**❌ Failed:** {self.count_results(model, TestResult.Failed)}",  # noqa: E501
-                    f"**✅ Passed:** {self.count_results(model, TestResult.Passed)}",  # noqa: E501
-                    f"**💡 Status:** {self.format_status(model.status)}",
-                    f"**🚩 Result:** {self.format_result(model.result)}",
-                    f"**⌛ Elapsed Time:** {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
-                    f"**⌛ Started Time:** {self.format_time(model.started_time)}",  # noqa: E501
-                    f"**⌛ Finished Time:** {self.format_time(model.finished_time)}",  # noqa: E501
-                    f"**📊 Progress:** `{self.format_progress(model)}`",
-                    f"**⏳ ETA:** {self.format_timedelta(model.estimated_remaining_time)}",  # noqa: E501
+                    self.format_header(model),
+                    f"👨‍👩‍👧‍👦 Children: {len(model.tests)} {kind}",
+                    f"❌ Failed: {self.count_results(model, TestResult.Failed)}",  # noqa: E501
+                    f"✅ Passed: {self.count_results(model, TestResult.Passed)}",  # noqa: E501
+                    f"💡 Status: {self.format_status(model.status)}",
+                    f"🚩 Result: {self.format_result(model.result)}",
+                    f"⌛ Elapsed Time: {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
+                    f"⌛ Started Time: {self.format_time(model.started_time)}",
+                    f"⌛ Finished Time: {self.format_time(model.finished_time)}",  # noqa: E501
+                    f"📊 Progress: `{self.format_progress(model)}`",
+                    f"⏳ ETA: {self.format_timedelta(model.estimated_remaining_time)}",  # noqa: E501
                 ]
             )
         elif isinstance(model, Test):
-            lines.extend(
+            text = "\n\n".join(
                 [
-                    f"**💡 Status:** {self.format_status(model.status)}",
-                    f"**🚩 Result:** {self.format_result(model.result)}",
-                    f"**⌛ Elapsed Time:** {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
-                    f"**⌛ Started Time:** {self.format_time(model.started_time)}",  # noqa: E501
-                    f"**⌛ Finished Time:** {self.format_time(model.finished_time)}",  # noqa: E501
-                    "",
-                    f"**📜 Script:** {self.format_script(model.exec)}",
+                    self.format_header(model),
+                    f"💡 Status: {self.format_status(model.status)}",
+                    f"🚩 Result: {self.format_result(model.result)}",
+                    f"⌛ Elapsed Time: {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
+                    f"⌛ Started Time: {self.format_time(model.started_time)}",
+                    f"⌛ Finished Time: {self.format_time(model.finished_time)}",  # noqa: E501
+                    self.format_script(model.exec),
                 ]
             )
-        return "\n\n".join(lines)
+        else:
+            text = ""
+        return Markdown(text)
 
     def contains_regressions(self, regression: Regression) -> bool:
         return bool(regression.tests) and any(
             isinstance(test, Regression) for test in regression.tests
         )
 
+    def format_header(self, model: TestBase) -> str:
+        if isinstance(model, Test):
+            icon = "🧪 "
+        elif isinstance(model, Regression):
+            icon = "⚗️ "
+        return f"# {icon}{model.name} ({type(model).__name__})"
+
     def format_script(self, script: Script | None) -> str:
         script_str = str(script or "")
-        if self._wrap_code:
-            lines = ["\n".join(wrap(line)) for line in script_str.splitlines()]
-            script_str = "\n".join(lines)
-        return "\n\n".join(["", "```bash", script_str, "```"])
+        return "\n\n".join(
+            ["## 📜 Command/Script", "```bash", script_str, "```"]
+        )
 
     def format_result(self, result: TestResult | str) -> str:
         if isinstance(result, TestResult):
