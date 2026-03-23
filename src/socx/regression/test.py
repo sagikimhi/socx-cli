@@ -211,12 +211,12 @@ class TestBase(BaseModel):
 
     def reset(self) -> None:
         """Reset runtime state so the test may be executed again."""
-        self.started_time = None
-        self.finished_time = None
-        self._result = TestResult.NA
-        self._status = TestStatus.Idle
+        self.result = TestResult.NA
+        self.status = TestStatus.Idle
         self._process = None
         self._termination_requested = False
+        self.started_time = None
+        self.finished_time = None
 
     async def restart(self) -> None:
         """Terminate, reset, and execute the test again."""
@@ -232,6 +232,7 @@ class TestBase(BaseModel):
         )
         logger.debug(msg)
 
+    @_result.watch
     def watch_result(self, old_result: TestResult, result: TestResult) -> None:
         msg = (
             f"{type(self)}({self.name}): result changed from "
@@ -309,9 +310,7 @@ class Test(TestBase):
             self._write_output_files()
             return
 
-        process = await aio.create_subprocess_exec(
-            "/bin/sh",
-            "-c",
+        process = await aio.create_subprocess_shell(
             str(self.exec),
             stdout=aio.subprocess.PIPE,
             stderr=aio.subprocess.PIPE,

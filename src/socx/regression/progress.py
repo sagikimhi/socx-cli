@@ -33,7 +33,7 @@ class PipelineProgress(BaseProgress):
     @classmethod
     def get_default_columns(cls) -> tuple[ProgressColumn, ...]:
         return (
-            SpinnerColumn("arrow"),
+            SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             MofNCompleteColumn(),
             BarColumn(),
@@ -41,7 +41,7 @@ class PipelineProgress(BaseProgress):
             TextColumn("[yellow]Elapsed:"),
             TimeElapsedColumn(),
             TextColumn("[cyan]Remaining:"),
-            TimeRemainingColumn(compact=True, elapsed_when_finished=True),
+            TimeRemainingColumn(),
         )
 
 
@@ -50,19 +50,11 @@ class RegressionProgress:
         self.tasks = {}
         self.total = len(regression)
         self.regression = regression
-        self.progress_map = {}
-        self.progress_map[self.regression.id] = PipelineProgress()
-        # for child in self.regression.tests:
-        #     if isinstance(child, Regression):
-        #         self.progress_map[child.id] = PipelineProgress()
+        self.progress = PipelineProgress()
 
     def __len__(self) -> int:
         """Get the total number of test items in a regression's progress."""
         return self.total
-
-    @property
-    def progress(self) -> PipelineProgress:
-        return self.progress_map[self.regression.id]
 
     async def start(
         self,

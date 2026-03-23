@@ -1,14 +1,18 @@
 """Asynchronous regression runner that orchestrates test execution."""
 
 from __future__ import annotations
+import anyio.from_thread
 
 import asyncio as aio
 import anyio
+import anyio.to_thread
+import anyio.from_thread
 import logging
 import re
 import time
+from functools import partial
 from collections import OrderedDict
-from collections.abc import AsyncGenerator, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from threading import RLock
 from typing import Self, Any
@@ -26,7 +30,6 @@ from pydantic import (
 )
 
 from socx.config import settings
-from socx.core.funcs import desync
 from socx.core.schema import FilePath
 from socx.regression.test import Test, TestBase, TestResult, TestStatus
 
@@ -68,6 +71,9 @@ class Regression(TestBase):
     )
     _lock: RLock = PrivateAttr(default_factory=RLock)
     _done: aio.Queue[TestBase] = PrivateAttr(default_factory=aio.Queue)
+    _mutex: anyio.Semaphore = PrivateAttr(
+        default_factory=partial(anyio.Semaphore, 1)
+    )
     _pending: aio.Queue[TestBase | None] = PrivateAttr(
         default_factory=aio.Queue
     )
@@ -123,51 +129,33 @@ class Regression(TestBase):
     @computed_field
     @property
     def result(self) -> TestResult:
-        with self.lock:
-            if self.test_map:
-                return (
-                    TestResult.Passed
-                    if self.tests
-                    and all(
-                        test.result is TestResult.Passed for test in self.tests
-                    )
-                    else TestResult.Failed
-                    if any(
-                        test.result is TestResult.Failed for test in self.tests
-                    )
-                    else TestResult.NA
-                )
-            else:
-                return super().result
+        if not len(self):
+            return TestResult.NA
+        results = [test.result for test in self.tests]
+        if all(result is TestResult.Passed for result in results):
+            return TestResult.Passed
+        if any(result is TestResult.Failed for result in results):
+            return TestResult.Failed
+        return TestResult.NA
 
     @computed_field
     @property
     def status(self) -> TestStatus:
-        pending_statuses = [
-            TestStatus.Pending,
-            TestStatus.Finished,
-        ]
-        paused_statuses = [
-            TestStatus.Paused,
-            TestStatus.Finished,
-        ]
-        terminated_statuses = [
-            TestStatus.Finished,
-            TestStatus.Terminated,
-        ]
-        tests = self.tests
-        if any(test.status is TestStatus.Idle for test in tests):
+        if not len(self):
             return TestStatus.Idle
-        if any(test.status is TestStatus.Running for test in tests):
-            return TestStatus.Running
-        if all(test.status is TestStatus.Finished for test in tests):
+        terminated_statuses = {TestStatus.Finished, TestStatus.Terminated}
+        statuses = [test.status for test in self.tests]
+        if all(status is TestStatus.Finished for status in statuses):
             return TestStatus.Finished
-        if all(test.status in pending_statuses for test in tests):
-            return TestStatus.Pending
-        if all(test.status in paused_statuses for test in tests):
+        if all(status in terminated_statuses for status in statuses):
+            return TestStatus.Terminated
+        if any(status is TestStatus.Running for status in statuses):
+            return TestStatus.Running
+        if any(status is TestStatus.Paused for status in statuses):
             return TestStatus.Paused
-        assert all(test.status in terminated_statuses for test in tests)
-        return TestStatus.Terminated
+        if any(status is TestStatus.Idle for status in statuses):
+            return TestStatus.Idle
+        return TestStatus.Pending
 
     @computed_field
     @property
@@ -191,8 +179,12 @@ class Regression(TestBase):
         return self._lock
 
     @property
-    def done(self) -> aio.Queue:
-        return self._done
+    def mutex(self) -> anyio.Semaphore:
+        return self._mutex
+
+    @property
+    def pending(self) -> aio.Queue:
+        return self._pending
 
     @property
     def running(self) -> set[UUID4]:
@@ -200,8 +192,8 @@ class Regression(TestBase):
             return self._running.copy()
 
     @property
-    def pending(self) -> aio.Queue:
-        return self._pending
+    def done(self) -> aio.Queue:
+        return self._done
 
     def __len__(self) -> int:
         """Return the number of tests scheduled within the regression."""
@@ -238,8 +230,8 @@ class Regression(TestBase):
         logger.info("regression starting...")
 
         try:
-            await self._queue_tests()
             async with anyio.create_task_group() as tg:
+                tg.start_soon(self._queue_tests)
                 for _ in range(self.run_limit):
                     tg.start_soon(self._runner)
         finally:
@@ -250,94 +242,88 @@ class Regression(TestBase):
 
     async def pause(self) -> None:
         """Pause a running regression and any active descendants."""
-        if self.status is not TestStatus.Running:
-            return
+        async with self.mutex:
+            if self.status is not TestStatus.Running:
+                return
 
-        self._pause_event.clear()
-        async with anyio.create_task_group() as tg:
-            async for test in desync(self._active_tests()):
-                tg.start_soon(test.pause)
+            self._pause_event.clear()
+            async with anyio.create_task_group() as tg:
+                for test in self._active_tests():
+                    tg.start_soon(test.pause)
 
     async def resume(self) -> None:
         """Resume a paused regression and any active descendants."""
-        if self.status is not TestStatus.Paused:
-            return
+        async with self.mutex:
+            if self.status is not TestStatus.Paused:
+                return
 
-        self._pause_requested = False
-        self._pause_event.set()
-        async with anyio.create_task_group() as tg:
-            async for test in desync(self.tests):
-                tg.start_soon(test.resume)
+            self._pause_requested = False
+            self._pause_event.set()
+            async with anyio.create_task_group() as tg:
+                for test in self.tests:
+                    tg.start_soon(test.resume)
 
     async def stop(self) -> None:
         """Terminate active work within the regression."""
-        if self.status is TestStatus.Terminated:
-            return
+        async with self.mutex:
+            if self.status is TestStatus.Terminated:
+                return
 
-        self._stop_requested = True
-        self._pause_event.set()
-        async with anyio.create_task_group() as tg:
-            async for test in desync(self.tests):
-                tg.start_soon(test.stop)
-
-    async def restart(self) -> None:
-        """Terminate, reset, and execute the regression again."""
-        await self.stop()
-        self.reset()
-        await self.start()
+            self._stop_requested = True
+            self._pause_event.set()
+            async with anyio.create_task_group() as tg:
+                for test in self.tests:
+                    tg.start_soon(test.stop)
 
     def reset(self) -> None:
         """Reset the regression and all child tests."""
-        super().reset()
-
         for test in self.tests:
             if hasattr(test, "reset"):
                 test.reset()
-
+        self._running.clear()
         self._done = aio.Queue()
         self._pending = aio.Queue()
         self._pause_event = aio.Event()
-        self._running.clear()
         self._stop_requested = False
-
-    @classmethod
-    async def desync[T](cls, it: Iterable[T]) -> AsyncGenerator[T]:
-        for item in it:
-            yield item
+        self.started_time = None
+        self.finished_time = None
 
     async def _queue_tests(self) -> None:
-        items = list(self.tests)
-        for test in items:
-            if test.status in (TestStatus.Finished, TestStatus.Terminated):
-                test.reset()
-            test._status = TestStatus.Pending
-            await self.pending.put(test)
-        for _ in range(self.run_limit):
-            await self.pending.put(None)
+        async with anyio.create_task_group() as tg:
+            for test in self.tests:
+                if test.is_pending() or test.is_running():
+                    continue
+                if test.finished or test.terminated:
+                    test.reset()
+                test._status = TestStatus.Pending
+                tg.start_soon(self.pending.put, test)
+
+        async with anyio.create_task_group() as tg:
+            for _ in range(self.run_limit):
+                tg.start_soon(self.pending.put, None)
 
     async def _runner(self) -> None:
         """Consume queued tests and execute them sequentially."""
-        while True:
-            await semaphore.acquire()
-            test = await self.pending.get()
-            try:
-                if test is None:
-                    return
+        async with semaphore:
+            while True:
+                test = await self.pending.get()
+                try:
+                    if test is None:
+                        return
 
-                while not self._pause_event.is_set():
-                    await aio.sleep(0.05)
+                    while not self._pause_event.is_set():
+                        await aio.sleep(0.05)
 
-                if self._stop_requested:
-                    return
+                    if self._stop_requested:
+                        return
 
-                self._running.add(test.id)
-                await test.start()
-                await self.done.put(test)
-            finally:
-                if test is not None:
-                    self._running.discard(test.id)
-                self.pending.task_done()
-                semaphore.release()
+                    self._running.add(test.id)
+                    await test.start()
+                    await self.done.put(test)
+                finally:
+                    if test is not None:
+                        self._running.discard(test.id)
+                    self.pending.task_done()
 
     def assign_output_dir(self, output_dir: Path) -> Path:
         self.output_dir = output_dir
