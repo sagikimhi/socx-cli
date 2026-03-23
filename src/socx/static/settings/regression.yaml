@@ -1,5 +1,9 @@
 regression:
   tui:
+    params:
+      inline: false
+      inline_no_clear: true
+
     paths:
       app_dir: >-
         @jinja {{'{}/../socx_tui'.format(this.paths.app_root_dir) | realpath}}
