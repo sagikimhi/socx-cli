@@ -5,6 +5,8 @@ from time import perf_counter
 
 from socx.regression import Test, Regression, TestResult, TestStatus
 
+from utils import wait_for
+
 Test.__test__ = False
 TestResult.__test__ = False
 TestStatus.__test__ = False
@@ -35,6 +37,37 @@ def test_test_can_pause_and_resume() -> None:
 
         assert test.status is TestStatus.Finished
         assert test.result is TestResult.Passed
+
+    asyncio.run(run_test())
+
+
+def test_regression_state(tmp_path) -> None:
+    command = "sleep 1.5"
+
+    async def run_test() -> None:
+        regression = Regression(
+            name="smoke",
+            tests=[Test(name="alpha", exec=command)],
+        )
+        assert regression.is_idle()
+
+        task = asyncio.create_task(regression.start())
+        await wait_for(regression.is_running)
+
+        await regression.pause()
+        await wait_for(regression.is_suspended)
+
+        await regression.resume()
+        await wait_for(regression.is_running)
+        await task
+        assert regression.finished
+
+        task = asyncio.create_task(regression.restart())
+        await wait_for(regression.is_running)
+
+        await regression.stop()
+        assert regression.terminated
+        await task
 
     asyncio.run(run_test())
 

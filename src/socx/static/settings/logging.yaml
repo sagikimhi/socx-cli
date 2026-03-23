@@ -1,0 +1,24 @@
+logging:
+  handlers:
+    file:
+      path: "@get this.paths.user_log_file"
+      level: DEBUG
+    console:
+      level: INFO
+      tracebacks_show_locals: >-
+        @bool @jinja {%- if this.logging.handlers.console.level == 'DEBUG' -%}
+            True
+        {%- else -%}
+            False
+        {%- endif -%}"
+    rotating_file:
+      level: DEBUG
+      path: "@get this.paths.user_rotating_log_file"
+
+  formatters:
+    default:
+      fmt: "%(message)s"
+      datefmt: "[%x %X]"
+    child:
+      fmt: "%(asctime)s %(levelname)5s - %(filename)5s:%(lineno)-4d - %(message)s"
+      datefmt: "[%x %X]"

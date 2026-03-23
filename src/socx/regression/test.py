@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-import asyncio as aio
 import os
-import signal
 import time
 import uuid
+import signal
+import logging
+import asyncio as aio
 from enum import StrEnum, IntEnum, auto
 from pathlib import Path
 
+import declare
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -22,6 +24,9 @@ from psutil import Process
 
 from socx.core.schema import Script
 from socx.patterns import Visitor
+
+
+logger = logging.getLogger(__name__)
 
 
 class TestResult(StrEnum):
@@ -47,17 +52,16 @@ class TestBase(BaseModel):
     """Base class for tests."""
 
     id: UUID4 = Field(default_factory=uuid.uuid4)
-    name: str = Field(...)
-    started_time: float | None = Field(None)
-    finished_time: float | None = Field(None)
-
+    name: str
+    started_time: float | None = None
+    finished_time: float | None = None
     model_config = ConfigDict(
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
 
-    _result: TestResult = PrivateAttr(TestResult.NA)
-    _status: TestStatus = PrivateAttr(TestStatus.Idle)
+    _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
+    _status: declare.Declare[TestStatus] = declare.Declare(TestStatus.Idle)
     _process: aio.subprocess.Process | None = PrivateAttr(default=None)
     _termination_requested: bool = PrivateAttr(default=False)
     _output_dir: Path | None = PrivateAttr(default=None)
@@ -110,7 +114,7 @@ class TestBase(BaseModel):
     @property
     def started(self) -> bool:
         """Return ``True`` once ``start`` has spawned the subprocess."""
-        return self.status > TestStatus.Pending
+        return self.status >= TestStatus.Pending
 
     @property
     def elapsed_time(self) -> float | None:
@@ -185,7 +189,7 @@ class TestBase(BaseModel):
 
     async def stop(self) -> None:
         """Terminate the active test process."""
-        if self._process is None or self.status in (
+        if self.status in (
             TestStatus.Idle,
             TestStatus.Finished,
             TestStatus.Terminated,
@@ -200,24 +204,41 @@ class TestBase(BaseModel):
             and self.status != TestStatus.Terminated
         ):
             self._termination_requested = False
-            os.killpg(self._process.pid, signal.SIGTERM)
-            await self._process.wait()
+            if self._process is not None:
+                os.killpg(self._process.pid, signal.SIGTERM)
+                await self._process.wait()
         self.status = TestStatus.Terminated
 
     def reset(self) -> None:
         """Reset runtime state so the test may be executed again."""
-        self.started_time = None
-        self.finished_time = None
-        self._result = TestResult.NA
-        self._status = TestStatus.Idle
+        self.result = TestResult.NA
+        self.status = TestStatus.Idle
         self._process = None
         self._termination_requested = False
+        self.started_time = None
+        self.finished_time = None
 
     async def restart(self) -> None:
         """Terminate, reset, and execute the test again."""
         await self.stop()
         self.reset()
         await self.start()
+
+    @_status.watch
+    def watch_status(self, old_status: TestStatus, status: TestStatus) -> None:
+        msg = (
+            f"{type(self)}({self.name}): status changed from "
+            f"'{old_status.name}' to '{status.name}'."
+        )
+        logger.debug(msg)
+
+    @_result.watch
+    def watch_result(self, old_result: TestResult, result: TestResult) -> None:
+        msg = (
+            f"{type(self)}({self.name}): result changed from "
+            f"'{old_result.name}' to '{result.name}'."
+        )
+        logger.debug(msg)
 
     def _prepare_output_files(self) -> None:
         if self.output_dir is None:
@@ -289,9 +310,7 @@ class Test(TestBase):
             self._write_output_files()
             return
 
-        process = await aio.create_subprocess_exec(
-            "/bin/sh",
-            "-c",
+        process = await aio.create_subprocess_shell(
             str(self.exec),
             stdout=aio.subprocess.PIPE,
             stderr=aio.subprocess.PIPE,

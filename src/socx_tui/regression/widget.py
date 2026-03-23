@@ -1,4 +1,5 @@
 from __future__ import annotations
+from textual.widgets.tree import TreeNode
 
 import logging
 from datetime import datetime
@@ -7,12 +8,11 @@ from typing import Any, ClassVar
 
 import rich.repr
 from rich.text import Text
-from socx import Regression, Test, TestBase, TestResult, TestStatus, settings
+from socx import Regression, Test, TestBase, TestResult, settings
 from textual import on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Container
-from textual.timer import Timer
 from textual.widget import Widget
 from textual.widgets import Button, Tree
 from textual_fspicker import FileOpen
@@ -42,18 +42,20 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
             description="Load regression from file",
             key_display="o / ctrl+o",
         ),
-        Binding("s", "start_selected()", "Start", show=True),
-        Binding("X", "stop_selected()", "Stop", show=True),
-        Binding("p", "pause_selected()", "Pause", show=True),
-        Binding("r", "resume_selected()", "Resume", show=True),
-        Binding("R", "restart_selected()", "Restart", show=True),
+        Binding("s", "start_selected()", "Start", show=False),
+        Binding("r", "resume_selected()", "Resume", show=False),
+        Binding("p", "pause_selected()", "Pause", show=False),
+        Binding("x", "pause_selected()", "Pause", show=False),
+        Binding("P", "stop_selected()", "Stop", show=False),
+        Binding("X", "stop_selected()", "Stop", show=False),
+        Binding("R", "restart_selected()", "Restart", show=False),
     ]
     ALLOW_MAXIMIZE: ClassVar[bool] = True
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.loaded_regression: Regression | None = None
-        self.node_map: dict[str, Any] = {}
+        self.node_map: dict[str, TreeNode] = {}
         self.regression_tree = VimTree("Regressions", id="regression-tree")
         self.details_view = RegressionDetails(id="regression-details")
         self.content = Container(
@@ -63,35 +65,35 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         )
         self.button_layout = Container(
             Button(
-                "Start",
+                "Start\n(s)",
                 "success",
                 id="start-button",
                 name="start-button",
                 classes="button",
             ),
             Button(
-                "Resume",
+                "Resume\n(r)",
                 "primary",
                 id="resume-button",
                 name="resume-button",
                 classes="button",
             ),
             Button(
-                "Pause",
+                "Pause/Suspend\n(x/p)",
                 "warning",
                 id="pause-button",
                 name="pause-button",
                 classes="button",
             ),
             Button(
-                "Stop",
+                " Stop/Kill\n(X/P)",
                 "error",
                 id="stop-button",
                 name="pause-button",
                 classes="button",
             ),
             Button(
-                "Restart",
+                "Restart\n(R)",
                 "default",
                 id="restart-button",
                 name="restart-button",
@@ -101,18 +103,12 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
             name="button-layout",
             classes="layout",
         )
-        self._refresh_timer: Timer | None = None
-        self._refresh_enabled = False
 
     @property
     def selected_model(self) -> TestBase | None:
         node = self.regression_tree.cursor_node
         data = getattr(node, "data", None)
         return data if isinstance(data, TestBase) else None
-
-    @property
-    def refresh_enabled(self) -> bool:
-        return self._refresh_enabled
 
     def compose(self) -> ComposeResult:
         yield self.content
@@ -121,11 +117,10 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
     async def on_mount(self) -> None:
         self.regression_tree.focus()
         self._refresh_timer = self.set_interval(
-            1 / 5, self._refresh_tree_state, pause=True
+            name="referesh_timer",
+            callback=self._refresh_tree_state,
+            interval=1 / 2,
         )
-
-    def show_text(self, message: str | Text) -> None:
-        self.details_view.show_text(message)
 
     def show_details(self, model: TestBase | None) -> None:
         self.details_view.model = model
@@ -145,28 +140,21 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         if model is None:
             self._no_model_selected_notification()
             return
-        if model.status >= TestStatus.Pending and not model.finished:
-            await model.pause()
-            self._refresh_tree_state()
+        self._pause_model(model)
 
     async def action_stop_selected(self) -> None:
         model = self.selected_model
         if model is None:
             self._no_model_selected_notification()
             return
-        if model.status >= TestStatus.Pending and not model.finished:
-            await model.stop()
-            self._refresh_tree_state()
+        self._stop_model(model)
 
     async def action_resume_selected(self) -> None:
         model = self.selected_model
         if model is None:
             self._no_model_selected_notification()
             return
-        if model.is_suspended():
-            self._set_refresh_timer(True)
-            await model.resume()
-            self._refresh_tree_state()
+        self._resume_model(model)
 
     async def action_restart_selected(self) -> None:
         model = self.selected_model
@@ -202,20 +190,18 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
     @work(exclusive=False)
     async def load_regression_from_file(self) -> None:
         """Open a file selection dialog and load selection as regression."""
+        await self.action_stop_selected()
         self.set_loading(True)
 
         try:
             await self._load_regression_from_file()
         finally:
             self.set_loading(False)
+            self._refresh_tree_state()
 
     @work(exclusive=False)
     async def _start_model(self, model: TestBase) -> None:
-        self._set_refresh_timer(True)
-        if model.is_suspended():
-            await model.resume()
-        else:
-            await model.start()
+        await model.start()
         self._refresh_tree_state()
 
     @work(exclusive=False)
@@ -224,8 +210,17 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         self._refresh_tree_state()
 
     @work(exclusive=False)
+    async def _stop_model(self, model: TestBase) -> None:
+        await model.stop()
+        self._refresh_tree_state()
+
+    @work(exclusive=False)
+    async def _resume_model(self, model: TestBase) -> None:
+        await model.resume()
+        self._refresh_tree_state()
+
+    @work(exclusive=False)
     async def _restart_model(self, model: TestBase) -> None:
-        self._set_refresh_timer(True)
         await model.restart()
         self._refresh_tree_state()
 
@@ -240,6 +235,7 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         self.loaded_regression = regression
         self._populate_tree(regression)
         self._refresh_tree_state()
+        self.details_view.refresh()
         self.regression_tree.focus()
         return regression
 
@@ -301,16 +297,16 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         first_node = None
         for item in self._top_level_regressions(regression):
             node = self._add_regression_node(root, item)
-            first_node = first_node or node
+            if first_node is None:
+                first_node = node
 
         if first_node is None:
             self.show_details(regression)
-            self._sync_refresh_timer()
-            return
+        else:
+            self.regression_tree.move_cursor(first_node)
+            self.show_details(first_node.data)
 
-        self.regression_tree.move_cursor(first_node)
-        self.show_details(first_node.data)
-        self._sync_refresh_timer()
+        self._refresh_tree_state()
 
     def _top_level_regressions(
         self, regression: Regression
@@ -344,58 +340,24 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         return node
 
     def _refresh_tree_state(self) -> None:
+        if not self.is_on_screen:
+            return
         regression = self.loaded_regression
         if regression is None:
-            self._set_refresh_timer(False)
             return
-
-        self._sync_refresh_timer()
-        if self.app.screen is not self.screen:
-            return
-
+        model = self.selected_model
+        if self.details_view.model != model:
+            self.details_view.model = model
         labels_changed = False
         for node in self.node_map.values():
             model = getattr(node, "data", None)
-            if not isinstance(model, TestBase):
-                continue
-
-            label = (
-                self._format_regression_label(model)
-                if isinstance(model, Regression)
-                else self._format_test_label(model)
-            )
-            current_label = getattr(node.label, "plain", str(node.label))
-            if current_label != label.plain:
-                node.set_label(label)
-                labels_changed = True
-
+            if isinstance(model, TestBase):
+                label = self._format_label(model)
+                if node.label != label:
+                    node.set_label(label)
+                    labels_changed = True
         if labels_changed:
-            self.regression_tree.refresh()
-
-        if self.selected_model != self.details_view.model:
-            self.details_view.model = self.selected_model
-        else:
-            self.details_view.refresh_details()
-
-    def _sync_refresh_timer(self) -> None:
-        regression = self.loaded_regression
-        should_refresh = regression is not None and regression.status in (
-            TestStatus.Pending,
-            TestStatus.Running,
-        )
-        self._set_refresh_timer(should_refresh)
-
-    def _set_refresh_timer(self, enabled: bool) -> None:
-        if self._refresh_timer is None or self._refresh_enabled == enabled:
-            self._refresh_enabled = enabled
-            return
-
-        self._refresh_enabled = enabled
-        if enabled:
-            self._refresh_timer.resume()
-            self._refresh_timer.reset()
-        else:
-            self._refresh_timer.pause()
+            self.details_view.refresh()
 
     def _create_session_output_dir(self, regression: Regression) -> Path:
         now = datetime.now().astimezone()
@@ -410,6 +372,14 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
             / now.strftime("%H-%M-%S")
             / regression.name
         )
+
+    def _format_label(self, model: TestBase) -> Text:
+        if isinstance(model, Test):
+            return self._format_test_label(model)
+        elif isinstance(model, Regression):
+            return self._format_regression_label(model)
+        else:
+            return Text("")
 
     def _format_regression_label(self, regression: Regression) -> Text:
         return Text.assemble(
@@ -456,8 +426,8 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
             else "bold italic green"
             if test.passed
             else "bold italic red"
-            if test.failed
-            else "bold italic yellow",
+            if test.failed or test.terminated
+            else "bold italic yellow1",
         )
 
     def _format_test_status_label(self, test: TestBase) -> Text:

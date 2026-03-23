@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from functools import partial
 from typing import Any, ClassVar
 from collections import ChainMap
 from collections.abc import Iterable
 
-from socx import console, settings
+from socx import settings
+from rich.console import Group
 from textual.app import App
 from textual.app import ComposeResult
 from textual.app import SystemCommand
@@ -49,6 +51,9 @@ class SoCX(App[int]):
             self.regression.persist_loaded_regression_state()
         super().exit(result=result, return_code=return_code, message=message)
 
+    def on_mount(self) -> None:
+        self.theme = "atom-one-dark"
+
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
         yield Header(
@@ -81,7 +86,7 @@ class SoCX(App[int]):
         yield SystemCommand(
             "Print DOM Tree",
             "Print the current DOM Tree to dev log",
-            lambda: console.print(self.tree),
+            partial(self.console.print, Group(self.tree)),
         )
         yield SystemCommand(
             "Log DOM Tree",

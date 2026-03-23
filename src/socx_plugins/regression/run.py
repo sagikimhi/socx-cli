@@ -5,7 +5,7 @@ from __future__ import annotations
 import anyio
 import logging
 
-from socx import command
+from socx import command, settings
 
 from socx_plugins.regression._run import options, run_regression
 
@@ -37,7 +37,10 @@ def run():
     ```
     """
     try:
-        regression = anyio.run(run_regression)
+        regression = anyio.run(
+            run_regression,
+            backend_options=dict(debug=settings.cli.params.debug),
+        )
     except* Exception:
         logger.exception("Regression run was interrupted by user.")
         rv = 0x80 + 2  # SIGINT

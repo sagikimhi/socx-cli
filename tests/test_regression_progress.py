@@ -14,15 +14,13 @@ def test_update_regression_handles_zero_task_id() -> None:
             name="suite", tests=[Test(name="t1", exec="true")]
         )
         progress = RegressionProgress(regression)
-        pipeline = progress.progress_map[regression.id]
+        pipeline = progress.progress
 
         with pipeline:
             task_id = pipeline.add_task(total=1, description="suite")
             assert task_id == 0
             progress.tasks[regression.id] = task_id
-
-            await progress.update_regression(regression, 1)
-
+            progress.update_regression(regression, 1)
             assert pipeline.tasks[task_id].completed == 1
 
     asyncio.run(run_test())
