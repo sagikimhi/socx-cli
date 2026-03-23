@@ -24,7 +24,7 @@ The coloured help output includes:
 | --- | --- | --- |
 | `--debug / -d` | Enables debug logging and early configuration loading. | Also toggled by `SOCX_DEBUG=1`. |
 | `--verbosity LEVEL` | Sets the Python logging level. | Accepts any standard logging level name, case-insensitive. |
-| `--config / --no-config` | Controls whether user configuration sources are loaded. | Useful when debugging unexpected overrides. |
+| `--configure / --no-configure` | Controls whether user configuration sources are loaded. | Useful when debugging unexpected overrides. |
 
 All commands inherit these options because the CLI registers them as decorators.
 
@@ -34,7 +34,7 @@ All commands inherit these options because the CLI registers them as decorators.
 | --- | --- | --- |
 | Configuration | `socx config ...` | Inspect merged settings, open config files, or dump Dynaconf debug info. |
 | Git manifest | `socx git mfest` | Walk a path and emit a manifest as a table, JSON, or list of `path@ref` strings. |
-| Regression | `socx rgr run` / `socx rgr tui` | Re-run failed command files asynchronously or manage them via the TUI dashboard. |
+| Regression | `socx regression run` / `socx regression tui` | Re-run failed command files asynchronously or manage them via the TUI dashboard. |
 | Conversion | `socx convert lst` | Load an LST symbol table and generate SystemVerilog covergroups. |
 | Plugin helper | `socx plugin example` | View a quickstart Markdown document that explains how to add your own command. |
 | Version | `socx version` | Display the installed package metadata using `uv`. |
@@ -43,7 +43,7 @@ Use `socx <plugin> --help` to drill into the options exposed by each group. For
 example:
 
 ```bash
-socx rgr run --help
+socx regression run --help
 ```
 
 The regression plugin adds `--input` and `--output` options, both of which are

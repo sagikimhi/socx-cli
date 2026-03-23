@@ -3,7 +3,7 @@ title: Regression Automation
 icon: lucide/flask-conical
 ---
 
-The regression rerun plugin (`socx rgr`) is designed to take the text files your
+The regression rerun plugin (`socx regression`) is designed to take the text files your
 simulations or tests produce and feed them back into your execution pipeline. It
 pairs a non-interactive CLI with a Textual-powered terminal UI (TUI).
 
@@ -29,7 +29,7 @@ The default location of the failure log is controlled via configuration under
 ## Running Regressions
 
 ```bash
-socx rgr run --help
+socx regression run --help
 ```
 
 Important options:
@@ -42,7 +42,7 @@ Important options:
 Example:
 
 ```bash
-socx rgr run -i ci/failures/failed.log -o ci/results
+socx regression run -i ci/failures/failed.log -o ci/results
 ```
 
 Behind the scenes the CLI:
@@ -57,7 +57,7 @@ Behind the scenes the CLI:
 ## Using the Terminal UI
 
 ```
-socx rgr tui
+socx regression tui
 ```
 
 The TUI provides a live view of command execution, progress bars, and quick
@@ -92,9 +92,9 @@ consumed by other scripts.
 
 ## Troubleshooting
 
-- `SOCX_DEBUG=1 socx rgr run` turns on debug logging for the regression
+- `SOCX_DEBUG=1 socx regression run` turns on debug logging for the regression
   pipeline and configuration loader.
-- Use `--no-config` if you suspect a repository override is injecting an
+- Use `--no-configure` if you suspect a repository override is injecting an
   unexpected command file.
 - Inspect runtime settings with `socx config get regression` to confirm which
   directories and filenames are in play.
