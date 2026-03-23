@@ -99,12 +99,13 @@ def _get_console_handler(
     """Create a Rich console handler configured for interactive output."""
     import click
     import rich_click
+    from socx.io.console import console as _console
 
     level = _get_level(level)
     tracebacks_theme = tracebacks_theme or "ansi_dark"
     tracebacks_suppress = tracebacks_suppress or [click, rich_click]
     if file is None and stderr is None:
-        from socx.io.console import console
+        console = _console
     else:
         console = _get_console(
             file=file,
@@ -119,7 +120,8 @@ def _get_console_handler(
         tracebacks_suppress=tracebacks_suppress,
         tracebacks_show_locals=tracebacks_show_locals,
     )
-    formatter = logging.Formatter(**settings.logging.formatters.child)
+    formatter = logging.Formatter(**settings.logging.formatters.default)
+    handler.name = "console"
     handler.setLevel(level)
     handler.setFormatter(formatter)
     return handler
@@ -146,7 +148,7 @@ def _get_file_handler(
     mode = mode or "a"
     file = open(path, mode=mode)  # noqa: SIM115
     atexit.register(close_if_open, file)
-    return _get_console_handler(
+    handler = _get_console_handler(
         file=file,
         level=level,
         stderr=stderr,
@@ -157,6 +159,9 @@ def _get_file_handler(
         tracebacks_suppress=tracebacks_suppress,
         tracebacks_show_locals=tracebacks_show_locals,
     )
+    handler.name = "file"
+    handler.setFormatter(DEFAULT_CHILD_FORMATTER)
+    return handler
 
 
 def _get_rotating_file_handler(
@@ -178,6 +183,7 @@ def _get_rotating_file_handler(
         maxBytes=MBs(10),
         backupCount=5,
     )
+    handler.name = "rotating_file"
     handler.setLevel(level)
     handler.setFormatter(DEFAULT_CHILD_FORMATTER)
     return handler

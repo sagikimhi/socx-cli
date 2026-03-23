@@ -3,14 +3,14 @@ logging:
     file:
       path: "@get this.paths.user_log_file"
       level: DEBUG
+    console:
+      level: INFO
       tracebacks_show_locals: >-
-        @bool @jinja {%- if this.cli.params.verbosity == 'DEBUG' -%}
+        @bool @jinja {%- if this.logging.handlers.console.level == 'DEBUG' -%}
             True
         {%- else -%}
             False
         {%- endif -%}"
-    console:
-      level: INFO
     rotating_file:
       level: DEBUG
       path: "@get this.paths.user_rotating_log_file"

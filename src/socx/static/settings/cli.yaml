@@ -4,7 +4,7 @@ cli:
     color: true
     debug: false
     configure: true
-    verbosity: WARNING
+    verbosity: "@jinja {{this.logging.handlers.console.level}}"
     config_files: []
 
   command:

@@ -1,30 +1,32 @@
 """Asynchronous regression runner that orchestrates test execution."""
 
 from __future__ import annotations
+import anyio.from_thread
 
 import asyncio as aio
 import anyio
+import anyio.to_thread
+import anyio.from_thread
 import logging
 import re
 import time
+from functools import partial
 from collections import OrderedDict
-from collections.abc import AsyncGenerator, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from threading import RLock
-from typing import Self, Any, Annotated
+from typing import Self, Any
 
 import box
 from pydantic import (
-    Field,
-    ConfigDict,
-    BaseModel,
-    PrivateAttr,
-    TypeAdapter,
     UUID4,
+    ConfigDict,
+    TypeAdapter,
+    SerializeAsAny,
+    Field,
+    PrivateAttr,
     computed_field,
     validate_call,
-    SerializeAsAny,
-    PlainValidator,
 )
 
 from socx.config import settings
@@ -69,6 +71,9 @@ class Regression(TestBase):
     )
     _lock: RLock = PrivateAttr(default_factory=RLock)
     _done: aio.Queue[TestBase] = PrivateAttr(default_factory=aio.Queue)
+    _mutex: anyio.Semaphore = PrivateAttr(
+        default_factory=partial(anyio.Semaphore, 1)
+    )
     _pending: aio.Queue[TestBase | None] = PrivateAttr(
         default_factory=aio.Queue
     )
@@ -106,7 +111,7 @@ class Regression(TestBase):
         cls,
         path: str | Path,
         name: str | None = None,
-        test_cls: type[TestBase] | None = None,
+        test_cls: type[Test] | None = None,
         **kwargs: Any,
     ) -> Self:
         path = TypeAdapter(FilePath).validate_python(path)
@@ -124,43 +129,32 @@ class Regression(TestBase):
     @computed_field
     @property
     def result(self) -> TestResult:
-        with self.lock:
-            if self.test_map:
-                return (
-                    TestResult.Passed
-                    if self.tests
-                    and all(
-                        test.result is TestResult.Passed for test in self.tests
-                    )
-                    else TestResult.Failed
-                    if any(
-                        test.result is TestResult.Failed for test in self.tests
-                    )
-                    else TestResult.NA
-                )
-            else:
-                return super().result
+        if not len(self):
+            return TestResult.NA
+        results = [test.result for test in self.tests]
+        if all(result is TestResult.Passed for result in results):
+            return TestResult.Passed
+        if any(result is TestResult.Failed for result in results):
+            return TestResult.Failed
+        return TestResult.NA
 
     @computed_field
     @property
     def status(self) -> TestStatus:
-        terminated_statuses = [
-            TestStatus.Idle,
-            TestStatus.Terminated,
-            TestStatus.Finished,
-        ]
-        running_statuses = [TestStatus.Running]
-        tests = self.tests
-        if all(test.status is TestStatus.Idle for test in tests):
+        if not len(self):
             return TestStatus.Idle
-        if all(test.status is TestStatus.Finished for test in tests):
+        terminated_statuses = {TestStatus.Finished, TestStatus.Terminated}
+        statuses = [test.status for test in self.tests]
+        if all(status is TestStatus.Finished for status in statuses):
             return TestStatus.Finished
-        if any(test.status in running_statuses for test in tests):
-            return TestStatus.Running
-        if any(test.status is TestStatus.Paused for test in tests):
-            return TestStatus.Paused
-        if all(test.status in terminated_statuses for test in tests):
+        if all(status in terminated_statuses for status in statuses):
             return TestStatus.Terminated
+        if any(status is TestStatus.Running for status in statuses):
+            return TestStatus.Running
+        if any(status is TestStatus.Paused for status in statuses):
+            return TestStatus.Paused
+        if any(status is TestStatus.Idle for status in statuses):
+            return TestStatus.Idle
         return TestStatus.Pending
 
     @computed_field
@@ -185,8 +179,12 @@ class Regression(TestBase):
         return self._lock
 
     @property
-    def done(self) -> aio.Queue:
-        return self._done
+    def mutex(self) -> anyio.Semaphore:
+        return self._mutex
+
+    @property
+    def pending(self) -> aio.Queue:
+        return self._pending
 
     @property
     def running(self) -> set[UUID4]:
@@ -194,8 +192,8 @@ class Regression(TestBase):
             return self._running.copy()
 
     @property
-    def pending(self) -> aio.Queue:
-        return self._pending
+    def done(self) -> aio.Queue:
+        return self._done
 
     def __len__(self) -> int:
         """Return the number of tests scheduled within the regression."""
@@ -232,8 +230,8 @@ class Regression(TestBase):
         logger.info("regression starting...")
 
         try:
-            await self._queue_tests()
             async with anyio.create_task_group() as tg:
+                tg.start_soon(self._queue_tests)
                 for _ in range(self.run_limit):
                     tg.start_soon(self._runner)
         finally:
@@ -244,96 +242,88 @@ class Regression(TestBase):
 
     async def pause(self) -> None:
         """Pause a running regression and any active descendants."""
-        if self.status is not TestStatus.Running:
-            return
+        async with self.mutex:
+            if self.status is not TestStatus.Running:
+                return
 
-        self._pause_event.clear()
-        await aio.gather(
-            *(test.pause() for test in self._active_tests()),
-            return_exceptions=True,
-        )
+            self._pause_event.clear()
+            async with anyio.create_task_group() as tg:
+                for test in self._active_tests():
+                    tg.start_soon(test.pause)
 
     async def resume(self) -> None:
         """Resume a paused regression and any active descendants."""
-        if self.status is not TestStatus.Paused:
-            return
+        async with self.mutex:
+            if self.status is not TestStatus.Paused:
+                return
 
-        self._pause_requested = False
-        self._pause_event.set()
-        await aio.gather(
-            *(test.resume() for test in self.tests),
-            return_exceptions=True,
-        )
+            self._pause_requested = False
+            self._pause_event.set()
+            async with anyio.create_task_group() as tg:
+                for test in self.tests:
+                    tg.start_soon(test.resume)
 
     async def stop(self) -> None:
         """Terminate active work within the regression."""
-        if self.status is TestStatus.Terminated:
-            return
+        async with self.mutex:
+            if self.status is TestStatus.Terminated:
+                return
 
-        self._stop_requested = True
-        self._pause_event.set()
-        await aio.gather(
-            *(test.stop() for test in self.tests),
-            return_exceptions=True,
-        )
-
-    async def restart(self) -> None:
-        """Terminate, reset, and execute the regression again."""
-        await self.stop()
-        self.reset()
-        await self.start()
+            self._stop_requested = True
+            self._pause_event.set()
+            async with anyio.create_task_group() as tg:
+                for test in self.tests:
+                    tg.start_soon(test.stop)
 
     def reset(self) -> None:
         """Reset the regression and all child tests."""
-        super().reset()
-
         for test in self.tests:
             if hasattr(test, "reset"):
                 test.reset()
-
+        self._running.clear()
         self._done = aio.Queue()
         self._pending = aio.Queue()
         self._pause_event = aio.Event()
-        self._running.clear()
         self._stop_requested = False
-
-    @classmethod
-    async def desync[T](cls, it: Iterable[T]) -> AsyncGenerator[T]:
-        for item in it:
-            yield item
+        self.started_time = None
+        self.finished_time = None
 
     async def _queue_tests(self) -> None:
-        items = list(self.tests)
-        for test in items:
-            if test.status in (TestStatus.Finished, TestStatus.Terminated):
-                test.reset()
-            await self.pending.put(test)
-        for _ in range(self.run_limit):
-            await self.pending.put(None)
+        async with anyio.create_task_group() as tg:
+            for test in self.tests:
+                if test.is_pending() or test.is_running():
+                    continue
+                if test.finished or test.terminated:
+                    test.reset()
+                test._status = TestStatus.Pending
+                tg.start_soon(self.pending.put, test)
+
+        async with anyio.create_task_group() as tg:
+            for _ in range(self.run_limit):
+                tg.start_soon(self.pending.put, None)
 
     async def _runner(self) -> None:
         """Consume queued tests and execute them sequentially."""
-        while True:
-            await semaphore.acquire()
-            test = await self.pending.get()
-            try:
-                if test is None:
-                    return
+        async with semaphore:
+            while True:
+                test = await self.pending.get()
+                try:
+                    if test is None:
+                        return
 
-                while not self._pause_event.is_set():
-                    await aio.sleep(0.05)
+                    while not self._pause_event.is_set():
+                        await aio.sleep(0.05)
 
-                if self._stop_requested:
-                    return
+                    if self._stop_requested:
+                        return
 
-                self._running.add(test.id)
-                await test.start()
-                await self.done.put(test)
-            finally:
-                if test is not None:
-                    self._running.discard(test.id)
-                self.pending.task_done()
-                semaphore.release()
+                    self._running.add(test.id)
+                    await test.start()
+                    await self.done.put(test)
+                finally:
+                    if test is not None:
+                        self._running.discard(test.id)
+                    self.pending.task_done()
 
     def assign_output_dir(self, output_dir: Path) -> Path:
         self.output_dir = output_dir
@@ -365,7 +355,7 @@ class Regression(TestBase):
         file = root_output_dir / "state.yaml"
         state = self._serialize_state(root_output_dir)
         file.parent.mkdir(parents=True, exist_ok=True)
-        box.DDBox(state).to_yaml(str(file))
+        state.to_yaml(str(file))
         logger.info(f"state and results saved to: '{file}'.")
         return file
 
@@ -435,22 +425,40 @@ class Regression(TestBase):
                 child._prepare_output_files()
                 child._write_output_files()
 
-    def _serialize_state(self, root_output_dir: Path) -> dict[str, Any]:
+    def _serialize_state(self, root_output_dir: Path) -> box.Box:
         return self._serialize_node(self, root_output_dir)
 
     @classmethod
-    def _serialize_node(
-        cls, node: TestBase, root_output_dir: Path
-    ) -> dict[str, Any]:
-        state = {
-            "kind": "regression" if isinstance(node, Regression) else "test",
-            "id": str(node.id),
-            "name": node.name,
-            "started_time": node.started_time,
-            "finished_time": node.finished_time,
-            "status": node.status.name.lower(),
-            "result": node.result.value,
-        }
+    def _serialize_node(cls, node: TestBase, root_output_dir: Path) -> box.Box:
+        # state = node.model_dump_json(
+        #     include={
+        #         "kind",
+        #         "id",
+        #         "name",
+        #         "exec",
+        #         "tests",
+        #         "status",
+        #         "result",
+        #         "output_dir",
+        #         "started_time",
+        #         "finished_time",
+        #     }
+        # )
+        state: box.Box = box.DDBox(
+            {
+                "kind": "regression"
+                if isinstance(node, Regression)
+                else "test",
+                "id": str(node.id),
+                "name": node.name,
+                "started_time": node.started_time,
+                "finished_time": node.finished_time,
+                "status": node.status.name.lower(),
+                "result": node.result.value,
+            },
+            box_dots=True,
+            conversion_box=True,
+        )
 
         if node.output_dir is not None and node.output_dir != root_output_dir:
             state["output_dir"] = str(
@@ -458,13 +466,17 @@ class Regression(TestBase):
             )
 
         if isinstance(node, Regression):
-            state["tests"] = [
-                cls._serialize_node(child, root_output_dir)
-                for child in node.tests
-            ]
+            state["tests"] = box.BoxList(
+                [
+                    cls._serialize_node(child, root_output_dir)
+                    for child in node.tests
+                ]
+            )
             return state
 
-        state["exec"] = str(node.exec) if node.exec is not None else None
+        if isinstance(node, Test):
+            state["exec"] = str(node.exec) if node.exec is not None else None
+
         if node.stdout_path is not None and node.stdout_path.exists():
             state["stdout_path"] = str(
                 node.stdout_path.relative_to(root_output_dir)
@@ -543,15 +555,15 @@ class Regression(TestBase):
         cls,
         data: Mapping[str, Any],
         output_dir: Path,
-        test_cls: type[TestBase],
+        test_cls: type[Test],
     ) -> Self:
         node = cls._deserialize_node(
-            data,
+            data=data,
             root_output_dir=output_dir,
             test_cls=test_cls,
             parent_output_dir=None,
         )
-        if not isinstance(node, Regression):
+        if isinstance(node, Test):
             msg = "State file must contain a root regression."
             raise ValueError(msg)
         return node
@@ -561,9 +573,9 @@ class Regression(TestBase):
         cls,
         data: Mapping[str, Any],
         root_output_dir: Path,
-        test_cls: type[TestBase],
+        test_cls: type[Test],
         parent_output_dir: Path | None,
-    ) -> TestBase:
+    ) -> Self | Test:
         kind = str(data.get("kind", "")).strip().lower()
         output_dir = cls._resolve_output_dir(
             data,
@@ -628,21 +640,6 @@ class Regression(TestBase):
         if parent_output_dir is None:
             return root_output_dir
         return parent_output_dir / _safe_dir_name(data["name"], data["id"])
-
-
-TreeNode = Annotated[
-    TestBase,
-    PlainValidator(lambda x: x, TestBase),
-    SerializeAsAny[Test | Regression],
-]
-
-
-class RegressionTree(BaseModel):
-    root_node: TreeNode = Field(..., title="Root Node", repr=True)
-    model_config = ConfigDict(
-        from_attributes=True,
-        arbitrary_types_allowed=True,
-    )
 
 
 # @field_validator("test_map", mode="before")

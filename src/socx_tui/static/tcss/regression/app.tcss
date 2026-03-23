@@ -1,5 +1,7 @@
 Screen {
-    # max_height: 80vh;
+    height: auto;
+    min-height: 60vh;
+    max_height: 80vh;
     padding: 0 0;
     margin: 0 0;
 }
