@@ -19,8 +19,10 @@ __all__ = (
     "USER_RUNTIME_DIR",
     "USER_LOG_FILENAME",
     "USER_CONFIG_FILENAME",
+    "USER_ROTATING_LOG_FILENAME",
     "USER_LOG_FILE",
     "USER_CONFIG_FILE",
+    "USER_ROTATING_LOG_FILE",
     # Local Paths
     "LOCAL_CONFIG_FILENAME",
     "LOCAL_CONFIG_FILE",
@@ -46,8 +48,12 @@ from socx.core._paths import USER_CONFIG_DIR as USER_CONFIG_DIR
 from socx.core._paths import USER_RUNTIME_DIR as USER_RUNTIME_DIR
 from socx.core._paths import USER_LOG_FILENAME as USER_LOG_FILENAME
 from socx.core._paths import USER_CONFIG_FILENAME as USER_CONFIG_FILENAME
+from socx.core._paths import (
+    USER_ROTATING_LOG_FILENAME as USER_ROTATING_LOG_FILENAME,
+)
 from socx.core._paths import USER_LOG_FILE as USER_LOG_FILE
 from socx.core._paths import USER_CONFIG_FILE as USER_CONFIG_FILE
+from socx.core._paths import USER_ROTATING_LOG_FILE as USER_ROTATING_LOG_FILE
 
 # Local Paths
 from socx.core._paths import LOCAL_CONFIG_FILE as LOCAL_CONFIG_FILE

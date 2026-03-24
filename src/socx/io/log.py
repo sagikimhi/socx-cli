@@ -177,7 +177,6 @@ def _get_rotating_file_handler(
 
     mode = mode or "w"
     handler = logging.handlers.RotatingFileHandler(
-        # no particular reason for size or backup count - arbitrarily chosen
         path,
         mode=mode,
         maxBytes=MBs(10),
@@ -246,9 +245,7 @@ def get_logger(name: str, filename: str | None = None) -> logging.Logger:
     """Return a child logger configured with optional file output."""
     rv = logger.getChild(name)
     if filename is not None:
-        handler = _get_rotating_file_handler(filename)
-        handler.setFormatter(DEFAULT_CHILD_FORMATTER)
-        rv.addHandler(handler)
+        rv.addHandler(_get_file_handler(filename))
     return rv
 
 

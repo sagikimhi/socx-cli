@@ -1,7 +1,7 @@
 logging:
   handlers:
     file:
-      path: "@get this.paths.user_log_file"
+      path: "@jinja {{this.paths.user_log_file}}"
       level: DEBUG
     console:
       level: INFO
@@ -12,8 +12,7 @@ logging:
             False
         {%- endif -%}"
     rotating_file:
-      level: DEBUG
-      path: "@get this.paths.user_rotating_log_file"
+      path: "@jinja {{this.paths.user_rotating_log_file}}"
 
   formatters:
     default:
