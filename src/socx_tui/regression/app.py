@@ -5,7 +5,6 @@ from __future__ import annotations
 from contextlib import suppress
 from functools import partial
 from typing import Any, ClassVar
-from collections import ChainMap
 from collections.abc import Iterable
 
 from socx import settings
@@ -13,6 +12,7 @@ from rich.console import Group
 from textual.app import App
 from textual.app import ComposeResult
 from textual.app import SystemCommand
+from textual.binding import Binding, BindingType
 from textual.screen import Screen
 from textual.widgets import Header
 from textual.widgets import Footer
@@ -25,6 +25,10 @@ from socx_tui.regression.widget import RegressionWidget
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding(**binding)
+        for binding in settings.regression.tui.keybinds.get("SoCX", [])
+    ]
     CSS_PATH: ClassVar[str] = (
         f"{settings.regression.tui.paths.tcss_dir}/app.tcss"
     )
@@ -38,8 +42,8 @@ class SoCX(App[int]):
         return self.query_exactly_one(RegressionWidget)
 
     def run(self, *args: Any, **kwargs: Any) -> int | None:
-        kwargs = dict(ChainMap(kwargs, dict(inline=True)))
-        return super().run(*args, **kwargs)
+        settings.regression.tui.app.update(kwargs)
+        return super().run(**settings.regression.tui.app.run)
 
     def exit(
         self,
@@ -51,18 +55,16 @@ class SoCX(App[int]):
             self.regression.persist_loaded_regression_state()
         super().exit(result=result, return_code=return_code, message=message)
 
-    def on_mount(self) -> None:
-        self.theme = "atom-one-dark"
-
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
-        yield Header(
-            id="regression-screen-header",
-            name="regression-screen-header",
-            show_clock=True,
-        )
+        yield Header(show_clock=True)
         yield RegressionWidget()
-        yield Footer(classes="-ansi-colors", compact=True)
+        yield Footer(compact=True)
+
+    def on_mount(self) -> None:
+        theme = settings.regression.tui.get("theme")
+        if theme:
+            self.theme = theme
 
     def check_action(
         self,
@@ -93,6 +95,10 @@ class SoCX(App[int]):
             "Print the current DOM Tree to dev log",
             lambda: self.log.info(self.tree),
         )
+
+    def watch_theme(self, theme: str) -> None:
+        if theme != settings.regression.tui.theme:
+            settings.regression.tui.update({"theme": theme})
 
     async def action_toggle_maximize(self) -> None:
         if self.regression.allow_maximize:

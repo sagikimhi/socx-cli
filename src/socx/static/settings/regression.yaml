@@ -1,21 +1,95 @@
 regression:
-  tui:
-    params:
-      inline: false
-      inline_no_clear: true
-    paths:
-      app_dir: >-
-        @jinja {{'{}/../socx_tui'.format(this.paths.app_root_dir) | realpath}}
-      static_dir: >-
-        @jinja {{'{}/static'.format(this.regression.tui.paths.app_dir) | realpath}}
-      tcss_dir: >-
-        @jinja {{'{}/tcss/regression'.format(this.regression.tui.paths.static_dir) | realpath}}
+  # test class to create when loading regressions from a file
+  test_cls: "socx:Test"
+
+  # regression class to create when loading regressions from a file
+  regression_cls: "socx:Regression"
+
+  # stored state file format, can be any of: yaml/toml/json
+  state_format: yaml
+
+  # limits the maximum number of tests that can be in "running" state at any
+  # given time.
+  max_runs_in_parallel: 10
+
+  # settings for the `socx regression run` command
   run:
     input:
       filename: ~
       directory: ~
     output:
       directory: "@path workrun/regression"
-  test_cls: "socx:Test"
-  regression_cls: "socx:Regression"
-  max_runs_in_parallel: 10
+
+  # settings for the `socx regression tui` command
+  tui:
+    # TUI related filesystem paths
+    paths:
+      # path to socx_tui package directory
+      app_dir: >-
+        @jinja {{'{}/../socx_tui'.format(this.paths.app_root_dir) | realpath}}
+      # path to socx_tui static files directory
+      static_dir: >-
+        @jinja {{'{}/static'.format(this.regression.tui.paths.app_dir) | realpath}}
+      # path to socx_tui static 'tcss' directory
+      tcss_dir: >-
+        @jinja {{'{}/tcss/regression'.format(this.regression.tui.paths.static_dir) | realpath}}
+
+    # TUI application theme
+    theme: gruvbox
+
+    # TUI application settings
+    app:
+      run:
+        inline: true
+        inline_no_clear: false
+      css_path: >-
+        @jinja {{this.regression.tui.paths.tcss_dir}}/app.tcss
+
+    # TUI application per-widget keybindings
+    keybinds:
+      SoCX:
+        - key: "?"
+          action: show_help_panel
+        - key: f1
+          action: show_help_panel
+
+      RegressionWidget:
+        # Hidden Keys
+        - key: o
+          show: false
+          action: load_regression_from_file
+          description: Load regressions from file
+        - key: X
+          show: false
+          action: stop_selected
+          description: Stop regression/test
+        - key: x
+          show: false
+          action: pause_selected
+          description: Pause regression/test
+
+        # Shown Keys
+        - key: ctrl+o
+          show: true
+          action: load_regression_from_file
+          description: Open file
+        - key: R
+          show: true
+          action: restart_selected
+          description: Restart
+        - key: P
+          show: true
+          action: stop_selected
+          description: Stop
+        - key: p
+          show: true
+          action: pause_selected
+          description: Pause
+        - key: r
+          show: true
+          action: resume_selected
+          description: Resume
+        - key: s
+          show: true
+          action: start_selected
+          description: Start

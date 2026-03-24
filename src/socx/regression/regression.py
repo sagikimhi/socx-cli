@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 
 semaphore = anyio.Semaphore(max(1, settings.regression.max_runs_in_parallel))
 
+_sentinel = object()
+
 
 def _safe_dir_name(name: str, node_id: UUID4) -> str:
     slug = re.sub(r"[^A-Za-z0-9._-]+", "-", name).strip("-").lower()
@@ -129,33 +131,35 @@ class Regression(TestBase):
     @computed_field
     @property
     def result(self) -> TestResult:
-        if not len(self):
+        with self.lock:
+            if not len(self):
+                return TestResult.NA
+            results = [test.result for test in self.tests]
+            if all(result is TestResult.Passed for result in results):
+                return TestResult.Passed
+            if any(result is TestResult.Failed for result in results):
+                return TestResult.Failed
             return TestResult.NA
-        results = [test.result for test in self.tests]
-        if all(result is TestResult.Passed for result in results):
-            return TestResult.Passed
-        if any(result is TestResult.Failed for result in results):
-            return TestResult.Failed
-        return TestResult.NA
 
     @computed_field
     @property
     def status(self) -> TestStatus:
-        if not len(self):
-            return TestStatus.Idle
-        terminated_statuses = {TestStatus.Finished, TestStatus.Terminated}
-        statuses = [test.status for test in self.tests]
-        if all(status is TestStatus.Finished for status in statuses):
-            return TestStatus.Finished
-        if all(status in terminated_statuses for status in statuses):
-            return TestStatus.Terminated
-        if any(status is TestStatus.Running for status in statuses):
-            return TestStatus.Running
-        if any(status is TestStatus.Paused for status in statuses):
-            return TestStatus.Paused
-        if any(status is TestStatus.Idle for status in statuses):
-            return TestStatus.Idle
-        return TestStatus.Pending
+        with self.lock:
+            if not len(self):
+                return TestStatus.Idle
+            terminated_statuses = {TestStatus.Finished, TestStatus.Terminated}
+            statuses = [test.status for test in self.tests]
+            if all(status is TestStatus.Finished for status in statuses):
+                return TestStatus.Finished
+            if all(status in terminated_statuses for status in statuses):
+                return TestStatus.Terminated
+            if any(status is TestStatus.Running for status in statuses):
+                return TestStatus.Running
+            if any(status is TestStatus.Paused for status in statuses):
+                return TestStatus.Paused
+            if any(status is TestStatus.Idle for status in statuses):
+                return TestStatus.Idle
+            return TestStatus.Pending
 
     @computed_field
     @property
@@ -172,7 +176,8 @@ class Regression(TestBase):
     @property
     def run_limit(self) -> int:
         """Return the maximum number of tests that may run concurrently."""
-        return int(max(1, int(settings.regression.max_runs_in_parallel)))
+        with self.lock:
+            return int(max(1, int(settings.regression.max_runs_in_parallel)))
 
     @property
     def lock(self) -> RLock:
@@ -242,10 +247,7 @@ class Regression(TestBase):
 
     async def pause(self) -> None:
         """Pause a running regression and any active descendants."""
-        async with self.mutex:
-            if self.status is not TestStatus.Running:
-                return
-
+        if self.is_running():
             self._pause_event.clear()
             async with anyio.create_task_group() as tg:
                 for test in self._active_tests():
@@ -253,10 +255,7 @@ class Regression(TestBase):
 
     async def resume(self) -> None:
         """Resume a paused regression and any active descendants."""
-        async with self.mutex:
-            if self.status is not TestStatus.Paused:
-                return
-
+        if self.is_suspended():
             self._pause_requested = False
             self._pause_event.set()
             async with anyio.create_task_group() as tg:
@@ -265,10 +264,7 @@ class Regression(TestBase):
 
     async def stop(self) -> None:
         """Terminate active work within the regression."""
-        async with self.mutex:
-            if self.status is TestStatus.Terminated:
-                return
-
+        if self.started and not (self.finished or self.terminated):
             self._stop_requested = True
             self._pause_event.set()
             async with anyio.create_task_group() as tg:
@@ -291,16 +287,15 @@ class Regression(TestBase):
     async def _queue_tests(self) -> None:
         async with anyio.create_task_group() as tg:
             for test in self.tests:
-                if test.is_pending() or test.is_running():
-                    continue
-                if test.finished or test.terminated:
-                    test.reset()
-                test._status = TestStatus.Pending
-                tg.start_soon(self.pending.put, test)
+                if not test.started:
+                    if not test.is_idle():
+                        test.reset()
+                    test._status = TestStatus.Pending
+                    tg.start_soon(self.pending.put, test)
 
         async with anyio.create_task_group() as tg:
             for _ in range(self.run_limit):
-                tg.start_soon(self.pending.put, None)
+                tg.start_soon(self.pending.put, _sentinel)
 
     async def _runner(self) -> None:
         """Consume queued tests and execute them sequentially."""
@@ -308,7 +303,7 @@ class Regression(TestBase):
             while True:
                 test = await self.pending.get()
                 try:
-                    if test is None:
+                    if test is _sentinel:
                         return
 
                     while not self._pause_event.is_set():
@@ -321,7 +316,7 @@ class Regression(TestBase):
                     await test.start()
                     await self.done.put(test)
                 finally:
-                    if test is not None:
+                    if test is not _sentinel:
                         self._running.discard(test.id)
                     self.pending.task_done()
 
@@ -352,15 +347,18 @@ class Regression(TestBase):
 
         logger.info("saving regression state and results to disk...")
         self._persist_test_outputs()
-        file = root_output_dir / "state.yaml"
+        file = root_output_dir / "state"
         state = self._serialize_state(root_output_dir)
         file.parent.mkdir(parents=True, exist_ok=True)
-        state.to_yaml(str(file))
-        logger.info(f"state and results saved to: '{file}'.")
+        state.to_yaml(str(file.with_suffix(".yml")))
+        state.to_toml(str(file.with_suffix(".toml")))
+        state.to_json(str(file.with_suffix(".json")))
+        logger.info(f"state and results saved to: '{root_output_dir}'.")
         return file
 
     def _active_tests(self) -> list[TestBase]:
-        return [test for test in self.tests if test.id in self._running]
+        with self.lock:
+            return [test for test in self.tests if test.id in self._running]
 
     def iter_leaf_tests(self) -> Iterable[TestBase]:
         for test in self.tests:

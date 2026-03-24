@@ -17,9 +17,9 @@ from textual.widget import Widget
 from textual.widgets import Button, Tree
 from textual_fspicker import FileOpen
 
-from socx_tui.regression.details import RegressionDetails
-from socx_tui.regression.dialog import TestOutputDialog
 from socx_tui.regression.tree import VimTree
+from socx_tui.regression.dialog import TestOutputDialog
+from socx_tui.regression.details import RegressionDetails
 
 
 logger = logging.getLogger(__name__)
@@ -30,25 +30,10 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
     """Render loaded regressions as an expandable tree and details pane."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
-        Binding(
-            key="o",
-            show=False,
-            action="load_regression_from_file()",
-            description="Load regression from file",
-        ),
-        Binding(
-            key="ctrl+o",
-            action="load_regression_from_file()",
-            description="Load regression from file",
-            key_display="o / ctrl+o",
-        ),
-        Binding("s", "start_selected()", "Start", show=False),
-        Binding("r", "resume_selected()", "Resume", show=False),
-        Binding("p", "pause_selected()", "Pause", show=False),
-        Binding("x", "pause_selected()", "Pause", show=False),
-        Binding("P", "stop_selected()", "Stop", show=False),
-        Binding("X", "stop_selected()", "Stop", show=False),
-        Binding("R", "restart_selected()", "Restart", show=False),
+        Binding(**binding)
+        for binding in settings.regression.tui.keybinds.get(
+            "RegressionWidget", []
+        )
     ]
     ALLOW_MAXIMIZE: ClassVar[bool] = True
 
