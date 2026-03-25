@@ -3,7 +3,6 @@ regression:
     params:
       inline: false
       inline_no_clear: true
-
     paths:
       app_dir: >-
         @jinja {{'{}/../socx_tui'.format(this.paths.app_root_dir) | realpath}}
@@ -11,30 +10,12 @@ regression:
         @jinja {{'{}/static'.format(this.regression.tui.paths.app_dir) | realpath}}
       tcss_dir: >-
         @jinja {{'{}/tcss/regression'.format(this.regression.tui.paths.static_dir) | realpath}}
-
-    table:
-      view:
-        opts:
-          cursor_type: row
-          show_header: true
-          show_row_labels: true
-          show_cursor: true
-          zebra_stripes: true
-          fixed_rows: 0
-          fixed_columns: 0
-
-      model:
-        opts:
-          exclude:
-            - exec
-
   run:
     input:
       filename: ~
       directory: ~
     output:
       directory: "@path workrun/regression"
-  path: ~
   test_cls: "socx:Test"
   regression_cls: "socx:Regression"
   max_runs_in_parallel: 10
