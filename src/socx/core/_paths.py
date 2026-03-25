@@ -36,7 +36,7 @@ def find_project_root(start_path: Path) -> Path:
 
     if not start_path.exists():
         err = f"Path '{start_path}' does not exist."
-        raise OSError(err)
+        raise FileNotFoundError(err)
 
     if start_path.is_file():
         start_path = start_path.parent

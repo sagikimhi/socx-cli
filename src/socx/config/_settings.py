@@ -9,14 +9,16 @@ from collections import ChainMap
 from collections.abc import Callable
 
 from dynaconf import LazySettings, get_history
+from dynaconf.loaders import env_loader
 from dynaconf.base import SourceMetadata, ensure_a_list
 from dynaconf.utils.boxing import DynaBox
 from dynaconf.utils.inspect import get_debug_info, _get_data_by_key
 from dynaconf.utils.parse_conf import unparse_conf_data
 from pydantic_core import to_jsonable_python
 
-from socx.config.serializers import SettingsSerializer
-
+from socx.core import paths, metadata
+from socx.core.enums import SettingsFormat
+from socx.config.serializers import SettingsSerializer, ModuleSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +31,10 @@ VT = TypeVar("VT")
 SETTINGS_DEFAULTS: dict[str, Any] = dict(
     env="default",
     envvar="SOCX_SETTINGS_PATH",
+    preload=[paths.APP_CONFIG_FILE],
     encoding="utf-8",
     auto_cast=True,
+    root_path=paths.PROJECT_ROOT_DIR,
     load_dotenv=True,
     environments=False,
     dotted_lookup=True,
@@ -46,15 +50,51 @@ SETTINGS_DEFAULTS: dict[str, Any] = dict(
 
 
 class Settings(LazySettings):
-    """Singleton settings instance of loaded `socx` configurations."""
+    """Application settings class."""
 
     def __init__(self, wrapped=None, **kwargs: Any) -> None:
-        kwargs = dict(ChainMap(kwargs, SETTINGS_DEFAULTS))
+        default_kwargs = SETTINGS_DEFAULTS
+        if kwargs.get("project_overrides", True):
+            project_files = self.get_project_config_files()
+            if project_files:
+                default_kwargs["settings_file"] = [project_files[-1]]
+        kwargs = dict(
+            ChainMap(
+                kwargs,
+                default_kwargs,
+                ModuleSerializer.serialize(paths),
+                ModuleSerializer.serialize(metadata),
+            )
+        )
         LazySettings.__init__(self, wrapped=wrapped, **kwargs)
-        if hasattr(self, "dynaconf_include"):
-            for file in self.dynaconf_include:
-                if file not in self.loaded_files:
-                    self.load_file(path=file)
+
+    def _setup(self) -> None:
+        super()._setup()
+        self._load_overrides()
+
+    def _load_overrides(self) -> None:
+        user_overrides = self.get("user_overrides", True)
+        project_overrides = self.get("project_overrides", True)
+        includes = self.get_settings_overrides(
+            user_overrides=user_overrides, project_overrides=project_overrides
+        )
+
+        if includes:
+            for file in includes:
+                logger.debug("loading settings overrides from: '%s'")
+                try:
+                    self.load_file(file)
+                except Exception:
+                    logger.exception(
+                        "Failed to load settings file: '%s'" % str(file)
+                    )
+                    continue
+                else:
+                    logger.debug("loaded settings overrides from: '%s'")
+
+            last_loader = self.loaders and self.loaders[-1]
+            if last_loader is env_loader:
+                env_loader.load(self._store)
 
     def __contains__(self, key):
         return self.exists(key) or (
@@ -76,19 +116,6 @@ class Settings(LazySettings):
     def root(self) -> Path:
         """Get the root path of the current settings instance."""
         return Path(self._root_path)
-
-    @root.setter
-    def root(self, value: str | Path) -> None:
-        if isinstance(value, str):
-            value = Path(value)
-
-        if value.is_file() and value.exists():
-            self.set(
-                "SETTINGS_FILE_FOR_DYNACONF",
-                value,
-                loader_identifier="init_settings_module",
-            )
-            self.reload()
 
     @property
     def history(self) -> tuple[dict[str, Any], ...]:
@@ -273,6 +300,107 @@ class Settings(LazySettings):
         for fn in funcs:
             rv = cls._transform(rv, fn, skip_values=skip_values)
         return rv
+
+    @classmethod
+    def get_settings_overrides(
+        cls, user_overrides: bool = True, project_overrides: bool = True
+    ) -> list[Path]:
+        """Get a list of project settings file overrides."""
+        overrides = []
+        if user_overrides:
+            overrides.extend(cls.get_user_config_files())
+        if project_overrides:
+            overrides.extend(cls.get_project_config_files())
+        return overrides
+
+    @classmethod
+    def get_project_config_files(cls) -> list[Path]:
+        """Get a list of local settings file paths found in parent folders.
+
+        Description:
+        ------------
+        After initialization, `socx` searches parent directories for any file
+        named '.socx.<ext>' where <ext> is any file extension supported by the
+        `socx` configuration system.
+
+        Local configuration overrides are any files named '.socx.<ext>' which
+        found in any of the parent directories of the current working
+        directory, where <ext> may be any one of: '.yaml', '.yml', '.json', or
+        '.toml'.
+
+        For reference, it works similar to git:
+
+        1.  first, default app configurations are loaded to initialize to
+            app's core functionality.
+
+        2.  second, global user configurations are loaded from the user's
+            config directory, determined according to the 'XDG Base Directory
+            Specification'
+            (https://specifications.freedesktop.org/basedir-spec).
+
+        3.  last, a search for local configuration files is done, matching
+            (and loading) any configuration files named '.socx.yaml' found in
+            any of the parent directories starting the search at the current
+            working
+            directory.
+
+        Returns:
+        --------
+        An ordered list of `Path` objects pointing at configuration files to
+        be loaded in that exact order to preserve the described overrides
+        order.
+
+        """
+        from socx.core.paths import LOCAL_CONFIG_FILE, LOCAL_CONFIG_FILENAME
+
+        rv = []
+        for parent in LOCAL_CONFIG_FILE.parents:
+            cfg_file = parent / LOCAL_CONFIG_FILENAME
+            for member in SettingsFormat:
+                rv.extend(
+                    cfg_file.with_suffix(ext)
+                    for ext in member.extensions
+                    if cfg_file.with_suffix(ext).is_file()
+                )
+        return rv
+
+    @classmethod
+    def get_user_config_files(cls) -> list[Path]:
+        """Get a list of all local config files found in parent folders.
+
+        Description:
+        ------------
+        User configuration files are any configuration files who's format is
+        supported and are located under the XDG_CONFIG_HOME directory.
+
+        Local configuration overrides are any files named '.socx.yaml' which
+        found in any of the parent directories of the current working
+        directory.
+
+        For reference, it works similar to git:
+
+        1.  first, default app configurations are loaded to initialize to
+            app's core functionality.
+
+        2.  second, global user configurations are loaded from the user's
+            config directory, determined according to the 'XDG Base Directory
+            Specification'
+            (https://specifications.freedesktop.org/basedir-spec).
+
+        3.  last, a search for local configuration files is done, matching
+            (and loading) any configuration files named '.socx.yaml' found in
+            any of the parent directories starting the search at the current
+            working directory.
+
+        Returns:
+        --------
+        An ordered list of `Path` objects pointing at configuration files to be
+        loaded in that exact order to preserve the described overrides order.
+
+        """
+        from socx.core.paths import USER_CONFIG_FILE
+
+        return [USER_CONFIG_FILE] if USER_CONFIG_FILE.exists() else []
 
     @classmethod
     def _transform(

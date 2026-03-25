@@ -25,7 +25,6 @@ class SettingsFormat(AutoNumber):
     Python = ".python"
 
     def __init__(self, extension: str, *extensions: str) -> None:
-        self.extension = extension
         self.extensions = [extension, *extensions]
 
     @classmethod

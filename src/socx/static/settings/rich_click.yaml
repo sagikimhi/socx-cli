@@ -214,11 +214,10 @@ rich_click:
   # type: NotRequired[Optional[Union[str, "Text"]]]
   footer_text: |
     @markdown @jinja :cd: [bold yellow]Cwd[/]: [italic]{{'{}'.format(this.cli.params.cwd)}}[/]
+    :open_file_folder: [bold yellow]Root[/]: [italic]{{'{}'.format(this.paths.project_root_dir)}}[/]
     {% if this.settings_file -%}
-    :open_file_folder: [bold yellow]Root[/]: [italic]{{'{}'.format(this._root_path)}}[/]
     :wrench: [bold yellow]Config[/]: [italic]{{'{}'.format(this.settings_file[-1])}}[/]
     {% else -%}
-    :open_file_folder: [bold yellow]Root[/]: [italic]{{'{}'.format(this._root_path)}}[/]
     :wrench: [bold yellow]Config[/]: [italic red]Not found[/]
     {% endif -%}
     :link: [bold yellow]Documentation[/]: [italic link]https://sagikimhi.dev/socx-cli[/]
@@ -277,7 +276,7 @@ rich_click:
   # type: NotRequired["PaddingDimensions"]
   padding_epilog: ~
   # type: NotRequired["PaddingDimensions"]
-  padding_footer_text: [0,2]
+  padding_footer_text: [0, 2]
   # type: NotRequired["PaddingDimensions"]
   padding_errors_panel: ~
   # type: NotRequired["PaddingDimensions"]

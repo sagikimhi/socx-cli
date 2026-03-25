@@ -8,9 +8,7 @@ import contextvars as ctx
 from textwrap import dedent
 from typing import Any
 from pathlib import Path
-from collections import ChainMap
 
-from dynaconf.utils import ensure_a_list
 from werkzeug.local import LocalProxy
 
 from socx.config import converters
@@ -109,70 +107,27 @@ def get_settings(
     path: str | Path | None = None,
     /,
     user_overrides: bool = False,
-    local_overrides: bool = False,
+    project_overrides: bool = False,
     extra_overrides: list[str | Path] | None = None,
     **kwargs: Any,
 ) -> Settings:
     """Create a configured ``Settings`` instance, including overrides."""
-    from socx.core import paths
-    from socx.core import metadata
-    from socx.config.serializers import ModuleSerializer
-
-    if isinstance(path, str):
-        path = Path(path)
-
-    includes = []
-    settings_file = ensure_a_list(path or paths.APP_CONFIG_FILE)
-
-    if user_overrides:
-        includes.extend(get_user_config_files())
-
-    if local_overrides:
-        includes.extend(get_local_config_files())
-
-    if extra_overrides:
-        includes.extend(
-            Path(p) if isinstance(p, str) else p for p in extra_overrides
-        )
-
-    root = includes[-1].parent if includes else Path.cwd()
-    settings_kwargs = dict(
-        preload=settings_file, root_path=root, settings_file=includes
+    return Settings(
+        user_overrides=user_overrides,
+        project_overrides=project_overrides,
+        **kwargs,
     )
-    kwargs = dict(
-        ChainMap(
-            kwargs,
-            settings_kwargs,
-            ModuleSerializer.serialize(paths),
-            ModuleSerializer.serialize(metadata),
-        ),
-    )
-    rv = Settings(**kwargs)
-    return rv
 
 
 converters.init()
-
 _tokens = []
-
 _settings_cv: ctx.ContextVar[Settings] = ctx.ContextVar("settings")
-
-_default_settings: Settings = get_settings()
-
-try:
-    _user_settings: Settings = get_settings(user_overrides=True)
-except Exception:
-    _user_settings = _default_settings
-
-try:
-    _local_settings: Settings = get_settings(
-        user_overrides=True, local_overrides=True
-    )
-except Exception:
-    _local_settings = _default_settings
-    _local_settings.update(_user_settings)
-
-settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
+_default_settings: Settings = Settings(
+    project_overrides=False, user_overrides=False
+)
+_user_settings: Settings = Settings(project_overrides=False)
+_local_settings: Settings = Settings()
+settings: SettingsProxy = LocalProxy(
     _settings_cv,
     unbound_message=dedent("""
         Working outside of application context.
@@ -180,7 +135,7 @@ settings: SettingsProxy = LocalProxy(  # type: ignore[assignment]
         Attempted to use functionality that expected a current application to
         be set. To solve this, set up an app context.
     """),
-)
+)  # ty:ignore[invalid-assignment]
 
 if "--no-configure" in sys.argv or "-NC" in sys.argv:
     _tokens.append(_settings_cv.set(_default_settings))
