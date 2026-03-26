@@ -22,6 +22,11 @@ console:
       - dynaconf
       - rich_click
     word_wrap: true
-    show_locals: true
+    show_locals: >-
+        @bool @jinja {%- if this.logging.handlers.console.level == 'DEBUG' -%}
+            True
+        {%- else -%}
+            False
+        {%- endif -%}"
     indent_guides: false
     locals_hide_sunder: ~

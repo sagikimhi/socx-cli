@@ -4,7 +4,7 @@ rich_click:
   # ---------------------------------------------------------------------------
 
   # type: RichHelpConfiguration
-  theme: cargo-modern
+  theme: cargo-slim
   # type: bool
   enable_theme_env_var: true
 
@@ -92,7 +92,7 @@ rich_click:
   # type: NotRequired[bool]
   style_options_table_pad_edge: ~
   # type: NotRequired["PaddingDimensions"]
-  style_options_table_padding: [0, 1, 1, 0]
+  style_options_table_padding: ~
   # type: NotRequired[bool]
   style_options_table_expand: ~
   # type: NotRequired[Optional[Union[str, "Box"]]]
@@ -127,7 +127,7 @@ rich_click:
   # type: NotRequired[bool]
   style_commands_table_pad_edge: ~
   # type: NotRequired["PaddingDimensions"]
-  style_commands_table_padding: [0, 1]
+  style_commands_table_padding: ~
   # type: NotRequired[bool]
   style_commands_table_expand: ~
   # type: NotRequired[Optional[Union[str, "Box"]]]
@@ -186,7 +186,7 @@ rich_click:
   # type: NotRequired[Optional[Literal["auto", "standard", "256", "truecolor", "windows"]]]
   color_system: ~
   # type: NotRequired[Optional[bool]]
-  force_terminal: false
+  force_terminal: true
   # type: NotRequired[List["OptionColumnType"]]
   options_table_column_types:
     - "required"
@@ -293,7 +293,7 @@ rich_click:
   # type: NotRequired[Optional[bool]]
   show_metavars_column: ~
   # type: NotRequired[bool]
-  commands_before_options: true
+  commands_before_options: false
   # type: NotRequired[bool]
   group_arguments_options: ~
   # type: NotRequired[Optional[bool]]
