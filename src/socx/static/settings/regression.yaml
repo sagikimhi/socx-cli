@@ -35,13 +35,13 @@ regression:
         @jinja {{'{}/tcss/regression'.format(this.regression.tui.paths.static_dir) | realpath}}
 
     # TUI application theme
-    theme: gruvbox
+    theme: atom-one-dark
 
     # TUI application settings
     app:
       run:
-        inline: true
-        inline_no_clear: false
+        inline: false
+        inline_no_clear: true
       css_path: >-
         @jinja {{this.regression.tui.paths.tcss_dir}}/app.tcss
 
@@ -49,9 +49,17 @@ regression:
     keybinds:
       SoCX:
         - key: "?"
-          action: show_help_panel
+          show: true
+          action: toggle_help_panel()
+          description: Toggle help
         - key: f1
-          action: show_help_panel
+          show: false
+          action: toggle_help_panel()
+          description: Toggle help
+        - key: f2
+          show: false
+          action: toggle_dark()
+          description: Switch between light/dark theme modes
 
       RegressionWidget:
         # Hidden Keys
@@ -75,7 +83,7 @@ regression:
           description: Open file
         - key: R
           show: true
-          action: restart_selected
+          action: prompt_restart_selected
           description: Restart
         - key: P
           show: true
@@ -93,3 +101,13 @@ regression:
           show: true
           action: start_selected
           description: Start
+
+      TestOutputDialog:
+        - key: escape
+          show: true
+          action: dismiss(None)
+          description: Dismiss the dialog.
+        - key: q
+          show: true
+          action: dismiss(None)
+          description: Dismiss the dialog.

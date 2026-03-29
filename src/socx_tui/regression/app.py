@@ -14,6 +14,7 @@ from textual.app import ComposeResult
 from textual.app import SystemCommand
 from textual.binding import Binding, BindingType
 from textual.screen import Screen
+from textual.widget import Widget
 from textual.widgets import Header
 from textual.widgets import Footer
 from hoptex.decorator import hoptex
@@ -42,7 +43,7 @@ class SoCX(App[int]):
         return self.query_exactly_one(RegressionWidget)
 
     def run(self, *args: Any, **kwargs: Any) -> int | None:
-        settings.regression.tui.app.update(kwargs)
+        settings.regression.tui.app.run.update(kwargs)
         return super().run(**settings.regression.tui.app.run)
 
     def exit(
@@ -85,24 +86,29 @@ class SoCX(App[int]):
                 RegressionWidget
             ).action_load_regression_from_file,
         )
-        yield SystemCommand(
-            "Print DOM Tree",
-            "Print the current DOM Tree to dev log",
-            partial(self.console.print, Group(self.tree)),
-        )
-        yield SystemCommand(
-            "Log DOM Tree",
-            "Print the current DOM Tree to dev log",
-            lambda: self.log.info(self.tree),
-        )
+        if settings.cli.params.debug or self.app.debug:
+            yield SystemCommand(
+                "Print DOM Tree",
+                "Print the current DOM Tree to dev log",
+                partial(self.console.print, Group(self.tree)),
+            )
+            yield SystemCommand(
+                "Log DOM Tree",
+                "Print the current DOM Tree to dev log",
+                lambda: self.log.info(self.tree),
+            )
 
-    def watch_theme(self, theme: str) -> None:
-        if theme != settings.regression.tui.theme:
-            settings.regression.tui.update({"theme": theme})
+    def action_toggle_help_panel(self) -> None:
+        if self.screen.query("HelpPanel"):
+            self.app.action_hide_help_panel()
+        else:
+            self.app.action_show_help_panel()
 
-    async def action_toggle_maximize(self) -> None:
-        if self.regression.allow_maximize:
-            if self.regression.is_maximized:
-                self.screen.minimize()
-            else:
-                self.screen.maximize(self.regression)
+    async def action_toggle_maximize(self, widget: Widget) -> None:
+        if not widget.allow_maximize:
+            return
+
+        if widget.is_maximized:
+            self.screen.minimize()
+        else:
+            self.screen.maximize(widget)

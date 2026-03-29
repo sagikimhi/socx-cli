@@ -203,7 +203,10 @@ def write_test_results(regression: Regression, output_dir: Path) -> None:
     logger.info(f"state and results saved to: '{output_dir}'.")
 
 
-def populate_regression(filepath: str | Path | anyio.Path) -> Regression:
+def populate_regression(
+    filepath: str | Path | anyio.Path,
+    limiter: anyio.CapacityLimiter | None = None,
+) -> Regression:
     """Construct a ``Regression`` model from the recorded commands file."""
     filepath = Path(filepath)
     converter = SymbolConverter()
@@ -223,20 +226,14 @@ async def run_regression(
     names_set = _get_names_to_run()
     progress = RegressionProgress(regression)
 
-    with anyio.CancelScope(shield=True):
-        try:
-            async with anyio.create_task_group() as tg:
-                tg.start_soon(progress.start, names_set, name=regression.name)
-        except anyio.get_cancelled_exc_class():
-            logger.info("Task cancelled, aborting...")
-            raise
-        except Exception as e:
-            logger.exception(f"Failed to complete run: {e}")
-            logger.info(
-                "Task failed due to an unexpected exception. aborting..."
-            )
-            raise
-        finally:
-            regression.dump_state(output_dir)
+    try:
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(progress.start, names_set)
+    except Exception:
+        pass
+    except anyio.get_cancelled_exc_class():
+        raise
+    finally:
+        regression.dump_state(output_dir)
 
     return regression

@@ -22,9 +22,18 @@ async def _wait_for(predicate, max_wait: float = 2.0) -> None:
     raise AssertionError(msg)
 
 
-def test_test_can_pause_and_resume() -> None:
+def test_test_can_pause_and_resume(tmp_path) -> None:
+    marker = tmp_path / "test-runs.log"
+
     async def run_test() -> None:
-        test = Test(name="slow", exec="sleep 0.4")
+        test = Test(
+            name="slow",
+            exec=[
+                f"echo started >> {marker}",
+                "sleep 0.4",
+                f"echo finished >> {marker}",
+            ],
+        )
         task = asyncio.create_task(test.start())
 
         await _wait_for(lambda: test.status is TestStatus.Running)
@@ -32,17 +41,49 @@ def test_test_can_pause_and_resume() -> None:
         assert test.status is TestStatus.Paused
 
         await asyncio.sleep(0.05)
+        assert marker.read_text().splitlines() == ["started"]
         await test.resume()
         await task
 
         assert test.status is TestStatus.Finished
         assert test.result is TestResult.Passed
+        assert marker.read_text().splitlines() == ["started", "finished"]
+
+    asyncio.run(run_test())
+
+
+def test_test_can_stop_shell_children(tmp_path) -> None:
+    marker = tmp_path / "stop-runs.log"
+
+    async def run_test() -> None:
+        test = Test(
+            name="slow",
+            exec=[
+                f"echo started >> {marker}",
+                "sleep 10",
+                f"echo finished >> {marker}",
+            ],
+        )
+        task = asyncio.create_task(test.start())
+
+        await _wait_for(lambda: test.status is TestStatus.Running)
+        await test.stop()
+        await task
+
+        assert test.status is TestStatus.Terminated
+        assert test.result is TestResult.Failed
+        assert marker.read_text().splitlines() == ["started"]
 
     asyncio.run(run_test())
 
 
 def test_regression_state(tmp_path) -> None:
-    command = "sleep 1.5"
+    marker = tmp_path / "regression-runs.log"
+    command = [
+        f"echo started >> {marker}",
+        "sleep 1.5",
+        f"echo finished >> {marker}",
+    ]
 
     async def run_test() -> None:
         regression = Regression(
@@ -56,11 +97,13 @@ def test_regression_state(tmp_path) -> None:
 
         await regression.pause()
         await wait_for(regression.is_suspended)
+        assert marker.read_text().splitlines() == ["started"]
 
         await regression.resume()
         await wait_for(regression.is_running)
         await task
         assert regression.finished
+        assert marker.read_text().splitlines() == ["started", "finished"]
 
         task = asyncio.create_task(regression.restart())
         await wait_for(regression.is_running)
@@ -68,6 +111,11 @@ def test_regression_state(tmp_path) -> None:
         await regression.stop()
         assert regression.terminated
         await task
+        assert marker.read_text().splitlines() == [
+            "started",
+            "finished",
+            "started",
+        ]
 
     asyncio.run(run_test())
 

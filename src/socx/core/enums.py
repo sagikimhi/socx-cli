@@ -18,14 +18,19 @@ class AutoNumber(int, enum.ReprEnum):
 
 
 class SettingsFormat(AutoNumber):
-    Ini = ".ini"
     Json = ".json"
     Yaml = ".yaml", ".yml"
     Toml = ".toml"
+    Ini = ".ini"
     Python = ".python"
 
     def __init__(self, extension: str, *extensions: str) -> None:
-        self.extensions = [extension, *extensions]
+        self.extensions = {extension, *extensions}
+
+    @classmethod
+    @cache
+    def all_extensions(cls) -> set[str]:
+        return {extension for member in cls for extension in member.extensions}
 
     @classmethod
     @cache
