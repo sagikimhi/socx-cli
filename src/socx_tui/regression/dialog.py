@@ -162,23 +162,21 @@ class RestartSelectionDialog(ModalScreen[str | None]):
                     "Restart\nAll", id="restart-scope-all", variant="success"
                 )
                 yield Button(
-                    "Restart\nFailed or Stopped",
-                    id="restart-scope-failed-cancelled",
-                    variant="primary",
-                )
-                yield Button("Restart\nStopped", id="restart-scope-cancelled")
-                yield Button(
                     "Restart\nFailed",
                     id="restart-scope-failed",
                     variant="error",
+                )
+                yield Button(
+                    "Restart\nStopped",
+                    id="restart-scope-cancelled",
+                    variant="primary",
                 )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
         mapping = {
             "restart-scope-all": "all",
-            "restart-scope-failed-cancelled": "failed_or_cancelled",
-            "restart-scope-cancelled": "cancelled",
             "restart-scope-failed": "failed",
+            "restart-scope-cancelled": "cancelled",
         }
         self.dismiss(mapping.get(button_id))

@@ -10,6 +10,7 @@ import signal
 import asyncio as aio
 import logging
 from textwrap import dedent
+from typing import Any
 from enum import IntEnum, StrEnum, auto
 from pathlib import Path
 from subprocess import CalledProcessError
@@ -27,7 +28,6 @@ from pydantic import (
     computed_field,
 )
 from anyio.abc import Process, TaskStatus
-from anyio.to_thread import run_sync
 
 from socx.patterns import Visitor
 from socx.core.schema import Script, DirectoryPath
@@ -96,6 +96,22 @@ class TestBase(BaseModel):
         """,
     )
 
+    fresh_env: bool = Field(
+        default=False,
+        description="""
+            Whether or not to execute the test in a fresh environment.
+
+            A fresh environment is an environment with no environment
+            variables defined other than those defined in the ``env`` field.
+
+            A non-fresh environment will contain all environment variables of
+            the current process, as well as any variables defined in the
+            ``env`` field.
+
+            If left unspecified, defaults to False.
+        """,
+    )
+
     model_config = ConfigDict(
         from_attributes=True,
         arbitrary_types_allowed=True,
@@ -111,6 +127,12 @@ class TestBase(BaseModel):
     _process: Process | None = PrivateAttr(None)
     _output_dir: Path | None = PrivateAttr(None)
     _termination_requested: bool = PrivateAttr(False)
+
+    def model_post_init(self, context: Any) -> None:
+        if not self.fresh_env:
+            env = os.environ.copy()
+            env.update(self.env)
+            self.env = env
 
     @computed_field
     @property
@@ -301,7 +323,7 @@ class TestBase(BaseModel):
             return
 
         async with self.mutex:
-            await run_sync(self._do_reset)
+            self._do_reset()
 
     async def restart(self, auto_start: bool = True) -> None:
         """Terminate, reset, and execute the test again."""
@@ -377,7 +399,7 @@ class Test(TestBase):
     """Concrete test model with subprocess execution support."""
 
     exec: Script = Field(
-        default=...,
+        "",
         validation_alias=AliasChoices("exec", "command", "script"),
         description=(
             "A shell command or a path to an executable file to run on test "
@@ -480,7 +502,7 @@ class Test(TestBase):
     ) -> None:
         async with anyio.create_task_group() as tg:
             self._process = await anyio.open_process(
-                str(self.exec),
+                command=str(self.exec),
                 cwd=self.cwd,
                 env=self.env,
                 stdout=aio.subprocess.PIPE,
@@ -522,11 +544,11 @@ class Test(TestBase):
             elif self._retcode == 0:
                 self._status = TestStatus.Finished
                 self._result = TestResult.Passed
-            elif self._retcode is None or 0 < self._retcode < 0x80:
-                self._status = TestStatus.Terminated
+            elif self._retcode is not None and 0 < self._retcode < 0x80:
+                self._status = TestStatus.Finished
                 self._result = TestResult.Failed
             else:
-                self._status = TestStatus.Finished
+                self._status = TestStatus.Terminated
                 self._result = TestResult.Failed
 
             self._process = None

@@ -98,6 +98,7 @@ class RegressionStaticDetails(Static):
                     self.format_header(model),
                     f"💡 Status: {self.format_status(model.status)}",
                     f"🚩 Result: {self.format_result(model.result)}",
+                    f"🧑‍💻 Exit Code: {self.format_retcode(model.retcode)}"
                     f"⌛ Elapsed Time: {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
                     f"⌛ Started Time: {self.format_time(model.started_time)}",
                     f"⌛ Finished Time: {self.format_time(model.finished_time)}",  # noqa: E501
@@ -125,6 +126,9 @@ class RegressionStaticDetails(Static):
         return "\n\n".join(
             ["## 📜 Command/Script", "```bash", script_str, "```"]
         )
+
+    def format_retcode(self, retcode: int | None) -> str:
+        return str(retcode)
 
     def format_result(self, result: TestResult | str) -> str:
         if isinstance(result, TestResult):

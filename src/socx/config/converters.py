@@ -310,8 +310,8 @@ class SymbolConverter(Converter[str | Lazy, Any]):
 
 class CommandConverter(
     Converter[
-        str | Lazy | sh.Command | click.Command | PluginModel,
-        str | Lazy | click.Command,
+        str | Lazy | BaseCommand | click.Command | PluginModel,
+        str | Lazy | click.Command | click.Group,
     ]
 ):
     """Turn module or script references into Rich Click commands."""
@@ -351,7 +351,7 @@ class CommandConverter(
     @overload
     def __call__(
         self,
-        value: sh.Command,
+        value: BaseCommand,
         *args: Any,
         **kwargs: Any,
     ) -> click.Command: ...
@@ -374,10 +374,10 @@ class CommandConverter(
     @_validate
     def __call__(
         self,
-        value: str | Lazy | sh.Command | click.Command | PluginModel,
+        value: str | Lazy | BaseCommand | click.Command | PluginModel,
         *args: Any,
         **kwargs: Any,
-    ) -> Lazy | click.Command | click.Group:
+    ) -> str | Lazy | click.Command | click.Group:
         """Build a Click command from dotted paths or reuse existing ones."""
         if isinstance(value, Lazy):
             if value.casting is self:
@@ -401,9 +401,9 @@ class CommandConverter(
             nonlocal value
 
             if TYPE_CHECKING:
-                value = cast(str | sh.Command | PluginModel, value)
+                value = cast(str | BaseCommand | PluginModel, value)
 
-            if isinstance(value, sh.Command):
+            if isinstance(value, str | BaseCommand):
                 return self._run_shell_script(value, *args)
 
             if isinstance(value, PluginModel) and value.is_script():

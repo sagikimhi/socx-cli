@@ -9,7 +9,15 @@ from typing import Any, ClassVar
 
 import rich.repr
 from rich.text import Text
-from socx import Regression, Test, TestBase, TestResult, settings, enums
+from socx import (
+    Regression,
+    Test,
+    TestBase,
+    TestResult,
+    settings,
+    enums,
+    TestStatus,
+)
 from textual import on, work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
@@ -237,12 +245,10 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
             match scope:
                 case "all":
                     return True
-                case "cancelled":
-                    return t.terminated
                 case "failed":
-                    return t.failed and not t.terminated
-                case "failed_or_cancelled":
-                    return t.failed
+                    return t.result is TestResult.Failed
+                case "cancelled":
+                    return t.status is TestStatus.Terminated
                 case _:
                     return False
 
@@ -480,7 +486,12 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
     def _format_test_status_label(self, test: TestBase) -> Text:
         status = f"💡 {self.details_view.details.format_status(test.status)}"
         result = f"🚩 {self.details_view.details.format_result(test.result)}"
-        return Text.assemble("[", "|".join([status, result]), "]")
+
+        if isinstance(test, Test):
+            retcode = f"🧑‍💻 {self.details_view.details.format_retcode(test.retcode)}"  # noqa: E501
+            return Text.assemble("[", "|".join([status, result, retcode]), "]")
+        else:
+            return Text.assemble("[", "|".join([status, result]), "]")
 
     def _no_model_selected_notification(self) -> None:
         msg = "Select a regression or test first."

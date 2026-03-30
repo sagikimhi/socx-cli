@@ -19,4 +19,8 @@ def main(min_: int = 1, max_: int = 10):
 
 
 if __name__ == "__main__":
+    import sys
+    import random
+
     main()
+    sys.exit(random.randint(0, 1))
