@@ -6,14 +6,15 @@ import rich.repr
 from socx import Test
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.containers import Vertical
+from textual.containers import Container
 from textual.screen import ModalScreen, ScreenResultType
 from textual.widgets import Static, TextArea
+from textual.widgets import Button
 
 from socx_tui.regression.bindings.vim.mode import VimModes
 
 
-class Dialog(Vertical):
+class Dialog(Container):
     """Layout class for the main dialog area."""
 
     pass
@@ -22,7 +23,7 @@ class Dialog(Vertical):
 class ReadOnlyOutputArea(TextArea, can_focus=True, inherit_bindings=True):
     """Read-only output viewer with keyboard navigation."""
 
-    BINDINGS: ClassVar[list[BindingType]] = TextArea.BINDINGS + VimModes.Normal
+    BINDINGS: ClassVar[list[Binding]] = TextArea.BINDINGS + VimModes.Normal
 
 
 @rich.repr.auto
@@ -45,6 +46,8 @@ class TestOutputDialog(ModalScreen[ScreenResultType]):
     DEFAULT_CSS: ClassVar[str] = """
     TestOutputDialog {
         align: center middle;
+        content-align: center middle;
+        text-align: center;
     }
 
     #regression-output-dialog {
@@ -104,3 +107,78 @@ class TestOutputDialog(ModalScreen[ScreenResultType]):
                 stderr,
             ]
         )
+
+
+class RestartSelectionDialog(ModalScreen[str | None]):
+    """Modal dialog that asks which tests should be restarted."""
+
+    DEFAULT_CSS: ClassVar[str] = """
+    RestartSelectionDialog {
+        align: center middle;
+    }
+
+    #restart-selection-dialog {
+        width: 50%;
+        height: 70%;
+        border: thick $accent;
+        background: $surface;
+    }
+
+    #restart-selection-title {
+        padding: 0 1;
+        height: auto;
+        text-style: bold;
+    }
+
+    #restart-selection-actions {
+        width: 100%;
+        height: auto;
+        layout: horizontal;
+        align: center bottom;
+        dock: bottom;
+        padding: 0 1 1 1;
+        margin: 1 0 0 0;
+    }
+    """
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("escape", "dismiss(None)", show=False),
+        Binding("q", "dismiss(None)", show=False),
+    ]
+
+    def compose(self) -> ComposeResult:
+        with Dialog(
+            id="restart-selection-dialog", name="restart-selection-dialog"
+        ):
+            yield Static(
+                "Please choose your preferred restart option:",
+                id="restart-selection-title",
+            )
+            with Container(
+                id="restart-selection-actions",
+                name="restart-selection-actions",
+            ):
+                yield Button(
+                    "Restart\nAll", id="restart-scope-all", variant="success"
+                )
+                yield Button(
+                    "Restart\nFailed or Stopped",
+                    id="restart-scope-failed-cancelled",
+                    variant="primary",
+                )
+                yield Button("Restart\nStopped", id="restart-scope-cancelled")
+                yield Button(
+                    "Restart\nFailed",
+                    id="restart-scope-failed",
+                    variant="error",
+                )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        button_id = event.button.id
+        mapping = {
+            "restart-scope-all": "all",
+            "restart-scope-failed-cancelled": "failed_or_cancelled",
+            "restart-scope-cancelled": "cancelled",
+            "restart-scope-failed": "failed",
+        }
+        self.dismiss(mapping.get(button_id))

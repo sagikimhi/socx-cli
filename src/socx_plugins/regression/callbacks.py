@@ -43,5 +43,5 @@ def name_cb(ctx: Context, param: Parameter, value: Iterable[str]) -> set[str]:
 @log_it(logger=logger)
 def inline_cb(ctx: Context, param: Parameter, value: bool) -> bool:
     """Update the value for the inline tui mode parameter."""
-    settings.regression.tui.params.update({param.name: value})
+    settings.regression.tui.app.update({param.name: value})
     return value

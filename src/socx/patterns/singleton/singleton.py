@@ -18,7 +18,7 @@ class _SingletonMeta(type):
         return cls._instances[cls]
 
 
-class Singleton(_SingletonMeta("SingletonMeta", (object,), {})):
+class Singleton(_SingletonMeta("_SingletonMeta", (object,), {})):
     """Mixin class for creating singleton classes.
 
     Extending this class enforces the singleton pattern on the subclass.

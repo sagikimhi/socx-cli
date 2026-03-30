@@ -1,29 +1,82 @@
 Screen {
     height: auto;
-    min-height: 60vh;
-    max_height: 80vh;
-    padding: 0 0;
-    margin: 0 0;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+
+    &:inline {
+        min-height: 80vh;
+        max_height: 80vh;
+    }
 }
 
 RegressionWidget {
-  align: center middle;
-  width: 1fr;
-  height: 1fr;
-  layout: vertical;
-  background: $surface;
-  padding: 0;
-  margin: 0;
+    align: center middle;
+    width: 1fr;
+    height: 1fr;
+    layout: vertical;
+    margin: 0 0 0 0;
+    padding: 0 0 0 0;
+    background: $surface;
+
+    # Container {
+    #   background: $surface;
+    # }
+}
+
+RestartSelectionDialog {
+    position: relative;
+
+    Dialog {
+      align: center middle;
+        layout: grid;
+        grid-size: 1 3;
+        grid-rows: 1fr;
+        grid-columns: 1fr;
+        grid-gutter: 1;
+        position: relative;
+        width: 60%;
+        height: 30%;
+        position: relative;
+        text-align: center;
+        offset-y: 80%;
+        outline: round $border;
+        background: $panel;
+        overflow: auto auto;
+
+        Static {
+            color: auto;
+            height: 100%;
+            row-span: 3;
+            text-align: center;
+        }
+    }
+
+}
+
+ScrollableContainer, ModalScreen {
+    margin: 0;
+    padding: 0;
 }
 
 RegressionDetails {
-  align: center middle;
+    align: center middle;
+    content-align: center middle;
+    margin: 0;
+    padding: 0;
+
+    RegressionStaticDetails {
+        align: center middle;
+        content-align: center middle;
+    }
 }
 
-ActionDialog {
-  align: center middle;
+ModalScreen {
+    align: center middle;
+    content-align: center middle;
+}
 
-  Dialog {
+Dialog {
+    align: center middle;
     width: 80%;
     height: 80%;
     border: round $primary;
@@ -37,7 +90,6 @@ ActionDialog {
         background: $panel;
         background-tint: $panel;
     }
-  }
 }
 
 #regression-content {
@@ -93,15 +145,80 @@ Button:hover {
 Header {
     width: 100%;
     height: auto;
-    background: $panel;
     padding: 0;
     margin: 0;
+    background: transparent;
 }
 
 Footer {
     width: 100%;
     height: auto;
-    background: $panel;
     padding: 0;
     margin: 0;
+    background: $background;
+}
+
+Toast {
+    margin: 0 0;
+    padding: 0 1;
+    background: $background;
+    color: $text-muted;
+    .toast--title {
+        color: $text;
+    }
+    &.-information {
+        border: round $primary;
+    }
+    &.-warning {
+        border: round $warning;
+    }
+    &.-error {
+        border: round $error;
+    }
+}
+
+
+HelpPanel {
+    border-left: solid white 7%;
+    padding-right: 0;
+    color: $text-secondary;
+
+    #widget-help {
+        # color: $text-secondary;
+        border: round $secondary;
+        background: transparent;
+        margin-top: 0;
+        padding: 0 0;
+        MarkdownBlock {
+            padding: 0 1;
+        }
+        MarkdownH2 {
+            margin: 0 0 1 0;
+        }
+        MarkdownBlock:last-child {
+            margin: 0 0 0 0;
+        }
+    }
+
+    KeyPanel {
+        # color: $text-secondary;
+        scrollbar-gutter: stable;
+        &> BindingsTable > .bindings-table--description {
+            color: $text-secondary;
+            text-opacity:90%;
+        }
+        .bindings-table--key {
+            color: $text-secondary;
+            color: $text;
+        }
+        &> BindingsTable > .bindings-table--header {
+            color: $text-secondary;
+            text-style: underline;
+        }
+    }
+}
+
+FileOpen {
+  position: relative;
+  dock: bottom;
 }

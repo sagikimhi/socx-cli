@@ -2,7 +2,12 @@ cli:
   params:
     cwd: "@jinja {{'.' | realpath}}"
     color: true
-    debug: false
+    debug: >-
+      @bool @jinja {% if this.logging.handlers.console.level == "DEBUG" -%}
+          True
+      {% else -%}
+          False
+      {% endif -%}
     configure: true
     verbosity: "@jinja {{this.logging.handlers.console.level}}"
     config_files: []

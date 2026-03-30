@@ -26,5 +26,5 @@ def tui() -> None:
     from socx_tui import SoCX as SoCX
 
     console.show_cursor(False)
-    SoCX().run(**settings.regression.tui.params)
+    SoCX().run(**settings.regression.tui.app.run)
     console.show_cursor(True)

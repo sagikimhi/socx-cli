@@ -20,7 +20,7 @@ def test_update_regression_handles_zero_task_id() -> None:
             task_id = pipeline.add_task(total=1, description="suite")
             assert task_id == 0
             progress.tasks[regression.id] = task_id
-            progress.update_regression(regression, 1)
+            await progress.update_regression(regression, 1)
             assert pipeline.tasks[task_id].completed == 1
 
     asyncio.run(run_test())

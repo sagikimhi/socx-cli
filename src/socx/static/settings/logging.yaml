@@ -4,7 +4,7 @@ logging:
       path: "@jinja {{this.paths.user_log_file}}"
       level: DEBUG
     console:
-      level: INFO
+      level: FATAL
       tracebacks_show_locals: >-
         @bool @jinja {%- if this.logging.handlers.console.level == 'DEBUG' -%}
             True

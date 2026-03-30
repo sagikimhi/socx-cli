@@ -2,28 +2,35 @@
 
 from __future__ import annotations
 
-import os
 import time
 import uuid
+import os
+import io
 import signal
-import logging
 import asyncio as aio
-from enum import StrEnum, IntEnum, auto
+import logging
+from textwrap import dedent
+from enum import IntEnum, StrEnum, auto
 from pathlib import Path
+from subprocess import CalledProcessError
+from collections.abc import Callable
 
+import anyio
 import declare
 from pydantic import (
+    UUID4,
+    Field,
     BaseModel,
     ConfigDict,
-    Field,
+    AliasChoices,
     PrivateAttr,
-    UUID4,
     computed_field,
 )
-from psutil import Process
+from anyio.abc import Process, TaskStatus
+from anyio.to_thread import run_sync
 
-from socx.core.schema import Script
 from socx.patterns import Visitor
+from socx.core.schema import Script, DirectoryPath
 
 
 logger = logging.getLogger(__name__)
@@ -51,52 +58,92 @@ class TestStatus(IntEnum):
 class TestBase(BaseModel):
     """Base class for tests."""
 
-    id: UUID4 = Field(default_factory=uuid.uuid4)
-    name: str
-    started_time: float | None = None
-    finished_time: float | None = None
+    id: UUID4 = Field(
+        default_factory=uuid.uuid4,
+        description=(
+            "UUID4 test identifier to uniquely identify the test case."
+        ),
+    )
+
+    name: str = Field(
+        ...,
+        pattern=r"[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*",
+        description="Name of the test.",
+    )
+
+    cwd: DirectoryPath = Field(
+        default_factory=Path.cwd,
+        description=dedent("""
+        An optional directory path from which the test should be invoked.
+        If left unspecified, it defaults to the current working directory.
+        """),
+    )
+
+    env: dict[str, str] = Field(
+        default_factory=dict,
+        description="""
+            Environment variables that should be present when the
+            command/script is invoked
+        """.strip(),
+    )
+
+    timeout: float | None = Field(
+        default=None,
+        ge=0,
+        description="""
+        An optional timeout in seconds for the test execution.
+        If left unspecified, then test execution may last indefinitely.
+        """,
+    )
+
     model_config = ConfigDict(
         from_attributes=True,
         arbitrary_types_allowed=True,
     )
 
-    _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
     _status: declare.Declare[TestStatus] = declare.Declare(TestStatus.Idle)
-    _process: aio.subprocess.Process | None = PrivateAttr(default=None)
-    _termination_requested: bool = PrivateAttr(default=False)
-    _output_dir: Path | None = PrivateAttr(default=None)
-
-    @computed_field
-    @property
-    def result(self) -> TestResult:
-        return self._result
-
-    @result.setter
-    def result(self, value: TestResult) -> None:
-        self._result = value
+    _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
+    _prev_time: declare.Declare[float] = declare.Declare(0)
+    _elapsed_time: declare.Declare[float] = declare.Declare(0)
+    _started_time: declare.Declare[float | None] = declare.Declare(None)
+    _finished_time: declare.Declare[float | None] = declare.Declare(None)
+    _mutex: anyio.Lock = PrivateAttr(default_factory=anyio.Lock)
+    _process: Process | None = PrivateAttr(None)
+    _output_dir: Path | None = PrivateAttr(None)
+    _termination_requested: bool = PrivateAttr(False)
 
     @computed_field
     @property
     def status(self) -> TestStatus:
         return self._status
 
-    @status.setter
-    def status(self, value: TestStatus) -> None:
-        self._status = value
-
+    @computed_field
     @property
-    def process(self) -> Process | None:
-        if self._process is None:
-            return None
-        return Process(self._process.pid)
+    def result(self) -> TestResult:
+        return self._result
+
+    @computed_field
+    @property
+    def elapsed_time(self) -> float:
+        return self._elapsed_time
+
+    @computed_field
+    @property
+    def started_time(self) -> float | None:
+        return self._started_time
+
+    @computed_field
+    @property
+    def finished_time(self) -> float | None:
+        return self._finished_time
 
     @property
     def output_dir(self) -> Path | None:
         return self._output_dir
 
     @output_dir.setter
-    def output_dir(self, value: Path | None) -> None:
-        self._output_dir = value
+    def output_dir(self, value: str | Path | anyio.Path | None) -> None:
+        self._output_dir = Path(str(value)) if value is not None else value
 
     @property
     def stdout_path(self) -> Path | None:
@@ -110,25 +157,15 @@ class TestBase(BaseModel):
             return None
         return self.output_dir / "stderr.txt"
 
-    @computed_field
     @property
     def started(self) -> bool:
         """Return ``True`` once ``start`` has spawned the subprocess."""
-        return self.status >= TestStatus.Pending
-
-    @property
-    def elapsed_time(self) -> float | None:
-        """Return the elapsed runtime derived from wall-clock timestamps."""
-        if self.started_time is None:
-            return None
-
-        end_time = self.finished_time or time.time()
-        return max(0.0, end_time - self.started_time)
+        return self.status > TestStatus.Pending
 
     @property
     def finished(self) -> bool:
         """Return ``True`` if the test completed and recorded a result."""
-        return self.status is TestStatus.Finished
+        return self.status in {TestStatus.Finished, TestStatus.Terminated}
 
     @property
     def terminated(self) -> bool:
@@ -138,14 +175,16 @@ class TestBase(BaseModel):
     @property
     def passed(self) -> bool:
         """Return ``True`` if the test finished successfully."""
-        return self.finished and self.result is TestResult.Passed
+        return self.result is TestResult.Passed
 
     @property
     def failed(self) -> bool:
         """Return ``True`` if the test finished with a failure result."""
-        return (
-            self.terminated or self.finished
-        ) and self.result == TestResult.Failed
+        return self.result is TestResult.Failed
+
+    @property
+    def mutex(self) -> anyio.Lock:
+        return self._mutex
 
     def accept(self, v: Visitor[TestBase]) -> None:
         """Accept a visit from a `Visitor`."""
@@ -167,93 +206,185 @@ class TestBase(BaseModel):
         """Return ``True`` if the subprocess is currently stopped."""
         return self.status is TestStatus.Paused
 
-    async def pause(self) -> None:
-        """Pause a running test with ``SIGSTOP``."""
-        if self._process is None or self.status is not TestStatus.Running:
+    def _send_process_signal(self, sig: signal.Signals) -> None:
+        """Signal the whole test session, not just the shell wrapper."""
+        if self._process is None:
             return
 
-        os.killpg(self._process.pid, signal.SIGSTOP)
-        self.status = TestStatus.Paused
+        pid = self._process.pid
+        if pid is None:
+            return
 
-    async def start(self) -> None:
+        try:
+            if hasattr(os, "killpg"):
+                os.killpg(pid, sig)
+            else:
+                self._process.send_signal(sig)
+        except ProcessLookupError:
+            return
+
+    async def pause(self) -> None:
+        """Pause a running test with ``SIGSTOP``."""
+        async with self.mutex:
+            if self._process is None or self.status is not TestStatus.Running:
+                return
+
+            self._send_process_signal(signal.SIGSTOP)
+            self._status = TestStatus.Paused
+
+    async def start(
+        self,
+        limiter: anyio.CapacityLimiter | None = None,
+        task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    ) -> None:
         """Execute the test executable to start the test."""
         raise NotImplementedError()
 
     async def resume(self) -> None:
         """Resume a paused test with ``SIGCONT``."""
-        if self._process is None or self.status is not TestStatus.Paused:
-            return
+        async with self.mutex:
+            if self._process is None or self.status is not TestStatus.Paused:
+                return
 
-        os.killpg(self._process.pid, signal.SIGCONT)
-        self.status = TestStatus.Running
+            self._status = TestStatus.Running
+
+        self._send_process_signal(signal.SIGCONT)
 
     async def stop(self) -> None:
         """Terminate the active test process."""
-        if self.status in (
-            TestStatus.Idle,
-            TestStatus.Finished,
-            TestStatus.Terminated,
-        ):
+        async with self.mutex:
+            if self._process is None or self._status not in {
+                TestStatus.Pending,
+                TestStatus.Paused,
+                TestStatus.Running,
+            }:
+                return
+
+            self._termination_requested = True
+            process = self._process
+            was_paused = self._status is TestStatus.Paused
+
+        if was_paused:
+            self._send_process_signal(signal.SIGCONT)
+
+        if process is not None:
+            self._send_process_signal(signal.SIGTERM)
+
+        with anyio.move_on_after(2, shield=True):
+            await self.wait()
             return
 
-        self._termination_requested = True
-        if self.status is TestStatus.Paused:
-            await self.resume()
-        if (
-            self._termination_requested
-            and self.status != TestStatus.Terminated
-        ):
-            self._termination_requested = False
-            if self._process is not None:
-                os.killpg(self._process.pid, signal.SIGTERM)
-                await self._process.wait()
-        self.status = TestStatus.Terminated
+        async with self.mutex:
+            if self._process is process:
+                self._send_process_signal(signal.SIGKILL)
 
-    def reset(self) -> None:
+        with anyio.move_on_after(2, shield=True):
+            await self.wait()
+
+    async def wait(
+        self, limiter: anyio.CapacityLimiter | None = None
+    ) -> int | None:
+        raise NotImplementedError()
+
+    async def reset(self) -> None:
         """Reset runtime state so the test may be executed again."""
-        self.result = TestResult.NA
-        self.status = TestStatus.Idle
-        self._process = None
-        self._termination_requested = False
-        self.started_time = None
-        self.finished_time = None
+        async with self.mutex:
+            self._do_reset()
 
-    async def restart(self) -> None:
+    async def soft_reset(
+        self, predicate: Callable[[TestBase], bool] | None
+    ) -> None:
+        if self.passed:
+            return
+
+        if predicate is not None and not predicate(self):
+            return
+
+        async with self.mutex:
+            await run_sync(self._do_reset)
+
+    async def restart(self, auto_start: bool = True) -> None:
         """Terminate, reset, and execute the test again."""
         await self.stop()
-        self.reset()
-        await self.start()
+        await self.reset()
+        if auto_start:
+            await self.start()
+
+    async def soft_restart(
+        self,
+        predicate: Callable[[TestBase], bool] | None = None,
+        auto_start: bool = True,
+    ) -> None:
+        """Terminate, reset, and execute the test again."""
+        await self.stop()
+        await self.soft_reset(predicate)
+        if auto_start:
+            await self.start()
 
     @_status.watch
     def watch_status(self, old_status: TestStatus, status: TestStatus) -> None:
-        msg = (
-            f"{type(self)}({self.name}): status changed from "
+        logger.debug(
+            f"{self._typename()}({self.name}): status changed from "
             f"'{old_status.name}' to '{status.name}'."
         )
-        logger.debug(msg)
+        match status:
+            case TestStatus.Running:
+                if self._started_time is None:
+                    self._started_time = time.time()
+                self._prev_time = time.monotonic()
+            case TestStatus.Paused:
+                self._elapsed_time += time.monotonic() - self._prev_time
+            case TestStatus.Finished | TestStatus.Terminated:
+                self._finished_time = time.time()
+                self._elapsed_time += time.monotonic() - self._prev_time
 
     @_result.watch
     def watch_result(self, old_result: TestResult, result: TestResult) -> None:
-        msg = (
-            f"{type(self)}({self.name}): result changed from "
+        logger.debug(
+            f"{self._typename()}({self.name}): result changed from "
             f"'{old_result.name}' to '{result.name}'."
         )
-        logger.debug(msg)
 
-    def _prepare_output_files(self) -> None:
+    def _do_reset(self) -> None:
+        self._result = TestResult.NA
+        self._status = TestStatus.Idle
+        self._process = None
+        self._prev_time = 0
+        self._elapsed_time = 0
+        self._started_time = None
+        self._finished_time = None
+        self._termination_requested = False
+
+    async def _prepare_output_files(self) -> None:
         if self.output_dir is None:
             return
 
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        for path in (self.stdout_path, self.stderr_path):
-            if path is not None:
-                path.write_text("", encoding="utf-8")
+        output_dir = anyio.Path(str(self.output_dir))
+        await output_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.stdout_path is not None:
+            await anyio.Path(str(self.stdout_path)).touch()
+
+        if self.stderr_path is not None:
+            await anyio.Path(str(self.stderr_path)).touch()
+
+    @classmethod
+    def _typename(cls) -> str:
+        return cls.__name__
 
 
 class Test(TestBase):
     """Concrete test model with subprocess execution support."""
 
-    exec: Script | None = Field(None)
+    exec: Script = Field(
+        default=...,
+        validation_alias=AliasChoices("exec", "command", "script"),
+        description=(
+            "A shell command or a path to an executable file to run on test "
+            "invocation."
+        ),
+    )
+
     model_config = ConfigDict(
         use_enum_values=True,
         from_attributes=True,
@@ -261,91 +392,192 @@ class Test(TestBase):
     )
     _stdout: str = PrivateAttr("")
     _stderr: str = PrivateAttr("")
+    _retcode: declare.Declare[int | None] = declare.Declare(None)
 
     @computed_field
+    @property
+    def retcode(self) -> int | None:
+        return self._retcode
+
     @property
     def stdout(self) -> str:
-        return self._stdout
+        if self.stdout_path is not None and self.stdout_path.exists():
+            return self.stdout_path.read_text()
+        else:
+            return self._stdout
 
-    @stdout.setter
-    def stdout(self, value: str) -> None:
-        self._stdout = value
-
-    @computed_field
     @property
     def stderr(self) -> str:
-        return self._stderr
+        if self.stderr_path is not None and self.stderr_path.exists():
+            return self.stderr_path.read_text()
+        else:
+            return self._stderr
 
-    @stderr.setter
-    def stderr(self, value: str) -> None:
-        self._stderr = value
-
-    def reset(self) -> None:
-        super().reset()
+    def _do_reset(self) -> None:
+        super()._do_reset()
         self._stdout = ""
         self._stderr = ""
+        self._retcode = None
 
-    async def start(self) -> None:
+    async def start(
+        self,
+        limiter: anyio.CapacityLimiter | None = None,
+        task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    ) -> None:
         """Execute the test executable to start the test."""
-        if self.is_running():
-            return
+        async with self.mutex:
+            is_idle = self.is_idle()
+            was_started = self.started
+            should_resume = self.is_suspended()
+            should_terminate = self._termination_requested
 
-        if self.is_suspended():
+            if is_idle:
+                self._status = TestStatus.Pending
+
+        if should_resume:
             await self.resume()
+
+        if was_started:
+            task_status.started()
             return
 
-        self._termination_requested = False
-        self.result = TestResult.NA
-        self.stdout = ""
-        self.stderr = ""
-        self.started_time = time.time()
-        self.finished_time = None
-        self.status = TestStatus.Pending
-        self._prepare_output_files()
-
-        if not self.exec:
-            self.status = TestStatus.Terminated
-            self.result = TestResult.Failed
-            self.finished_time = time.time()
-            self._write_output_files()
+        if should_terminate:
+            await self._handle_result()
+            task_status.started()
             return
 
-        process = await aio.create_subprocess_shell(
-            str(self.exec),
-            stdout=aio.subprocess.PIPE,
-            stderr=aio.subprocess.PIPE,
-            start_new_session=True,
-        )
-        self._process = process
-        self.status = TestStatus.Running
+        async with anyio.create_task_group() as tg:
+            if limiter is None:
+                await tg.start(self._start)
+            else:
+                async with limiter:
+                    await tg.start(self._start)
 
-        stdout, stderr = None, None
+            task_status.started()
+            tg.start_soon(self.wait, limiter)
+
+    async def wait(
+        self, limiter: anyio.CapacityLimiter | None = None
+    ) -> int | None:
+        async with self.mutex:
+            if self._process is None or not self.is_running():
+                return None
+
+            should_terminate = self._termination_requested
+
+        if should_terminate:
+            await self._handle_result()
+
+        if limiter is None:
+            return await self._wait()
+
+        async with limiter:
+            return await self._wait()
+
+    async def _start(
+        self,
+        task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    ) -> None:
+        async with anyio.create_task_group() as tg:
+            self._process = await anyio.open_process(
+                str(self.exec),
+                cwd=self.cwd,
+                env=self.env,
+                stdout=aio.subprocess.PIPE,
+                stderr=aio.subprocess.PIPE,
+                start_new_session=True,
+            )
+            self._status = TestStatus.Running
+            task_status.started()
+            tg.start_soon(self._prepare_output_files)
+            tg.start_soon(self._drain_streams)
+
+    async def _wait(self) -> int | None:
+        if self._process is None:
+            return None
 
         try:
-            stdout, stderr = await process.communicate()
+            self._retcode = await self._process.wait()
+        except CalledProcessError as e:
+            self._retcode = e.returncode
+            logger.debug(
+                f"{self._typename()}({self.name}) - Task failed: {e}", str(e)
+            )
+        except anyio.get_cancelled_exc_class() as exc:
+            logger.debug(
+                f"{self._typename()}({self.name}) - Task cancelled: {exc}",
+            )
+            raise
         finally:
-            self.finished_time = time.time()
-            self.stderr = stderr.decode() if stderr else ""
-            self.stdout = stdout.decode() if stdout else ""
-            self._write_output_files()
-            returncode = process.returncode or 0
+            with anyio.move_on_after(10, shield=True):
+                await self._handle_result()
 
-            if self._termination_requested or returncode < 0:
-                self.status = TestStatus.Terminated
-                self.result = TestResult.Failed
-            elif returncode == 0:
-                self.status = TestStatus.Finished
-                self.result = TestResult.Passed
+        return self._retcode
+
+    async def _handle_result(self) -> None:
+        async with self.mutex:
+            if self._termination_requested:
+                self._status = TestStatus.Terminated
+                self._result = TestResult.Failed
+            elif self._retcode == 0:
+                self._status = TestStatus.Finished
+                self._result = TestResult.Passed
+            elif self._retcode is None or 0 < self._retcode < 0x80:
+                self._status = TestStatus.Terminated
+                self._result = TestResult.Failed
             else:
-                self.status = TestStatus.Finished
-                self.result = TestResult.Failed
+                self._status = TestStatus.Finished
+                self._result = TestResult.Failed
 
             self._process = None
 
-    def _write_output_files(self) -> None:
-        for path, content in (
-            (self.stdout_path, self.stdout),
-            (self.stderr_path, self.stderr),
-        ):
-            if path is not None:
-                path.write_text(content, encoding="utf-8")
+    async def _drain_streams(self) -> None:
+        async with anyio.create_task_group() as tg:
+            tg.start_soon(self._drain_stdout)
+            tg.start_soon(self._drain_stderr)
+
+    async def _capture_stream(
+        self,
+        source,
+        output_path: Path | None,
+        attr: str,
+    ) -> None:
+        if source is None:
+            return
+
+        buf = io.BytesIO()
+
+        async for chunk in source:
+            buf.write(chunk)
+
+        if output_path is None:
+            setattr(self, attr, buf.getvalue().decode(errors="replace"))
+            return
+
+        async_output_path = anyio.Path(str(output_path))
+
+        if not await async_output_path.exists():
+            await async_output_path.parent.mkdir(parents=True, exist_ok=True)
+            await async_output_path.touch()
+
+        await async_output_path.write_bytes(buf.getvalue())
+
+    async def _drain_stdout(self):
+        if self._process is None:
+            return
+
+        await self._capture_stream(
+            self._process.stdout,
+            self.stdout_path,
+            "_stdout",
+        )
+
+    async def _drain_stderr(self):
+        if self._process is None:
+            return
+
+        await self._capture_stream(
+            self._process.stderr,
+            self.stderr_path,
+            "_stderr",
+        )

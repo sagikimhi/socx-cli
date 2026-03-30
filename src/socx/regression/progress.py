@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import anyio
 import logging
 from typing import Any
-from collections import ChainMap
 
+import anyio
+from anyio.abc import TaskStatus
 from rich.progress import (
     Progress as BaseProgress,
     ProgressColumn,
@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 class PipelineProgress(BaseProgress):
     def __init__(self, **kwargs: Any) -> None:
-        kwargs = dict(ChainMap(kwargs, dict(speed_estimate_period=10)))
         super().__init__(*self.get_default_columns(), **kwargs)
 
     @classmethod
@@ -60,23 +59,10 @@ class RegressionProgress:
         self,
         include: set[str] | None = None,
         exclude: set[str] | None = None,
+        limiter: anyio.CapacityLimiter | None = None,
     ) -> None:
-        """Update progress tasks and flush log messages while running."""
-        with self.progress:
-            if include is None and exclude is None:
-                async with anyio.create_task_group() as tg:
-                    for obj in self.regression.tests:
-                        tg.start_soon(
-                            self.track_regression,
-                            obj,
-                            name=f"track_{obj.name}_progress",
-                        )
-                    tg.start_soon(
-                        self.regression.start,
-                        name=f"{self.regression.name}",
-                    )
-                return
-
+        self.progress.start()
+        try:
             async with anyio.create_task_group() as tg:
                 for obj in self.regression.tests:
                     if exclude is not None and obj.name in exclude:
@@ -86,54 +72,62 @@ class RegressionProgress:
                         continue
 
                     if isinstance(obj, Regression) and not obj.started:
-                        tg.start_soon(obj.start, name=obj.name)
                         tg.start_soon(
                             self.track_regression,
                             obj,
                             name=f"track_{obj.name}_progress",
                         )
+        finally:
+            self.progress.stop()
 
-    async def track_regression(self, regression: Regression) -> None:
-        finished = 0
-        status = TestStatus.Idle
-        progress = self.progress
+    async def track_regression(
+        self,
+        regression: Regression,
+        limiter: anyio.CapacityLimiter | None = None,
+        task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    ) -> None:
 
-        if regression.id not in self.tasks:
-            self.tasks[regression.id] = progress.add_task(
-                total=len(regression),
-                description=(
-                    f"[gray39]{self._get_task_tag(regression)}: "
-                    f"{regression.status.name}"
-                ),
-            )
+        async with anyio.create_task_group() as tg:
+            if regression.id not in self.tasks:
+                self.tasks[regression.id] = self.progress.add_task(
+                    total=len(regression),
+                    description=(
+                        f"[gray39]{self._get_task_tag(regression)}: "
+                        f"{regression.status.name}"
+                    ),
+                )
+                tg.start_soon(self._track_regression, regression)
+                await tg.start(regression.start, limiter)
+                task_status.started()
 
-        while not progress.finished:
-            if regression.finished:
-                self.update_regression(regression, len(regression))
-                break
+    async def _track_regression(self, regression: Regression) -> None:
+        task = self.progress.tasks[self.tasks[regression.id]]
 
-            prev_status = status
-            prev_finished = finished
-            status = regression.status
-            finished = self._count_statuses(
+        while True:
+            finished = await self._count_statuses(
                 regression,
                 TestStatus.Finished,
                 TestStatus.Terminated,
             )
 
-            if prev_finished != finished or prev_status != status:
-                self.update_regression(regression, finished)
+            if finished != task.completed:
+                await self.update_regression(regression, finished)
 
-            await anyio.sleep(0.5)
+            if finished == len(regression):
+                break
 
-    def advance_regression(self, regression: Regression, n: int) -> None:
+            await anyio.sleep(0.05)
+
+    async def advance_regression(
+        self, regression: Regression, n: int = 1
+    ) -> None:
         progress = self.progress
         tid = self.tasks.get(regression.id)
         if progress is not None and tid is not None:
             task = progress.tasks[tid]
-            self.update_regression(regression, task.completed + n)
+            await self.update_regression(regression, task.completed + n)
 
-    def update_regression(self, regression: Regression, n: int) -> None:
+    async def update_regression(self, regression: Regression, n: int) -> None:
         progress = self.progress
         tid = self.tasks.get(regression.id)
         if progress is not None and tid is not None:
@@ -144,32 +138,37 @@ class RegressionProgress:
                 or regression.is_pending()
                 or regression.is_suspended()
             ):
-                task.description = (
+                description = (
                     f"[gray39]{self._get_task_tag(regression)}: "
                     f"{regression.status.name}"
                 )
             elif regression.is_running():
-                task.description = (
+                description = (
                     f"[yellow]{self._get_task_tag(regression)}: "
                     f"{regression.status.name}"
                 )
             elif regression.finished:
-                task.description = (
+                description = (
                     f"[green]{self._get_task_tag(regression)}: "
                     f"{regression.status.name}"
                 )
             elif regression.terminated:
-                task.description = (
+                description = (
                     f"[red]{self._get_task_tag(regression)}: "
                     f"{regression.status.name}"
                 )
 
-            task.completed = min(n, task.total)
+            completed = min(n, task.total)
+            progress.update(
+                task.id,
+                completed=completed,
+                description=description,
+            )
 
-    def _count_statuses(
+    async def _count_statuses(
         self, regression: Regression, *statuses: TestStatus
     ) -> int:
-        with self.regression.lock:
+        async with self.regression.mutex:
             return sum(
                 1 for test in regression.tests if test.status in statuses
             )
