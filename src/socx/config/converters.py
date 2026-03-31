@@ -25,7 +25,6 @@ from importlib import import_module
 from functools import cached_property, singledispatchmethod
 from collections.abc import Iterable, Callable
 
-import sh
 import rich_click as click
 import rich_click.patch as click_patch
 import rich_click.rich_click_theme as click_theme
@@ -679,7 +678,7 @@ class CommandConverter(
         )
 
     def is_shell_command(self, value: Any) -> bool:
-        return isinstance(value, sh.Command)
+        return isinstance(value, BaseCommand)
 
     def is_click_command(self, value: Any) -> bool:
         return isinstance(value, click.Command)
