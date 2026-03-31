@@ -9,7 +9,6 @@ import io
 import signal
 import asyncio as aio
 import logging
-from textwrap import dedent
 from typing import Any
 from enum import IntEnum, StrEnum, auto
 from pathlib import Path
@@ -27,6 +26,7 @@ from pydantic import (
     PrivateAttr,
     computed_field,
 )
+from blinker import Signal
 from anyio.abc import Process, TaskStatus
 
 from socx.patterns import Visitor
@@ -58,59 +58,49 @@ class TestStatus(IntEnum):
 class TestBase(BaseModel):
     """Base class for tests."""
 
-    id: UUID4 = Field(
-        default_factory=uuid.uuid4,
-        description=(
-            "UUID4 test identifier to uniquely identify the test case."
-        ),
-    )
+    # signals
+    status_changed: Signal = Field(default_factory=Signal, exclude=True)
+    """Emitted by the test instance on every status change."""
+
+    result_changed: Signal = Field(default_factory=Signal, exclude=True)
+    """Emitted by the test instance on every result change."""
+
+    # attributes
+    id: UUID4 = Field(default_factory=uuid.uuid4)
+    """Auto generated UUID4 test identifier."""
 
     name: str = Field(
-        ...,
-        pattern=r"[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*",
-        description="Name of the test.",
+        ..., pattern=r"[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*"
     )
+    """Name of the test."""
 
-    cwd: DirectoryPath = Field(
-        default_factory=Path.cwd,
-        description=dedent("""
-        An optional directory path from which the test should be invoked.
-        If left unspecified, it defaults to the current working directory.
-        """),
-    )
+    env: dict[str, str] = Field(default_factory=dict)
+    """Custom environment variables to set during test invocation."""
 
-    env: dict[str, str] = Field(
-        default_factory=dict,
-        description="""
-            Environment variables that should be present when the
-            command/script is invoked
-        """.strip(),
-    )
+    cwd: DirectoryPath = Field(default_factory=Path.cwd)
+    """
+    An optional directory path from which the test should be invoked.
+    If left unspecified, it defaults to the current working directory.
+    """
 
-    timeout: float | None = Field(
-        default=None,
-        ge=0,
-        description="""
-        An optional timeout in seconds for the test execution.
-        If left unspecified, then test execution may last indefinitely.
-        """,
-    )
+    timeout: float | None = Field(default=None, ge=0)
+    """
+    An optional timeout in seconds for the test execution.
+    If left unspecified, then test execution may last indefinitely.
+    """
 
-    fresh_env: bool = Field(
-        default=False,
-        description="""
-            Whether or not to execute the test in a fresh environment.
+    fresh_env: bool = Field(default=False)
+    """Whether or not to execute the test in a fresh environment.
 
-            A fresh environment is an environment with no environment
-            variables defined other than those defined in the ``env`` field.
+    A fresh environment is an environment with no environment
+    variables defined other than those defined in the ``env`` field.
 
-            A non-fresh environment will contain all environment variables of
-            the current process, as well as any variables defined in the
-            ``env`` field.
+    A non-fresh environment will contain all environment variables of
+    the current process, as well as any variables defined in the
+    ``env`` field.
 
-            If left unspecified, defaults to False.
-        """,
-    )
+    If left unspecified, defaults to False.
+    """
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -119,13 +109,14 @@ class TestBase(BaseModel):
 
     _status: declare.Declare[TestStatus] = declare.Declare(TestStatus.Idle)
     _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
-    _prev_time: declare.Declare[float] = declare.Declare(0)
-    _elapsed_time: declare.Declare[float] = declare.Declare(0)
-    _started_time: declare.Declare[float | None] = declare.Declare(None)
-    _finished_time: declare.Declare[float | None] = declare.Declare(None)
+
     _mutex: anyio.Lock = PrivateAttr(default_factory=anyio.Lock)
     _process: Process | None = PrivateAttr(None)
     _output_dir: Path | None = PrivateAttr(None)
+    _prev_time: float = PrivateAttr(0)
+    _elapsed_time: float = PrivateAttr(0)
+    _started_time: float | None = PrivateAttr(None)
+    _finished_time: float | None = PrivateAttr(None)
     _termination_requested: bool = PrivateAttr(False)
 
     def model_post_init(self, context: Any) -> None:
@@ -275,16 +266,20 @@ class TestBase(BaseModel):
     async def stop(self) -> None:
         """Terminate the active test process."""
         async with self.mutex:
-            if self._process is None or self._status not in {
-                TestStatus.Pending,
-                TestStatus.Paused,
-                TestStatus.Running,
+            if self._status in {
+                TestStatus.Finished,
+                TestStatus.Terminated,
             }:
                 return
 
             self._termination_requested = True
             process = self._process
             was_paused = self._status is TestStatus.Paused
+
+            if process is None:
+                self._status = TestStatus.Terminated
+                self._result = TestResult.Failed
+                return
 
         if was_paused:
             self._send_process_signal(signal.SIGCONT)
@@ -357,8 +352,11 @@ class TestBase(BaseModel):
             case TestStatus.Paused:
                 self._elapsed_time += time.monotonic() - self._prev_time
             case TestStatus.Finished | TestStatus.Terminated:
-                self._finished_time = time.time()
-                self._elapsed_time += time.monotonic() - self._prev_time
+                if self.started_time is not None:
+                    self._finished_time = time.time()
+                if self._prev_time > 0:
+                    self._elapsed_time += time.monotonic() - self._prev_time
+        self.status_changed.send(self, old=old_status, current=status)
 
     @_result.watch
     def watch_result(self, old_result: TestResult, result: TestResult) -> None:
@@ -366,6 +364,7 @@ class TestBase(BaseModel):
             f"{self._typename()}({self.name}): result changed from "
             f"'{old_result.name}' to '{result.name}'."
         )
+        self.result_changed.send(self, old=old_result, current=result)
 
     def _do_reset(self) -> None:
         self._result = TestResult.NA

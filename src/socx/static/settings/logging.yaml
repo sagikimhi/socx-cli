@@ -5,12 +5,7 @@ logging:
       level: DEBUG
     console:
       level: FATAL
-      tracebacks_show_locals: >-
-        @bool @jinja {%- if this.logging.handlers.console.level == 'DEBUG' -%}
-            True
-        {%- else -%}
-            False
-        {%- endif -%}"
+      tracebacks_show_locals: true
     rotating_file:
       path: "@jinja {{this.paths.user_rotating_log_file}}"
 

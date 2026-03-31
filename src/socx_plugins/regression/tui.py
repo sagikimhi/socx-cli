@@ -21,10 +21,13 @@ from socx_plugins.regression.callbacks import inline_cb
     show_envvar=True,
     show_default=True,
 )
-def tui() -> None:
+@click.pass_context
+def tui(ctx: click.Context) -> None:
     """Open regression dashboard TUI (Terminal User Interface)."""
     from socx_tui import SoCX as SoCX
 
+    app = SoCX()
     console.show_cursor(False)
-    SoCX().run(**settings.regression.tui.app.run)
+    app.run(**settings.regression.tui.app.run)
     console.show_cursor(True)
+    ctx.exit(app.return_code or 0)

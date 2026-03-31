@@ -193,3 +193,93 @@ def test_regression_state_round_trips_with_test_outputs(tmp_path) -> None:
         assert loaded_test.stderr_path.read_text() == "alpha err"
 
     asyncio.run(run_test())
+
+
+def test_regression_stop_terminates_queued_tests(tmp_path) -> None:
+    async def run_test() -> None:
+        limiter = __import__("anyio").CapacityLimiter(2)
+        regression = Regression(
+            name="smoke",
+            limiter=limiter,
+            tests=[Test(name=f"alpha_{i}", exec="sleep 10") for i in range(8)],
+        )
+
+        task = asyncio.create_task(regression.start())
+        await _wait_for(
+            lambda: (
+                sum(
+                    test.status is TestStatus.Running
+                    for test in regression.tests
+                )
+                == 2
+                and any(
+                    test.status is TestStatus.Pending
+                    for test in regression.tests
+                )
+                and any(
+                    test.status is TestStatus.Idle for test in regression.tests
+                )
+            )
+        )
+
+        await regression.stop()
+        await task
+
+        assert regression.status is TestStatus.Terminated
+        assert all(
+            test.status is TestStatus.Terminated for test in regression.tests
+        )
+        assert all(
+            test.result is TestResult.Failed for test in regression.tests
+        )
+
+    asyncio.run(run_test())
+
+
+def test_nested_regression_stop_terminates_unstarted_groups(tmp_path) -> None:
+    async def run_test() -> None:
+        limiter = __import__("anyio").CapacityLimiter(1)
+        regression = Regression(
+            name="root",
+            limiter=limiter,
+            tests=[
+                Regression(
+                    name="smoke",
+                    tests=[
+                        Test(name=f"smoke_{i}", exec="sleep 10")
+                        for i in range(2)
+                    ],
+                ),
+                Regression(
+                    name="nightly",
+                    tests=[
+                        Test(name=f"nightly_{i}", exec="sleep 10")
+                        for i in range(2)
+                    ],
+                ),
+            ],
+        )
+
+        task = asyncio.create_task(regression.start())
+        await _wait_for(
+            lambda: (
+                regression.tests[0].status
+                in {
+                    TestStatus.Pending,
+                    TestStatus.Running,
+                    TestStatus.Paused,
+                }
+                and regression.tests[1].status is TestStatus.Idle
+            )
+        )
+
+        await regression.stop()
+        await task
+
+        assert regression.status is TestStatus.Terminated
+        assert all(
+            test.status is TestStatus.Terminated
+            for test in regression.iter_leaf_tests()
+        )
+
+    asyncio.run(run_test())

@@ -50,6 +50,7 @@ def debug_cb(_: Context, param: Parameter, value: bool) -> bool:
     if value:
         set_level(Level.DEBUG, socx_logger)
         settings.cli.params["verbosity"] = get_level().name
+        settings.logging.handlers.console.level = Level.DEBUG.name
     return value
 
 

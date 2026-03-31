@@ -48,23 +48,73 @@ def test_regression_tui_loads_and_expands_regressions(tmp_path) -> None:
 
         async with app.run_test() as pilot:
             widget = app.query_one(RegressionWidget)
-            await widget.load_regression_from_path(path)
+            await widget._load_regression_tree_from_file(path)
             await pilot.pause()
 
             tree = widget.regression_tree
-            assert len(tree.root.children) == 2
+            assert len(tree.root.children) == 1
 
-            first_regression = tree.root.children[0]
-            assert first_regression.data is not None
-            assert not first_regression.is_expanded
+            loaded_regression = tree.root.children[0]
+            assert loaded_regression.data is not None
+            assert not loaded_regression.is_expanded
 
             await pilot.press("space")
             await pilot.pause()
 
-            assert first_regression.is_expanded
+            assert loaded_regression.is_expanded
+            assert len(loaded_regression.children) == 2
 
             await pilot.press("down")
             await pilot.pause()
+
+    with _tui_output_dir(tmp_path / "workrun"):
+        asyncio.run(run_test())
+
+
+def test_regression_tui_can_stop_all_tests_from_loaded_root(tmp_path) -> None:
+    path = tmp_path / "multi.yaml"
+    path.write_text(
+        dedent(
+            """
+        smoke:
+          - name: alpha
+            exec: sleep 10
+        nightly:
+          - name: beta
+            exec: sleep 10
+        """
+        )
+    )
+
+    async def run_test() -> None:
+        app = SoCX()
+
+        async with app.run_test() as pilot:
+            widget = app.query_one(RegressionWidget)
+            regression = await widget._load_regression_tree_from_file(path)
+            await pilot.pause()
+
+            root_node = widget.regression_tree.root.children[0]
+            assert root_node.data is regression
+
+            await widget.action_start_selected()
+            await wait_for(
+                lambda: all(
+                    test.status.name.lower() == "running"
+                    for test in regression.iter_leaf_tests()
+                )
+            )
+
+            await widget.action_stop_selected()
+            await wait_for(
+                lambda: (
+                    regression.status.name.lower() == "terminated"
+                    and all(
+                        test.status.name.lower() == "terminated"
+                        for test in regression.iter_leaf_tests()
+                    )
+                )
+            )
 
     with _tui_output_dir(tmp_path / "workrun"):
         asyncio.run(run_test())
@@ -90,7 +140,7 @@ def test_regression_tui_can_run_pause_resume_and_restart(tmp_path) -> None:
 
         async with app.run_test() as pilot:
             widget = app.query_one(RegressionWidget)
-            regression = await widget.load_regression_from_path(path)
+            regression = await widget._load_regression_tree_from_file(path)
             test = regression.tests[0].tests[0]
 
             await widget.action_start_selected()
@@ -150,7 +200,7 @@ def test_regression_tui_persists_state_and_opens_output_modal(
 
         async with app.run_test() as pilot:
             widget = app.query_one(RegressionWidget)
-            regression = await widget.load_regression_from_path(path)
+            regression = await widget._load_regression_tree_from_file(path)
             test = regression.tests[0].tests[0]
 
             await widget.action_start_selected()
@@ -184,7 +234,7 @@ def test_regression_tui_persists_state_and_opens_output_modal(
         restored_app = SoCX()
         async with restored_app.run_test() as pilot:
             widget = restored_app.query_one(RegressionWidget)
-            regression = await widget.load_regression_from_path(
+            regression = await widget._load_regression_tree_from_file(
                 saved_state_file
             )
             test = regression.tests[0].tests[0]

@@ -16,11 +16,13 @@ RegressionWidget {
     layout: vertical;
     margin: 0 0 0 0;
     padding: 0 0 0 0;
+    scrollbar-size: 1 1;
     background: $surface;
 
-    # Container {
-    #   background: $surface;
-    # }
+    #regression-tree {
+      overflow: auto auto;
+      scrollbar-size: 1 1;
+    }
 }
 
 RestartSelectionDialog {
@@ -53,20 +55,29 @@ RestartSelectionDialog {
 
 }
 
-ScrollableContainer, ModalScreen {
-    margin: 0;
-    padding: 0;
-}
-
 RegressionDetails {
     align: center middle;
     content-align: center middle;
     margin: 0;
     padding: 0;
+    layout: vertical;
+    overflow: auto auto;
+    scrollbar-size: 1 1;
 
     RegressionStaticDetails {
         align: center middle;
+        text-align: center;
         content-align: center middle;
+        overflow: auto auto;
+        MarkdownBlock {
+            padding: 0 1;
+        }
+        MarkdownH2 {
+            margin: 0 0 1 0;
+        }
+        MarkdownBlock:last-child {
+            margin: 0 0 0 0;
+        }
     }
 }
 
@@ -92,7 +103,7 @@ Dialog {
     }
 }
 
-#regression-content {
+#regression-content-layout {
     width: 100%;
     height: 1fr;
     layout: horizontal;
@@ -112,10 +123,17 @@ Dialog {
 #regression-details {
     width: 1fr;
     height: 1fr;
+    content-align: center middle;
     background: transparent;
     border: round $accent;
     padding: 0 1;
     margin: 0 0 0 1;
+}
+
+#regression-progress-layout {
+  align: center middle;
+  content-align: center middle;
+  border: round $accent;
 }
 
 #regression-tree:focus,
@@ -132,7 +150,7 @@ Button:hover {
     color: $accent;
 }
 
-#button-layout {
+#regression-button-layout {
     width: 100%;
     height: auto;
     layout: horizontal;

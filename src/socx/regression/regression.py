@@ -195,12 +195,18 @@ class Regression(TestBase):
         async with self.mutex:
             is_running = self.is_running()
             should_resume = self.is_suspended()
+            should_terminate = self._termination_requested
 
-            if self.is_idle():
+            if self.is_idle() and not should_terminate:
                 self._status = TestStatus.Pending
 
         if should_resume:
             await self.resume()
+            task_status.started()
+            return
+
+        if should_terminate:
+            await self.stop()
             task_status.started()
             return
 
@@ -265,12 +271,12 @@ class Regression(TestBase):
     async def stop(self) -> None:
         """Terminate active work within the regression."""
         async with self.mutex:
-            is_running = self.is_running()
-            should_resume = self.is_suspended()
-
             self._termination_requested = True
+            has_unfinished_tests = any(
+                not test.finished for test in self.tests
+            )
 
-        if not is_running and not should_resume:
+        if not has_unfinished_tests:
             return
 
         async with anyio.create_task_group() as tg:

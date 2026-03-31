@@ -53,7 +53,7 @@ class SoCX(App[int]):
         message: Any | None = None,
     ) -> None:
         with suppress(Exception):
-            self.regression.persist_loaded_regression_state()
+            self.regression._persist_regression_state()
         super().exit(result=result, return_code=return_code, message=message)
 
     def compose(self) -> ComposeResult:
@@ -67,36 +67,34 @@ class SoCX(App[int]):
         if theme:
             self.theme = theme
 
+    def get_system_commands(
+        self, screen: Screen[None]
+    ) -> Iterable[SystemCommand]:
+        """Expose extra debug commands alongside Textual's defaults."""
+        yield from super().get_system_commands(screen)
+        if settings.cli.params.debug or self.app.debug:
+            yield from self.get_debug_system_commands(screen)
+
+    def get_debug_system_commands(
+        self, screen: Screen[None]
+    ) -> Iterable[SystemCommand]:
+        yield SystemCommand(
+            "Print DOM Tree",
+            "Print the current DOM Tree to dev log",
+            partial(self.console.print, Group(self.tree)),
+        )
+        yield SystemCommand(
+            "Log DOM Tree",
+            "Print the current DOM Tree to dev log",
+            lambda: self.log.info(self.tree),
+        )
+
     def check_action(
         self,
         action: str,
         parameters: tuple[object, ...],
     ) -> bool:
         return True
-
-    def get_system_commands(
-        self, screen: Screen[None]
-    ) -> Iterable[SystemCommand]:
-        """Expose extra debug commands alongside Textual's defaults."""
-        yield from super().get_system_commands(screen)
-        yield SystemCommand(
-            title="Load regression from file",
-            help="Load a regression definition from disk.",
-            callback=self.query_exactly_one(
-                RegressionWidget
-            ).action_load_regression_from_file,
-        )
-        if settings.cli.params.debug or self.app.debug:
-            yield SystemCommand(
-                "Print DOM Tree",
-                "Print the current DOM Tree to dev log",
-                partial(self.console.print, Group(self.tree)),
-            )
-            yield SystemCommand(
-                "Log DOM Tree",
-                "Print the current DOM Tree to dev log",
-                lambda: self.log.info(self.tree),
-            )
 
     def action_toggle_help_panel(self) -> None:
         if self.screen.query("HelpPanel"):
