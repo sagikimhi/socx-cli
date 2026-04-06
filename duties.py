@@ -130,6 +130,7 @@ def test(ctx: Context, *cli_args: str, match: str = "") -> None:  # noqa: PT028
             config_file="config/pytest.ini",
             select=match,
             color="yes",
+            showlocals=True,
         ).add_args(*cli_args),
         title=pyprefix("Running tests"),
     )

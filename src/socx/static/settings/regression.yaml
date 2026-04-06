@@ -45,6 +45,46 @@ regression:
       css_path: >-
         @jinja {{this.regression.tui.paths.tcss_dir}}/app.tcss
 
+    details:
+      help: |
+        # Regression TUI (Terminal-User-Interface)
+
+        ## Quick Start
+
+        Use `o` or `ctrl+o` key to load a regression from a file.
+
+        A regression may be loaded by either one of the supported file formats
+        listed below:
+        - TOML (`.toml`)
+        - YAML (`.yaml`, `.yml`)
+        - JSON/JSONC/JSON5 (`.json`, `.jsonc`, `.json5`)
+        - Python (`.py`)
+
+        ## Example (YAML):
+
+        ```yaml
+        # file: foo.yml
+        foo_regression:
+          - name: foo_test
+            exec: my_custom_run_script --test foo_test
+
+          - name: bar_test
+            exec:
+              - my_custom_pre_run_script --name bar --build-image
+              - my_custom_run_script --image bar.img --test bar_test
+              - my_custom_post_run_script --rerun-if-failed --rerun-flags=--debug,--verbose bar_test
+
+          - name: bazz_test
+            exec: |
+              #!/usr/bin/env python3
+
+              from my_package.runners import MyRunner
+
+              my_custom_runner = MyRunner()
+              my_custom_runner.run("/path/to/bazz_test.cfg")
+
+        ```
+
     # TUI application per-widget keybindings
     keybinds:
       SoCX:
@@ -60,6 +100,10 @@ regression:
           show: false
           action: toggle_dark()
           description: Switch between light/dark theme modes
+        - key: "!"
+          show: false
+          action: toggle_maximize()
+          description: Maxmimize/minimize the focused widget
 
       RegressionWidget:
         # Hidden Keys

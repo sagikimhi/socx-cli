@@ -74,7 +74,7 @@ class TestBase(BaseModel):
     )
     """Name of the test."""
 
-    env: dict[str, str] = Field(default_factory=dict)
+    env: dict[str, str] = Field(default_factory=dict, repr=False)
     """Custom environment variables to set during test invocation."""
 
     cwd: DirectoryPath = Field(default_factory=Path.cwd)
@@ -138,6 +138,14 @@ class TestBase(BaseModel):
     @computed_field
     @property
     def elapsed_time(self) -> float:
+        if self.finished:
+            return self._elapsed_time
+
+        sample = time.monotonic()
+
+        if 0 < self._prev_time < sample:
+            return self._elapsed_time + sample - self._prev_time
+
         return self._elapsed_time
 
     @computed_field
@@ -350,12 +358,15 @@ class TestBase(BaseModel):
                     self._started_time = time.time()
                 self._prev_time = time.monotonic()
             case TestStatus.Paused:
-                self._elapsed_time += time.monotonic() - self._prev_time
+                sample = time.monotonic()
+                if 0 < self._prev_time <= sample:
+                    self._elapsed_time += sample - self._prev_time
             case TestStatus.Finished | TestStatus.Terminated:
+                sample = time.monotonic()
                 if self.started_time is not None:
                     self._finished_time = time.time()
-                if self._prev_time > 0:
-                    self._elapsed_time += time.monotonic() - self._prev_time
+                if 0 < self._prev_time <= sample:
+                    self._elapsed_time += sample - self._prev_time
         self.status_changed.send(self, old=old_status, current=status)
 
     @_result.watch

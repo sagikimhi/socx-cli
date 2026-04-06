@@ -4,8 +4,13 @@ logging:
       path: "@jinja {{this.paths.user_log_file}}"
       level: DEBUG
     console:
-      level: FATAL
-      tracebacks_show_locals: true
+      level: >-
+        @jinja {%- if this.debug -%}
+          DEBUG
+        {%- else -%}
+          FATAL
+        {%- endif -%}
+      tracebacks_show_locals: "@jinja {{this.debug}}"
     rotating_file:
       path: "@jinja {{this.paths.user_rotating_log_file}}"
 

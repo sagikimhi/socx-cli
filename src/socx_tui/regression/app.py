@@ -14,9 +14,7 @@ from textual.app import ComposeResult
 from textual.app import SystemCommand
 from textual.binding import Binding, BindingType
 from textual.screen import Screen
-from textual.widget import Widget
-from textual.widgets import Header
-from textual.widgets import Footer
+from textual.widgets import Header, Footer
 from hoptex.decorator import hoptex
 
 from socx_tui.regression.widget import RegressionWidget
@@ -35,8 +33,6 @@ class SoCX(App[int]):
     )
 
     INLINE_PADDING = 0
-
-    ALLOW_IN_MAXIMIZED_VIEW = ""
 
     @property
     def regression(self) -> RegressionWidget:
@@ -59,7 +55,9 @@ class SoCX(App[int]):
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
         yield Header(show_clock=True)
-        yield RegressionWidget()
+        yield RegressionWidget(
+            id="regression-widget", name="regression-widget"
+        )
         yield Footer(compact=True)
 
     def on_mount(self) -> None:
@@ -102,11 +100,10 @@ class SoCX(App[int]):
         else:
             self.app.action_show_help_panel()
 
-    async def action_toggle_maximize(self, widget: Widget) -> None:
-        if not widget.allow_maximize:
-            return
-
-        if widget.is_maximized:
-            self.screen.minimize()
-        else:
-            self.screen.maximize(widget)
+    async def action_toggle_maximize(self) -> None:
+        focused = self.screen.focused
+        if focused is not None:
+            if focused.is_maximized:
+                self.screen.minimize()
+            else:
+                self.screen.maximize(focused, container=False)

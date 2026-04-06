@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 import logging
-from typing import Any, Self
+from typing import Any, Self, cast
 from pathlib import Path
 from collections import OrderedDict
 from collections.abc import Mapping, Callable, Iterable
@@ -22,14 +22,24 @@ from pydantic import (
 )
 from anyio.abc import TaskStatus
 
-from socx.config import settings
-from socx.core.schema import FilePath
+from socx.config import settings, SymbolConverter
+from socx.core.schema import NewPath, FilePath, DirectoryPath
 from socx.regression.test import Test, TestBase, TestResult, TestStatus
 
 
+_sentinel = object()
+
+_converter = SymbolConverter()
+
+_filepath_adapter = TypeAdapter(FilePath)
+
+_directory_adapter = TypeAdapter(NewPath | DirectoryPath)
+
 logger = logging.getLogger(__name__)
 
-_sentinel = object()
+default_limiter = anyio.CapacityLimiter(
+    settings.regression.max_runs_in_parallel
+)
 
 
 def _safe_dir_name(name: str, node_id: UUID4) -> str:
@@ -37,7 +47,7 @@ def _safe_dir_name(name: str, node_id: UUID4) -> str:
     return f"{slug or 'item'}-{node_id}"
 
 
-def _coerce_status(value: TestStatus | int | str) -> TestStatus:
+def _coerce_status(value: int | str | TestStatus) -> TestStatus:
     if isinstance(value, TestStatus):
         return value
     if isinstance(value, int):
@@ -51,19 +61,14 @@ def _coerce_result(value: TestResult | str) -> TestResult:
     return TestResult(value)
 
 
-default_limiter = anyio.CapacityLimiter(
-    settings.regression.max_runs_in_parallel
-)
-
-
 class Regression(TestBase):
     """Manage and execute a collection of tests with concurrency control."""
 
-    test_map: OrderedDict[UUID4, SerializeAsAny[TestBase]] = Field(
-        default_factory=OrderedDict, repr=True, title="Test Map"
-    )
     limiter: anyio.CapacityLimiter = Field(
         default=default_limiter, exclude=True
+    )
+    test_map: OrderedDict[UUID4, SerializeAsAny[TestBase]] = Field(
+        default_factory=OrderedDict, repr=True, title="Test Map"
     )
 
     model_config = ConfigDict(
@@ -76,38 +81,53 @@ class Regression(TestBase):
         self,
         name: str,
         tests: list[TestBase] | None = None,
-        test_map: dict[UUID4, TestBase] | None = None,
         limiter: anyio.CapacityLimiter | None = None,
+        test_map: dict[UUID4, TestBase] | None = None,
+        output_dir: NewPath | DirectoryPath | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(name=name, **kwargs)
         test_map = test_map or {}
         tests = [*list(test_map.values()), *(tests or [])]
-        self.test_map = OrderedDict({test.id: test for test in tests})
         self.limiter = limiter if limiter is not None else default_limiter
+        self.test_map = OrderedDict({test.id: test for test in tests})
+        self.output_dir = output_dir
+        if self.output_dir is not None:
+            self.assign_output_dir(self.output_dir)
 
     @classmethod
     @validate_call(config=ConfigDict(extra="allow"))
     def from_file(
         cls,
-        path: str | Path,
+        path: FilePath,
         name: str | None = None,
-        test_cls: type[TestBase] | None = None,
+        test_cls: str | type[Test] | None = None,
         **kwargs: Any,
     ) -> Self:
-        return cls._from_file(path, name=name, test_cls=test_cls, **kwargs)
+        if test_cls is None or not test_cls:
+            test_cls = Test
+
+        if isinstance(test_cls, str):
+            test_cls: type[Test] = _converter(test_cls)
+
+        return cls._from_file(
+            path, name=name, test_cls=cast(type[Test], test_cls), **kwargs
+        )
 
     @classmethod
     @validate_call(config=ConfigDict(extra="allow"))
     def load(
         cls,
-        path: str | Path,
+        path: FilePath,
         name: str | None = None,
-        test_cls: type[Test] | None = None,
+        test_cls: str | type[Test] | None = None,
         **kwargs: Any,
     ) -> Self:
-        path = TypeAdapter(FilePath).validate_python(path)
+        path = Path(path)
         data = cls._read_data(path) | kwargs
+
+        if isinstance(test_cls, str):
+            test_cls: type[Test] = _converter(test_cls)
 
         if cls._looks_like_state(data):
             return cls._from_state_data(
@@ -316,7 +336,7 @@ class Regression(TestBase):
             self._do_reset()
 
     def assign_output_dir(self, output_dir: Path) -> Path:
-        self.output_dir = output_dir
+        self.output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
         for child in self.tests:
@@ -471,17 +491,25 @@ class Regression(TestBase):
     @validate_call(config=ConfigDict(extra="allow"))
     def _from_file(
         cls,
-        path: str | Path,
+        path: FilePath,
         name: str | None = None,
-        test_cls: type[TestBase] | None = None,
+        test_cls: str | type[Test] | None = None,
         **kwargs: Any,
     ) -> Self:
         """Construct a regression from a test configuration file."""
         from box import Box
 
-        path = TypeAdapter(FilePath).validate_python(path)
-        name = name or path.stem
-        test_cls = test_cls or Test
+        path = _filepath_adapter.validate_python(path)
+
+        if not bool(name):
+            name = path.stem
+
+        if not bool(test_cls):
+            test_cls = Test
+
+        if isinstance(test_cls, str):
+            test_cls = _converter(test_cls)
+
         data = cls._read_data(path)
 
         settings.update(Box({name: data}), merge=False)

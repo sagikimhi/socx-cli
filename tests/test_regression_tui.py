@@ -6,7 +6,10 @@ from textwrap import dedent
 
 from socx import settings
 from socx_tui.regression.app import SoCX
-from socx_tui.regression.dialog import TestOutputDialog as OutputDialog
+from socx_tui.regression.dialog import (
+    TestOutputDialog as OutputDialog,
+    ReadOnlyOutputArea,
+)
 from socx_tui.regression.widget import RegressionWidget
 
 from utils import wait_for
@@ -15,7 +18,13 @@ from utils import wait_for
 def _output_text(app: SoCX) -> str:
     dialog = app.screen
     assert isinstance(dialog, OutputDialog)
-    return dialog.query_one("#regression-output-area").text
+    return dialog.query_one("#stdout-content", ReadOnlyOutputArea).text
+
+
+def _error_text(app: SoCX) -> str:
+    dialog = app.screen
+    assert isinstance(dialog, OutputDialog)
+    return dialog.query_one("#stderr-content", ReadOnlyOutputArea).text
 
 
 @contextmanager
@@ -215,10 +224,9 @@ def test_regression_tui_persists_state_and_opens_output_modal(
 
             assert isinstance(app.screen, OutputDialog)
             output = _output_text(app)
-            assert "===== STDOUT =====" in output
+            error = _error_text(app)
             assert "alpha-out" in output
-            assert "===== STDERR =====" in output
-            assert "alpha-err" in output
+            assert "alpha-err" in error
 
             await pilot.press("escape")
             await pilot.pause()
@@ -251,8 +259,9 @@ def test_regression_tui_persists_state_and_opens_output_modal(
             await pilot.pause()
 
             output = _output_text(restored_app)
+            error = _error_text(restored_app)
             assert "alpha-out" in output
-            assert "alpha-err" in output
+            assert "alpha-err" in error
 
     with _tui_output_dir(tmp_path / "workrun"):
         asyncio.run(run_test())

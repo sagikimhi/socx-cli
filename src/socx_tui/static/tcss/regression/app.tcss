@@ -1,242 +1,293 @@
 Screen {
-    height: auto;
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
+  border: none;
+  align: center middle;
+  width: auto;
+  height: auto;
+  margin: 0 0 0 0;
+  padding: 0 0 0 0;
+  background: transparent;
 
-    &:inline {
-        min-height: 80vh;
-        max_height: 80vh;
-    }
-}
-
-RegressionWidget {
-    align: center middle;
-    width: 1fr;
-    height: 1fr;
-    layout: vertical;
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
-    scrollbar-size: 1 1;
-    background: $surface;
-
-    #regression-tree {
-      overflow: auto auto;
-      scrollbar-size: 1 1;
-    }
-}
-
-RestartSelectionDialog {
-    position: relative;
-
-    Dialog {
-      align: center middle;
-        layout: grid;
-        grid-size: 1 3;
-        grid-rows: 1fr;
-        grid-columns: 1fr;
-        grid-gutter: 1;
-        position: relative;
-        width: 60%;
-        height: 30%;
-        position: relative;
-        text-align: center;
-        offset-y: 80%;
-        outline: round $border;
-        background: $panel;
-        overflow: auto auto;
-
-        Static {
-            color: auto;
-            height: 100%;
-            row-span: 3;
-            text-align: center;
-        }
-    }
-
-}
-
-RegressionDetails {
-    align: center middle;
-    content-align: center middle;
-    margin: 0;
-    padding: 0;
-    layout: vertical;
-    overflow: auto auto;
-    scrollbar-size: 1 1;
-
-    RegressionStaticDetails {
-        align: center middle;
-        text-align: center;
-        content-align: center middle;
-        overflow: auto auto;
-        MarkdownBlock {
-            padding: 0 1;
-        }
-        MarkdownH2 {
-            margin: 0 0 1 0;
-        }
-        MarkdownBlock:last-child {
-            margin: 0 0 0 0;
-        }
-    }
+  &:inline {
+    min-height: 80vh;
+    max_height: 80vh;
+  }
 }
 
 ModalScreen {
-    align: center middle;
-    content-align: center middle;
+  align: center middle;
+  content-align: center middle;
 }
 
 Dialog {
-    align: center middle;
-    width: 80%;
-    height: 80%;
-    border: round $primary;
-    background: $surface;
-    border-title-color: $text;
-    border-title-background: $panel;
-    border-subtitle-color: $text;
-    border-subtitle-background: $error;
-
-    OptionList, OptionList:focus {
-        background: $panel;
-        background-tint: $panel;
-    }
+  align: center middle;
+  width: 80%;
+  height: 80%;
+  background: $panel;
+  border: hkey $border;
+  border-title-color: $text;
+  border-subtitle-color: $text;
 }
 
-#regression-content-layout {
-    width: 100%;
-    height: 1fr;
-    layout: horizontal;
-    padding: 1;
-    margin: 0;
+Header {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  background: $panel;
+  border: none;
+}
+
+Footer {
+  width: 100%;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  background: $panel;
+  border: none;
+}
+
+RegressionWidget {
+  width: 1fr;
+  height: 1fr;
+  align: center middle;
+  border: none;
+  overflow: hidden hidden;
+  background: $background;
 }
 
 #regression-tree {
-    width: 1fr;
-    height: 1fr;
-    background: transparent;
-    border: round $accent;
-    padding: 0 1;
-    margin: 0 1 0 0;
+  width: 1fr;
+  height: 1fr;
+  border: blank;
+  layout: vertical;
+  overflow: auto auto;
+  background: $background;
+  scrollbar-size: 1 1;
 }
 
 #regression-details {
-    width: 1fr;
-    height: 1fr;
-    content-align: center middle;
-    background: transparent;
-    border: round $accent;
-    padding: 0 1;
-    margin: 0 0 0 1;
-}
-
-#regression-progress-layout {
-  align: center middle;
+  width: 1fr;
+  height: 1fr;
+  border: blank;
+  layout: vertical;
+  background: $background;
   content-align: center middle;
-  border: round $accent;
+
+  VerticalScroll {
+    overflow: auto auto;
+    scrollbar-size: 1 1;
+  }
+
+  Markdown {
+    width: 100%;
+    height: auto;
+  }
+
+  #details-progress {
+    align: center middle;
+    width: 100%;
+    height: auto;
+    layout: horizontal;
+    content-align: center middle;
+
+    #progress-bar {
+      width: auto;
+      height: auto;
+    }
+
+    #progress-label {
+      width: auto;
+      height: auto;
+    }
+  }
 }
 
 #regression-tree:focus,
 #regression-details:focus {
-    border: round $primary;
+  border: hkey $border;
+  background: $boost;
 }
 
-.button {
-    margin: 0;
-    text-align: center;
-}
-
-Button:hover {
-    color: $accent;
+#regression-content-layout {
+  width: auto;
+  height: auto;
+  padding: 0 0 0 0;
+  margin: 0 0 0 0;
+  layout: horizontal;
+  border: none;
 }
 
 #regression-button-layout {
-    width: 100%;
-    height: auto;
-    layout: horizontal;
-    align: center bottom;
-    dock: bottom;
-    padding: 0 1 1 1;
-    margin: 1 0 0 0;
+  dock: bottom;
+  align: center bottom;
+  width: 1fr;
+  height: auto;
+  border: none;
+  layout: horizontal;
 }
 
-Header {
-    width: 100%;
-    height: auto;
-    padding: 0;
-    margin: 0;
-    background: transparent;
-}
+TestOutputDialog {
+  width: 85%;
+  height: auto;
+  position: relative;
 
-Footer {
+  #dialog-title {
+    dock: top;
+    align: center top;
+    content-align: center top;
     width: 100%;
     height: auto;
-    padding: 0;
-    margin: 0;
+    text-align: center;
+    text-style: u uu;
+  }
+
+  TabbedContent {
+    align: center top;
+    width: 100%;
+    height: 1fr;
+    layout: vertical;
+    position: relative;
+    text-align: center;
+    content-align: center top;
+  }
+
+  TabPane,
+  RegressionDetails {
+    width: auto;
+    height: auto;
+    border: none;
+    overflow: auto auto;
+    scrollbar-size: 1 1;
     background: $background;
+
+    &:focus {
+      border: hkey $border;
+      background: $boost;
+    }
+  }
+
+  ReadOnlyOutputArea {
+    width: 1fr;
+    height: auto;
+    border: blank;
+    overflow: auto auto;
+    scrollbar-size: 1 1;
+    background: $background;
+
+    &:focus {
+      border: hkey $border;
+      background: $boost;
+    }
+  }
+
+}
+
+RestartSelectionDialog {
+  position: relative;
+  width: 75%;
+  height: auto;
+
+  Dialog {
+    align: center middle;
+    layout: grid;
+    grid-size: 1 3;
+    grid-rows: 1fr;
+    grid-columns: 1fr;
+    grid-gutter: 1;
+    position: relative;
+    width: 60%;
+    height: 30%;
+    position: relative;
+    text-align: center;
+    offset-y: 80%;
+    outline: round $border;
+    overflow: auto auto;
+    background: $panel;
+
+    Static {
+      color: auto;
+      height: 100%;
+      row-span: 3;
+      text-align: center;
+    }
+  }
 }
 
 Toast {
-    margin: 0 0;
-    padding: 0 1;
-    background: $background;
-    color: $text-muted;
-    .toast--title {
-        color: $text;
-    }
-    &.-information {
-        border: round $primary;
-    }
-    &.-warning {
-        border: round $warning;
-    }
-    &.-error {
-        border: round $error;
-    }
+  margin: 0 0;
+  padding: 0 1;
+  background: $background;
+  color: $text-muted;
+  opacity: 80%;
+  .toast--title {
+    color: $text;
+  }
+  &.-information {
+    border: round $primary;
+  }
+  &.-warning {
+    border: round $warning;
+  }
+  &.-error {
+    border: round $error;
+  }
 }
 
-
 HelpPanel {
-    border-left: solid white 7%;
-    padding-right: 0;
-    color: $text-secondary;
+  border-left: solid white 7%;
+  padding-right: 0;
+  color: $text-secondary;
 
-    #widget-help {
-        # color: $text-secondary;
-        border: round $secondary;
-        background: transparent;
-        margin-top: 0;
-        padding: 0 0;
-        MarkdownBlock {
-            padding: 0 1;
-        }
-        MarkdownH2 {
-            margin: 0 0 1 0;
-        }
-        MarkdownBlock:last-child {
-            margin: 0 0 0 0;
-        }
+  #widget-help {
+    border: round $secondary;
+    background: transparent;
+    margin-top: 0;
+    padding: 0 0;
+    MarkdownBlock {
+      padding: 0 1;
     }
+    MarkdownH2 {
+      margin: 0 0 1 0;
+    }
+    MarkdownBlock:last-child {
+      margin: 0 0 0 0;
+    }
+  }
 
-    KeyPanel {
-        # color: $text-secondary;
-        scrollbar-gutter: stable;
-        &> BindingsTable > .bindings-table--description {
-            color: $text-secondary;
-            text-opacity:90%;
-        }
-        .bindings-table--key {
-            color: $text-secondary;
-            color: $text;
-        }
-        &> BindingsTable > .bindings-table--header {
-            color: $text-secondary;
-            text-style: underline;
-        }
+  KeyPanel {
+    # color: $text-secondary;
+    scrollbar-gutter: stable;
+    &> BindingsTable > .bindings-table--description {
+      color: $text-secondary;
+      text-opacity:90%;
     }
+    .bindings-table--key {
+      color: $text-secondary;
+      color: $text;
+    }
+    &> BindingsTable > .bindings-table--header {
+      color: $text-secondary;
+      text-style: underline;
+    }
+  }
 }
 
 FileOpen {
   position: relative;
-  dock: bottom;
+}
+
+Button {
+  color: $text;
+  height: auto;
+  width: 1fr;
+  align: center middle;
+  border: blank;
+  text-align: center;
+}
+
+Button:focus,
+Button:hover {
+  color: auto;
+  border: hkey $border;
+  background: $background;
 }
