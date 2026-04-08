@@ -90,6 +90,7 @@ __all__ = (
     # config
     "schema",
     "settings",
+    "Model",
     "Script",
     "NewPath",
     "FilePath",
@@ -139,6 +140,7 @@ __all__ = (
 
 from socx.core import enums as enums
 from socx.core import schema as schema
+from socx.core import Model as Model
 from socx.core import Script as Script
 from socx.core import NewPath as NewPath
 from socx.core import FilePath as FilePath

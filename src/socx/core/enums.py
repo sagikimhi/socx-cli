@@ -3,7 +3,6 @@ from __future__ import annotations
 import enum
 from typing import Self
 from pathlib import Path
-from functools import cache
 
 
 class AutoNumber(int, enum.ReprEnum):
@@ -18,22 +17,20 @@ class AutoNumber(int, enum.ReprEnum):
 
 
 class SettingsFormat(AutoNumber):
-    Json = ".json"
-    Yaml = ".yaml", ".yml"
+    Ini = ".ini", ".conf"
     Toml = ".toml"
-    Ini = ".ini"
-    Python = ".python"
+    Yaml = ".yaml", ".yml"
+    Json = ".json", ".jsonc", ".json5"
+    Python = ".py"
 
     def __init__(self, extension: str, *extensions: str) -> None:
         self.extensions = {extension, *extensions}
 
     @classmethod
-    @cache
     def all_extensions(cls) -> set[str]:
         return {extension for member in cls for extension in member.extensions}
 
     @classmethod
-    @cache
     def from_path(cls, path: str | Path) -> SettingsFormat:
         if isinstance(path, str):
             path = Path(path)

@@ -12,7 +12,6 @@ from socx import (
     settings,
 )
 from textual.app import ComposeResult
-from textual.widget import Widget
 from textual.widgets import ProgressBar, Static, Markdown
 from textual.binding import BindingType
 from textual.reactive import reactive
@@ -21,7 +20,7 @@ from textual.containers import Horizontal, VerticalScroll
 from socx_tui.regression.bindings import VimModes
 
 
-class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
+class RegressionDetails(VerticalScroll, can_focus=True, inherit_bindings=True):
     BINDINGS: ClassVar[list[BindingType]] = (
         VimModes.Normal
         + settings.regression.tui.keybinds.get("RegressionDetails", [])
@@ -37,7 +36,9 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
     elapsed_time: reactive[str] = reactive[str]("")
     started_time: reactive[str] = reactive[str]("")
     finished_time: reactive[str] = reactive[str]("")
-    child_summary: reactive[str] = reactive[str]("")
+    passed_count: reactive[str] = reactive[str]("")
+    failed_count: reactive[str] = reactive[str]("")
+    children_count: reactive[str] = reactive[str]("")
 
     def __init__(
         self, model: TestBase | None, *args: Any, **kwargs: Any
@@ -45,24 +46,30 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
         super().__init__(*args, **kwargs)
         self.model = model
         self.markdown = Markdown(
-            self.details,
             id="details-markdown",
             name="details-markdown",
+            markdown=self.details,
         )
         self.progress = RegressionProgress(
             id="details-progress",
             name="details-progress",
         )
+        self.markdown.show_vertical_scrollbar = True
 
     def compose(self) -> ComposeResult:
-        with VerticalScroll(id="details-layout", name="details-layout"):
-            yield self.markdown
-            yield self.progress
+        yield self.markdown
+        yield self.progress
 
-    def on_mount(self, model: TestBase | None) -> None:
+    def on_mount(self) -> None:
         self.watch(self, "model", self._update_markdown)
-        self.watch(self, "model", self._update_progress)
         self.watch(self, "details", self._update_progress)
+
+    async def watch_model(self, model: TestBase | None) -> None:
+        self._update_markdown(model)
+        self._update_progress(model)
+
+    async def watch_details(self, _: str) -> None:
+        self._update_progress(self.model)
 
     def compute_details(self) -> str:
         return self.format_details()
@@ -103,9 +110,23 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
             else ""
         )
 
-    def compute_child_summary(self) -> str:
+    def compute_passed_count(self) -> str:
         return (
-            self.format_child_summary(self.model)
+            self.format_passed_count(self.model)
+            if isinstance(self.model, Regression)
+            else ""
+        )
+
+    def compute_failed_count(self) -> str:
+        return (
+            self.format_failed_count(self.model)
+            if isinstance(self.model, Regression)
+            else ""
+        )
+
+    def compute_children_count(self) -> str:
+        return (
+            self.format_children_count(self.model)
             if isinstance(self.model, Regression)
             else ""
         )
@@ -124,8 +145,10 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
 
     def _update_progress(self, model: TestBase | None) -> None:
         progress = self.query_one(RegressionProgress)
-        progress.model = model
-        progress.mutate_reactive(RegressionProgress.model)
+        if model is not progress.model:
+            progress.model = model
+        else:
+            progress.mutate_reactive(RegressionProgress.model)
 
     @classmethod
     def _format_help_details(cls) -> str:
@@ -151,10 +174,12 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
                 f"# {self.format_header(self.model)}",
                 f"💡 Status: {self.status}",
                 f"🚩 Result: {self.result}",
-                f"👨‍👩‍👧‍👦 Children: {self.child_summary}",
                 f"⌛ Elapsed Time: {self.elapsed_time}",
                 f"⌛ Started Time: {self.started_time}",
                 f"⌛ Finished Time: {self.finished_time}",
+                f"✅ Passed Count: {self.passed_count}",
+                f"❌ Failed Count: {self.failed_count}",
+                f"👨‍👩‍👧‍👦 Children Count: {self.children_count}",
             ]
         )
 
@@ -217,7 +242,17 @@ class RegressionDetails(Widget, can_focus=True, inherit_bindings=True):
         return f"{hours:02}h:{minutes:02}m:{seconds:02}s"
 
     @classmethod
-    def format_child_summary(cls, model: Regression) -> str:
+    def format_passed_count(cls, model: Regression) -> str:
+        passed_count = sum(1 if test.passed else 0 for test in model.tests)
+        return str(passed_count)
+
+    @classmethod
+    def format_failed_count(cls, model: Regression) -> str:
+        failed_count = sum(1 if test.failed else 0 for test in model.tests)
+        return str(failed_count)
+
+    @classmethod
+    def format_children_count(cls, model: Regression) -> str:
         kind = "regressions" if cls.contains_regressions(model) else "tests"
         return f"{len(model)} {kind}"
 

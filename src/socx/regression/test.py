@@ -20,7 +20,6 @@ import declare
 from pydantic import (
     UUID4,
     Field,
-    BaseModel,
     ConfigDict,
     AliasChoices,
     PrivateAttr,
@@ -30,7 +29,7 @@ from blinker import Signal
 from anyio.abc import Process, TaskStatus
 
 from socx.patterns import Visitor
-from socx.core.schema import Script, DirectoryPath
+from socx.core import Model, Script, DirectoryPath
 
 
 logger = logging.getLogger(__name__)
@@ -55,62 +54,70 @@ class TestStatus(IntEnum):
     Terminated = auto()
 
 
-class TestBase(BaseModel):
+class TestBase(Model):
     """Base class for tests."""
 
-    # signals
-    status_changed: Signal = Field(default_factory=Signal, exclude=True)
-    """Emitted by the test instance on every status change."""
+    # -------------------------------------------------------------------------
+    # Attributes
+    # -------------------------------------------------------------------------
 
-    result_changed: Signal = Field(default_factory=Signal, exclude=True)
-    """Emitted by the test instance on every result change."""
-
-    # attributes
-    id: UUID4 = Field(default_factory=uuid.uuid4)
-    """Auto generated UUID4 test identifier."""
-
-    name: str = Field(
-        ..., pattern=r"[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*"
+    id: UUID4 = Field(
+        default_factory=uuid.uuid4,
     )
-    """Name of the test."""
-
-    env: dict[str, str] = Field(default_factory=dict, repr=False)
-    """Custom environment variables to set during test invocation."""
+    """Universally unique test identifier."""
 
     cwd: DirectoryPath = Field(default_factory=Path.cwd)
     """
-    An optional directory path from which the test should be invoked.
-    If left unspecified, it defaults to the current working directory.
+    An optional directory path from which the test should be ran. Defaults to
+    the current working directory.
     """
+
+    env: dict[str, str] = Field(default_factory=dict, repr=False)
+    """Custom variables to set in the test's subprocess environment."""
+
+    name: str = Field(
+        ...,
+        pattern=r"[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*",
+    )
+    """Unique test name identifier."""
 
     timeout: float | None = Field(default=None, ge=0)
     """
-    An optional timeout in seconds for the test execution.
-    If left unspecified, then test execution may last indefinitely.
+    An optional timeout (in seconds) to terminate test execution. If set to
+    ``None`` then test execution may last indefinitely. Defaults to None.
     """
 
     fresh_env: bool = Field(default=False)
-    """Whether or not to execute the test in a fresh environment.
+    """Whether to execute the test with a fresh environment.
 
-    A fresh environment is an environment with no environment
-    variables defined other than those defined in the ``env`` field.
+    A fresh environment is an environment with no environment variables other
+    than those that were explicitly set in the test's ``env`` field.
 
-    A non-fresh environment will contain all environment variables of
-    the current process, as well as any variables defined in the
-    ``env`` field.
+    This is meant to provide a similar functionality as to running a shell
+    command with `/usr/bin/env -i <command>`.
 
-    If left unspecified, defaults to False.
+    The default value is False which means that the existing environment of
+    the process will be reused, and only variables explicitly defined in the
+    test's ``env`` field will get overriden.
     """
 
-    model_config = ConfigDict(
-        from_attributes=True,
-        arbitrary_types_allowed=True,
-    )
+    # -------------------------------------------------------------------------
+    # Signals
+    # -------------------------------------------------------------------------
 
-    _status: declare.Declare[TestStatus] = declare.Declare(TestStatus.Idle)
-    _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
+    status_changed: Signal = Field(
+        default_factory=Signal, exclude=True, repr=False, init=False
+    )
+    """A signal emitted by the test instance on every status change."""
+
+    result_changed: Signal = Field(
+        default_factory=Signal, exclude=True, repr=False, init=False
+    )
+    """A signal emitted by the test instance on every result change."""
 
     _mutex: anyio.Lock = PrivateAttr(default_factory=anyio.Lock)
+    _status: declare.Declare[TestStatus] = declare.Declare(TestStatus.Idle)
+    _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
     _process: Process | None = PrivateAttr(None)
     _output_dir: Path | None = PrivateAttr(None)
     _prev_time: float = PrivateAttr(0)
@@ -118,12 +125,6 @@ class TestBase(BaseModel):
     _started_time: float | None = PrivateAttr(None)
     _finished_time: float | None = PrivateAttr(None)
     _termination_requested: bool = PrivateAttr(False)
-
-    def model_post_init(self, context: Any) -> None:
-        if not self.fresh_env:
-            env = os.environ.copy()
-            env.update(self.env)
-            self.env = env
 
     @computed_field
     @property
@@ -138,13 +139,11 @@ class TestBase(BaseModel):
     @computed_field
     @property
     def elapsed_time(self) -> float:
-        if self.finished:
-            return self._elapsed_time
+        if self.is_running() and self._prev_time > 0:
+            sample = time.monotonic()
 
-        sample = time.monotonic()
-
-        if 0 < self._prev_time < sample:
-            return self._elapsed_time + sample - self._prev_time
+            if 0 < self._prev_time < sample:
+                return self._elapsed_time + sample - self._prev_time
 
         return self._elapsed_time
 
@@ -227,22 +226,18 @@ class TestBase(BaseModel):
         """Return ``True`` if the subprocess is currently stopped."""
         return self.status is TestStatus.Paused
 
-    def _send_process_signal(self, sig: signal.Signals) -> None:
-        """Signal the whole test session, not just the shell wrapper."""
-        if self._process is None:
-            return
+    async def wait(
+        self, limiter: anyio.CapacityLimiter | None = None
+    ) -> int | None:
+        raise NotImplementedError()
 
-        pid = self._process.pid
-        if pid is None:
-            return
-
-        try:
-            if hasattr(os, "killpg"):
-                os.killpg(pid, sig)
-            else:
-                self._process.send_signal(sig)
-        except ProcessLookupError:
-            return
+    async def start(
+        self,
+        limiter: anyio.CapacityLimiter | None = None,
+        task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
+    ) -> None:
+        """Execute the test executable to start the test."""
+        raise NotImplementedError()
 
     async def pause(self) -> None:
         """Pause a running test with ``SIGSTOP``."""
@@ -252,14 +247,6 @@ class TestBase(BaseModel):
 
             self._send_process_signal(signal.SIGSTOP)
             self._status = TestStatus.Paused
-
-    async def start(
-        self,
-        limiter: anyio.CapacityLimiter | None = None,
-        task_status: TaskStatus = anyio.TASK_STATUS_IGNORED,
-    ) -> None:
-        """Execute the test executable to start the test."""
-        raise NotImplementedError()
 
     async def resume(self) -> None:
         """Resume a paused test with ``SIGCONT``."""
@@ -306,11 +293,6 @@ class TestBase(BaseModel):
         with anyio.move_on_after(2, shield=True):
             await self.wait()
 
-    async def wait(
-        self, limiter: anyio.CapacityLimiter | None = None
-    ) -> int | None:
-        raise NotImplementedError()
-
     async def reset(self) -> None:
         """Reset runtime state so the test may be executed again."""
         async with self.mutex:
@@ -346,6 +328,10 @@ class TestBase(BaseModel):
         if auto_start:
             await self.start()
 
+    def model_post_init(self, context: Any) -> None:
+        if not self.fresh_env:
+            self.env = os.environ.copy() | self.env
+
     @_status.watch
     def watch_status(self, old_status: TestStatus, status: TestStatus) -> None:
         logger.debug(
@@ -377,6 +363,10 @@ class TestBase(BaseModel):
         )
         self.result_changed.send(self, old=old_result, current=result)
 
+    @classmethod
+    def _typename(cls) -> str:
+        return cls.__name__
+
     def _do_reset(self) -> None:
         self._result = TestResult.NA
         self._status = TestStatus.Idle
@@ -400,9 +390,22 @@ class TestBase(BaseModel):
         if self.stderr_path is not None:
             await anyio.Path(str(self.stderr_path)).touch()
 
-    @classmethod
-    def _typename(cls) -> str:
-        return cls.__name__
+    def _send_process_signal(self, sig: signal.Signals) -> None:
+        """Signal the whole test session, not just the shell wrapper."""
+        if self._process is None:
+            return
+
+        pid = self._process.pid
+        if pid is None:
+            return
+
+        try:
+            if hasattr(os, "killpg"):
+                os.killpg(pid, sig)
+            else:
+                self._process.send_signal(sig)
+        except ProcessLookupError:
+            return
 
 
 class Test(TestBase):

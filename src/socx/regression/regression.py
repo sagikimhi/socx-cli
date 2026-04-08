@@ -291,13 +291,15 @@ class Regression(TestBase):
     async def stop(self) -> None:
         """Terminate active work within the regression."""
         async with self.mutex:
-            self._termination_requested = True
-            has_unfinished_tests = any(
-                not test.finished for test in self.tests
-            )
-
-        if not has_unfinished_tests:
-            return
+            if any(
+                test.status
+                not in {
+                    TestStatus.Finished,
+                    TestStatus.Terminated,
+                }
+                for test in self.tests
+            ):
+                self._termination_requested = True
 
         async with anyio.create_task_group() as tg:
             for test in self.tests:
@@ -424,12 +426,9 @@ class Regression(TestBase):
     def _do_reset(self) -> None:
         elapsed = self.elapsed_time
         started = self.started_time
-
         super()._do_reset()
-
-        if any(not test.is_idle() for test in self.tests):
-            self._elapsed_time = elapsed
-            self._started_time = started
+        self._elapsed_time = elapsed
+        self._started_time = started
 
     def _serialize_state(self, root_output_dir: Path) -> box.Box:
         return self._serialize_node(self, root_output_dir)

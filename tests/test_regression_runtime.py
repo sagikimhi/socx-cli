@@ -238,7 +238,9 @@ def test_regression_stop_terminates_queued_tests(tmp_path) -> None:
 
 def test_nested_regression_stop_terminates_unstarted_groups(tmp_path) -> None:
     async def run_test() -> None:
-        limiter = __import__("anyio").CapacityLimiter(1)
+        from anyio import CapacityLimiter
+
+        limiter = CapacityLimiter(1)
         regression = Regression(
             name="root",
             limiter=limiter,

@@ -15,12 +15,10 @@ from textual.app import SystemCommand
 from textual.binding import Binding, BindingType
 from textual.screen import Screen
 from textual.widgets import Header, Footer
-from hoptex.decorator import hoptex
 
 from socx_tui.regression.widget import RegressionWidget
 
 
-@hoptex()
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
