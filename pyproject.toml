@@ -131,7 +131,7 @@ docs = [
     "mkdocs-llmstxt>=0.4.0",
     "mkdocs-coverage",
     "mkdocs-glightbox",
-    "mkdocstrings-python",
+    "mkdocstrings[python]>=0.18",
     "mkdocs-material[git, recommended, imaging]",
     "mkdocs-section-index",
     "griffe-typingdoc>=0.3.0",
