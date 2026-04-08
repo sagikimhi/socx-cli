@@ -1,3 +1,4 @@
+debug: false
 dynaconf_include:
   - "@jinja {{this.paths.app_config_dir}}/logging.yaml"
   - "@jinja {{this.paths.app_config_dir}}/console.yaml"

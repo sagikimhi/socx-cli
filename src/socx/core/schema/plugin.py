@@ -7,17 +7,13 @@ from pathlib import Path
 
 from box import SBox
 import rich_click as click
-from pydantic import Field, BaseModel, ConfigDict
+from pydantic import Field
 
-from socx.core.schema.types import DirectoryPath, Script
+from socx.core.schema.types import DirectoryPath, Script, Model
 
 
-class PluginModel(BaseModel):
+class PluginModel(Model):
     """Metadata describing a plugin-backed CLI command."""
-
-    name: str = Field(
-        ..., pattern=r"[a-zA-Z0-9_-]+", description="Name of the plugin."
-    )
 
     cwd: DirectoryPath = Field(
         default_factory=Path.cwd,
@@ -29,83 +25,89 @@ class PluginModel(BaseModel):
 
     env: dict[str, str] = Field(
         default_factory=dict,
-        description="""
-            Environment variables that should be present when the
-            command/script is invoked
-        """.strip(),
+        description=dedent("""
+        Environment variables that should be present when the
+        command/script is invoked
+        """),
     )
 
-    timeout: float | None = Field(
-        default=None,
-        ge=0,
-        description="""
-        An optional timeout in seconds for the plugin execution.
-        If left unspecified, then plugin execution may last indefinitely.
-        """,
+    name: str = Field(
+        ..., pattern=r"[a-zA-Z0-9_-]+", description="Name of the plugin."
+    )
+
+    help: str = Field(
+        default="",
+        description=dedent("""
+        Description of what the plugin does to be printed during plugin
+        invocation if any of -h or --help flags were passed with the
+        command.
+        """),
     )
 
     enabled: bool = Field(
-        default=True,
-        description="""
-            Whether or not the plugin should be enabled.
-            If left unspecified, defaults to True.
-        """,
+        True,
+        description=dedent("""
+        Enable/disable the plugin. Disabled plugins are hidden and cannot be
+        invoked from the commandline. Defaults to True.
+        """),
+    )
+
+    timeout: float | None = Field(
+        None,
+        ge=0,
+        description=dedent("""
+        An optional timeout in seconds for the plugin execution.
+        If left unspecified, then plugin execution may last indefinitely.
+        """),
     )
 
     fresh_env: bool = Field(
-        default=False,
-        description="""
-            Whether or not to execute the plugin in a fresh environment.
-            A fresh environment is an environment with no environment
-            variables defined other than those defined in the ``env`` field.
-            A non-fresh environment will contain all environment variables of
-            the current process, as well as any variables defined in the
-            ``env`` field.
-            If left unspecified, defaults to False.
-        """,
+        False,
+        description=dedent("""
+        Whether or not to execute the plugin in a fresh environment.
+        A fresh environment is an environment with no environment
+        variables defined other than those defined in the ``env`` field.
+        A non-fresh environment will contain all environment variables of
+        the current process, as well as any variables defined in the
+        ``env`` field.
+        If left unspecified, defaults to False.
+        """),
     )
 
     script: Script = Field(
-        default="",
-        description="""
-            A shell command or a path to an executable file to run on plugin
-            invocation.
-        """.strip(),
+        "",
+        description=dedent("""
+        A shell command or a path to an executable file to run on plugin
+        invocation.
+        """),
+        exclude_if=bool,
     )
 
     command: str | click.Command = Field(
         default="",
         pattern=r"(((((\w+)(.|/))*)(\w+))(:(\w+))?)?",
-        description="""
-            A path to a python module or symbol that will be called upon
-            plugin invocation specified in the form of
-            `<module_path/file_path>[:<symbol_name>]`.
-        """.strip(),
-    )
-
-    help: str = Field(
-        default="",
-        description="""
-        Description of what the plugin does to be printed during plugin
-        invocation if any of -h or --help flags were passed with the
-        command.
-    """.strip(),
+        exclude_if=bool,
+        description=dedent("""
+        A path to a python module or symbol that will be called upon
+        plugin invocation specified in the form of
+        `<module_path/file_path>[:<symbol_name>]`.
+        """),
     )
 
     panel: str = Field(
         default="Plugins",
-        description="""
+        description=dedent("""
         Custom panel name in which plugin help text will be displayed when
         CLI is invoked with the -h/--help flag.
-        """.strip(),
+        """),
     )
 
     epilog: str = Field(
         default="",
-        description="""
-            Help string printed at the end of the help page after everything
-            else.
-        """.strip(),
+        description=dedent("""
+        Help string printed at the end of the help page after everything
+        else.
+        """),
     )
 
     aliases: tuple[str, ...] = Field(
@@ -116,12 +118,6 @@ class PluginModel(BaseModel):
     short_help: str = Field(
         default="",
         description="The short help to use for this command",
-    )
-
-    model_config = ConfigDict(
-        extra="allow",
-        from_attributes=True,
-        arbitrary_types_allowed=True,
     )
 
     def is_script(self) -> bool:

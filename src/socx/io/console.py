@@ -121,7 +121,7 @@ _console_cv = contextvars.ContextVar[Console]("console")
 
 _console_cv.set(_console)
 
-console: ConsoleProxy = LocalProxy(  # type: ignore[assignment]
+console: ConsoleProxy = LocalProxy(
     _console_cv,
     unbound_message="""
     Working outside of application context.
@@ -129,4 +129,4 @@ console: ConsoleProxy = LocalProxy(  # type: ignore[assignment]
     Attempted to use functionality that expected a current application to
     be set. To solve this, set up an app context.
     """,
-)
+)  # ty:ignore[invalid-assignment]

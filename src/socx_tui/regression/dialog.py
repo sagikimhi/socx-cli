@@ -1,15 +1,22 @@
 from __future__ import annotations
+from socx_tui.regression.details import RegressionDetails
 
 from typing import ClassVar
 
 import rich.repr
-from socx import Test
+from socx import Test, TestBase, settings, Regression
+from textual import work
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.containers import Container
 from textual.screen import ModalScreen, ScreenResultType
-from textual.widgets import Static, TextArea
-from textual.widgets import Button
+from textual.widgets import (
+    Static,
+    TextArea,
+    Button,
+    TabbedContent,
+    TabPane,
+)
 
 from socx_tui.regression.bindings.vim.mode import VimModes
 
@@ -23,89 +30,123 @@ class Dialog(Container):
 class ReadOnlyOutputArea(TextArea, can_focus=True, inherit_bindings=True):
     """Read-only output viewer with keyboard navigation."""
 
-    BINDINGS: ClassVar[list[Binding]] = TextArea.BINDINGS + VimModes.Normal
+    BINDINGS: ClassVar[list[Binding]] = VimModes.Normal + [
+        Binding(**binding)
+        for binding in settings.regression.tui.keybinds.get(
+            "ReadOnlyOutputArea", []
+        )
+    ]
 
 
 @rich.repr.auto
 class TestOutputDialog(ModalScreen[ScreenResultType]):
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding(
-            key="escape",
-            action="dismiss(None)",
-            description="Dismiss the dialog.",
-            show=False,
-        ),
-        Binding(
-            key="q",
-            action="dismiss(None)",
-            description="Dismiss the dialog.",
-            show=False,
-        ),
+    BINDINGS: ClassVar[list[BindingType]] = VimModes.Normal + [
+        Binding(**binding)
+        for binding in settings.regression.tui.keybinds.get(
+            "TestOutputDialog", []
+        )
     ]
 
-    DEFAULT_CSS: ClassVar[str] = """
-    TestOutputDialog {
-        align: center middle;
-        content-align: center middle;
-        text-align: center;
-    }
-
-    #regression-output-dialog {
-        width: 92%;
-        height: 88%;
-        border: thick $accent;
-        background: $surface;
-    }
-
-    #regression-output-title {
-        padding: 0 1;
-        height: auto;
-        text-style: bold;
-    }
-
-    #regression-output-area {
-        height: 1fr;
-    }
-    """
-
-    def __init__(self, model: Test, *args, **kwargs) -> None:
+    def __init__(self, model: TestBase, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self._timer = None
         self._model = model
-        self._output_view = ReadOnlyOutputArea(
-            self._format_output(model),
-            id="regression-output-area",
-            language="bash",
+        self._details_view = RegressionDetails(
+            id="details-content",
+            name="details-content",
+            model=model,
+        )
+        self._stdout_view = ReadOnlyOutputArea(
+            self._format_stdout(),
+            id="stdout-content",
+            name="stdout-content",
+            compact=True,
+            language="console",
             read_only=True,
             soft_wrap=False,
             show_cursor=True,
             show_line_numbers=True,
+            highlight_cursor_line=True,
         )
+        self._stderr_view = ReadOnlyOutputArea(
+            self._format_stderr(),
+            id="stderr-content",
+            name="stderr-content",
+            compact=True,
+            language="console",
+            read_only=True,
+            soft_wrap=False,
+            show_cursor=True,
+            show_line_numbers=True,
+            highlight_cursor_line=True,
+        )
+        self._tabbed_content = TabbedContent(
+            id="tabbed-dialog-content",
+            name="tabbed-dialog-content",
+            initial="details-pane",
+        )
+        self._tabbed_content.show_vertical_scrollbar = True
 
     def compose(self) -> ComposeResult:
-        with Dialog(
-            id="regression-output-dialog",
-            name="regression-output-dialog",
-        ):
-            yield Static(
-                f"{self._model.name} stdout / stderr",
-                id="regression-output-title",
+        with Dialog(id="dialog", name="dialog") as dialog:
+            dialog.border_title = RegressionDetails.format_header(self._model)
+            dialog.border_subtitle = RegressionDetails.format_header(
+                self._model
             )
-            yield self._output_view
+
+            with self._tabbed_content:
+                with TabPane(
+                    "details", id="details-pane", name="details-pane"
+                ):
+                    yield self._details_view
+                if isinstance(self._model, Test):
+                    with TabPane(
+                        "stdout", id="stdout-pane", name="stdout-pane"
+                    ):
+                        yield self._stdout_view
+                    with TabPane(
+                        "stderr", id="stderr-pane", name="stderr-pane"
+                    ):
+                        yield self._stderr_view
+
+    @work(
+        name="refresh_details",
+        group="details",
+        exclusive=True,
+        exit_on_error=True,
+    )
+    async def _refresh_details(self, *args, **kwargs) -> None:
+        if self._tabbed_content.active == "details-pane":
+            model = self._model
+            if model is not self._details_view.model:
+                self._details_view.model = model
+            elif model is not None:
+                self._details_view.mutate_reactive(RegressionDetails.model)
+
+    def connect_refresh_signals(self, model: TestBase) -> None:
+        if isinstance(model, Regression):
+            for test in model.tests:
+                self.connect_refresh_signals(test)
+        model.status_changed.connect(self._refresh_details)
+        model.result_changed.connect(self._refresh_details)
 
     def on_mount(self) -> None:
-        self._output_view.focus()
+        self._refresh_details()
+        self._details_view.model = self._model
+        self.connect_refresh_signals(self._model)
 
-    def _format_output(self, model: Test) -> str:
-        stdout = model.stdout or "<no stdout captured>"
-        stderr = model.stderr or "<no stderr captured>"
-        return "\n".join(
-            [
-                "===== STDOUT =====",
-                stdout,
-                "",
-                "===== STDERR =====",
-                stderr,
-            ]
+    def _format_stdout(self) -> str:
+        return (
+            self._model.stdout or "<no stdout captured>"
+            if isinstance(self._model, Test)
+            else "<no stdout captured>"
+        )
+
+    def _format_stderr(self) -> str:
+        return (
+            self._model.stderr or "<no stderr captured>"
+            if isinstance(self._model, Test)
+            else "<no stderr captured>"
         )
 
 

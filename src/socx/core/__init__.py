@@ -7,6 +7,7 @@ __all__ = (
     "schema",
     "metadata",
     # types
+    "Model",
     "Script",
     "NewPath",
     "FilePath",
@@ -57,6 +58,7 @@ from . import paths as paths
 from . import schema as schema
 from . import metadata as metadata
 
+from socx.core.schema import Model as Model
 from socx.core.schema import Script as Script
 from socx.core.schema import NewPath as NewPath
 from socx.core.schema import FilePath as FilePath

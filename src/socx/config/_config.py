@@ -10,6 +10,7 @@ from typing import Any
 from pathlib import Path
 
 from werkzeug.local import LocalProxy
+from dynaconf.base import Settings as DynaSettings
 
 from socx.config import converters
 from socx.core import (
@@ -21,7 +22,10 @@ from socx.config._settings import Settings
 from socx.patterns.mixins.proxy import ProxyMixin
 
 
-class SettingsProxy(ProxyMixin[Settings], Settings): ...
+class SettingsProxyBase(Settings, DynaSettings): ...
+
+
+class SettingsProxy(ProxyMixin[SettingsProxyBase], SettingsProxyBase): ...
 
 
 logger = logging.getLogger(__name__)

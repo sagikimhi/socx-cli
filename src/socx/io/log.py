@@ -139,26 +139,26 @@ def _get_file_handler(
     tracebacks_suppress: Iterable[ModuleType] | None = None,
     tracebacks_show_locals: bool = True,
 ) -> logging.Handler:
-    import atexit
 
     def close_if_open(file: IO) -> None:
         if not file.closed:
             file.close()
 
     mode = mode or "a"
-    file = open(path, mode=mode)  # noqa: SIM115
-    atexit.register(close_if_open, file)
-    handler = _get_console_handler(
-        file=file,
-        level=level,
-        stderr=stderr,
-        tab_size=tab_size,
-        tracebacks=tracebacks,
-        force_terminal=force_terminal,
-        tracebacks_theme=tracebacks_theme,
-        tracebacks_suppress=tracebacks_suppress,
-        tracebacks_show_locals=tracebacks_show_locals,
-    )
+    # file = open(path, mode=mode)
+    # atexit.register(close_if_open, file)
+    # handler = _get_console_handler(
+    #     file=file,
+    #     level=level,
+    #     stderr=stderr,
+    #     tab_size=tab_size,
+    #     tracebacks=tracebacks,
+    #     force_terminal=force_terminal,
+    #     tracebacks_theme=tracebacks_theme,
+    #     tracebacks_suppress=tracebacks_suppress,
+    #     tracebacks_show_locals=tracebacks_show_locals,
+    # )
+    handler = logging.handlers.WatchedFileHandler(path, mode)
     handler.name = "file"
     handler.setFormatter(DEFAULT_CHILD_FORMATTER)
     return handler

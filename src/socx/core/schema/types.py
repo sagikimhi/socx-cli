@@ -13,6 +13,8 @@ from pydantic import (
     GetJsonSchemaHandler,
     BeforeValidator,
     PlainSerializer,
+    ConfigDict,
+    BaseModel,
 )
 
 
@@ -232,3 +234,11 @@ Script = Annotated[
     BeforeValidator(validate_script),
     PlainSerializer(str, str),
 ]
+
+
+class Model(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+        from_attributes=True,
+        arbitrary_types_allowed=True,
+    )

@@ -122,7 +122,7 @@ tags:
 
 -   ## Command Showcase
 
-    === "**__:lucide-github: Git Commands__**"
+    === "**__:fontawesome-brands-git-alt: Git Commands__**"
 
         - [x] Manage multiple repositories/projects from a single unified command line interface.
         - [x] Execute git commands across multiple repositories in parallel.
@@ -165,6 +165,25 @@ tags:
             /// caption
             ///
 
+    === "**__:lucide-flask-conical: Regression Commands__**"
+
+        === "`socx regression`"
+
+            ![socx regression](assets/images/socx-regression.svg){ width="800" loading=lazy }
+            /// caption
+            ///
+
+        === "`socx regression tui`"
+
+            ![socx regression tui](assets/images/socx-regression-tui.svg){ width="800" loading=lazy }
+            /// caption
+            ///
+
+        === "`socx regression run`"
+
+            ![socx regression run](assets/images/socx-regression-run.svg){ width="800" loading=lazy }
+            /// caption
+            ///
 
     === "**__:lucide-cog: Configuration Commands__**"
 
@@ -222,26 +241,6 @@ tags:
         === "`socx plugin schema`"
 
             ![socx plugin schema](assets/images/socx-plugin-schema.svg){ width="800" loading=lazy }
-            /// caption
-            ///
-
-    === "**__:lucide-flask-conical: Regression Commands__**"
-
-        === "`socx regression`"
-
-            ![socx regression](assets/images/socx-regression.svg){ width="800" loading=lazy }
-            /// caption
-            ///
-
-        === "`socx regression tui`"
-
-            ![socx regression tui](assets/images/socx-regression-tui.svg){ width="800" loading=lazy }
-            /// caption
-            ///
-
-        === "`socx regression run`"
-
-            ![socx regression run](assets/images/socx-regression-run.svg){ width="800" loading=lazy }
             /// caption
             ///
 

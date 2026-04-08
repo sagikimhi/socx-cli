@@ -1,150 +1,223 @@
 from __future__ import annotations
-from socx_tui.regression.bindings import VimModes
-from textual.containers import ScrollableContainer
 
+from typing import Any, ClassVar
 from datetime import datetime
-from typing import ClassVar
-from textwrap import dedent
 
-from rich.markdown import Markdown
+from socx import (
+    Test,
+    TestBase,
+    Regression,
+    TestResult,
+    TestStatus,
+    settings,
+)
+from textual.app import ComposeResult
+from textual.widgets import ProgressBar, Static, Markdown
+from textual.binding import BindingType
 from textual.reactive import reactive
-from textual.app import RenderResult
-from textual.widgets import Static
-from socx import Test, Regression, TestBase, TestResult, TestStatus, Script
+from textual.containers import Horizontal, VerticalScroll
+
+from socx_tui.regression.bindings import VimModes
 
 
-class RegressionDetails(
-    ScrollableContainer, can_focus=True, inherit_bindings=True
-):
-    BINDINGS = ScrollableContainer.BINDINGS + VimModes.Normal
+class RegressionDetails(VerticalScroll, can_focus=True, inherit_bindings=True):
+    BINDINGS: ClassVar[list[BindingType]] = (
+        VimModes.Normal
+        + settings.regression.tui.keybinds.get("RegressionDetails", [])
+    )
     ALLOW_MAXIMIZE: ClassVar[bool] = True
 
-    model: reactive[TestBase | None] = reactive(None)
+    model: reactive[Any] = reactive(None, layout=True)
+    details: reactive[str] = reactive[str]("")
+    status: reactive[str] = reactive[str]("")
+    result: reactive[str] = reactive[str]("")
+    script: reactive[str] = reactive[str]("")
+    exit_code: reactive[str] = reactive[str]("")
+    elapsed_time: reactive[str] = reactive[str]("")
+    started_time: reactive[str] = reactive[str]("")
+    finished_time: reactive[str] = reactive[str]("")
+    passed_count: reactive[str] = reactive[str]("")
+    failed_count: reactive[str] = reactive[str]("")
+    children_count: reactive[str] = reactive[str]("")
 
-    @property
-    def details(self) -> RegressionStaticDetails:
-        return self.query_exactly_one(RegressionStaticDetails)
-
-    def compose(self):
-        yield RegressionStaticDetails(id="regression-static-details")
-
-    def watch_model(self, model: TestBase) -> None:
-        self.details.model = model
-
-
-class RegressionStaticDetails(Static):
-    model: reactive[TestBase | None] = reactive(None)
-
-    def render(self) -> RenderResult:
-        return self.format_details(self.model)
-
-    def watch_model(self, model: TestBase) -> None:
-        self.refresh()
-
-    def show_details(self, model: TestBase | None) -> None:
+    def __init__(
+        self, model: TestBase | None, *args: Any, **kwargs: Any
+    ) -> None:
+        super().__init__(*args, **kwargs)
         self.model = model
+        self.markdown = Markdown(
+            id="details-markdown",
+            name="details-markdown",
+            markdown=self.details,
+        )
+        self.progress = RegressionProgress(
+            id="details-progress",
+            name="details-progress",
+        )
+        self.markdown.show_vertical_scrollbar = True
 
-    def format_details(self, model: TestBase | None = None) -> RenderResult:
-        if model is None:
-            return Markdown(
-                dedent("""
-                    **No regression selected.**
+    def compose(self) -> ComposeResult:
+        yield self.markdown
+        yield self.progress
 
-                    Use `o` or `ctrl-o` to select a file to load regressions
-                    from.
+    def on_mount(self) -> None:
+        self.watch(self, "model", self._update_markdown)
+        self.watch(self, "details", self._update_progress)
 
-                    Supported file formats are: `.yaml`, `.yml`, `.toml`,
-                    and `.json`.
+    async def watch_model(self, model: TestBase | None) -> None:
+        self._update_markdown(model)
+        self._update_progress(model)
 
-                    Regression file example:
+    async def watch_details(self, _: str) -> None:
+        self._update_progress(self.model)
 
-                    ```yaml
-                    my_regression:
-                      - name: foo_test
-                        exec: |
-                          #!/bin/bash
-                          /my/custom/run_script --test foo_test
+    def compute_details(self) -> str:
+        return self.format_details()
 
-                      - name: bar_test
-                        exec: |
-                          #!/bin/bash
-                          /my/custom/run_script --test bar_test
-                    ```
-                """)
-            )
+    def compute_status(self) -> str:
+        return self.model.status.name if self.model is not None else ""
+
+    def compute_result(self) -> str:
+        return self.model.result.name if self.model is not None else ""
+
+    def compute_script(self) -> str:
+        script = (
+            str(self.model.exec) or "" if isinstance(self.model, Test) else ""
+        )
+        return "\n\n".join(["", "```sh", script, "```"])
+
+    def compute_exit_code(self) -> str:
+        return str(self.model.retcode) if isinstance(self.model, Test) else ""
+
+    def compute_elapsed_time(self) -> str:
+        return (
+            self.format_timedelta(self.model.elapsed_time)
+            if self.model is not None
+            else ""
+        )
+
+    def compute_started_time(self) -> str:
+        return (
+            self.format_time(self.model.started_time)
+            if self.model is not None
+            else ""
+        )
+
+    def compute_finished_time(self) -> str:
+        return (
+            self.format_time(self.model.finished_time)
+            if self.model is not None
+            else ""
+        )
+
+    def compute_passed_count(self) -> str:
+        return (
+            self.format_passed_count(self.model)
+            if isinstance(self.model, Regression)
+            else ""
+        )
+
+    def compute_failed_count(self) -> str:
+        return (
+            self.format_failed_count(self.model)
+            if isinstance(self.model, Regression)
+            else ""
+        )
+
+    def compute_children_count(self) -> str:
+        return (
+            self.format_children_count(self.model)
+            if isinstance(self.model, Regression)
+            else ""
+        )
+
+    def format_details(self) -> str:
+        if self.model is None:
+            return self._format_help_details()
+
+        if isinstance(self.model, Test):
+            return self._format_test_details()
+
+        return self._format_regression_details()
+
+    def _update_markdown(self, _: TestBase | None) -> None:
+        self.query_one(Markdown).update(self.details)
+
+    def _update_progress(self, model: TestBase | None) -> None:
+        progress = self.query_one(RegressionProgress)
+        if model is not progress.model:
+            progress.model = model
+        else:
+            progress.mutate_reactive(RegressionProgress.model)
+
+    @classmethod
+    def _format_help_details(cls) -> str:
+        return settings.regression.tui.details.help
+
+    def _format_test_details(self) -> str:
+        return "\n\n".join(
+            [
+                f"# {self.format_header(self.model)}",
+                f"💡 Status: {self.status}",
+                f"🚩 Result: {self.result}",
+                f"🧑‍💻 Exit Code: {self.exit_code}",
+                f"⌛ Elapsed Time: {self.elapsed_time}",
+                f"⌛ Started Time: {self.started_time}",
+                f"⌛ Finished Time: {self.finished_time}",
+                f"📜 Command/Script: {self.script}",
+            ]
+        )
+
+    def _format_regression_details(self) -> str:
+        return "\n\n".join(
+            [
+                f"# {self.format_header(self.model)}",
+                f"💡 Status: {self.status}",
+                f"🚩 Result: {self.result}",
+                f"⌛ Elapsed Time: {self.elapsed_time}",
+                f"⌛ Started Time: {self.started_time}",
+                f"⌛ Finished Time: {self.finished_time}",
+                f"✅ Passed Count: {self.passed_count}",
+                f"❌ Failed Count: {self.failed_count}",
+                f"👨‍👩‍👧‍👦 Children Count: {self.children_count}",
+            ]
+        )
+
+    @classmethod
+    def format_header(cls, model: TestBase) -> str:
+        if isinstance(model, Test):
+            return f"🧪 {model.name} ({model._typename()})"
 
         if isinstance(model, Regression):
-            kind = (
-                "regressions" if self.contains_regressions(model) else "tests"
-            )
-            text = "\n\n".join(
-                [
-                    self.format_header(model),
-                    f"👨‍👩‍👧‍👦 Children: {len(model.tests)} {kind}",
-                    f"❌ Failed: {self.count_results(model, TestResult.Failed)}",  # noqa: E501
-                    f"✅ Passed: {self.count_results(model, TestResult.Passed)}",  # noqa: E501
-                    f"💡 Status: {self.format_status(model.status)}",
-                    f"🚩 Result: {self.format_result(model.result)}",
-                    f"⌛ Elapsed Time: {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
-                    f"⌛ Started Time: {self.format_time(model.started_time)}",
-                    f"⌛ Finished Time: {self.format_time(model.finished_time)}",  # noqa: E501
-                    f"📊 Progress: `{self.format_progress(model)}`",
-                    f"⏳ ETA: {self.format_timedelta(model.estimated_remaining_time)}",  # noqa: E501
-                ]
-            )
-        elif isinstance(model, Test):
-            text = "\n\n".join(
-                [
-                    self.format_header(model),
-                    f"💡 Status: {self.format_status(model.status)}",
-                    f"🚩 Result: {self.format_result(model.result)}",
-                    f"🧑‍💻 Exit Code: {self.format_retcode(model.retcode)}"
-                    f"⌛ Elapsed Time: {self.format_timedelta(model.elapsed_time)}",  # noqa: E501
-                    f"⌛ Started Time: {self.format_time(model.started_time)}",
-                    f"⌛ Finished Time: {self.format_time(model.finished_time)}",  # noqa: E501
-                    self.format_script(model.exec),
-                ]
-            )
-        else:
-            text = ""
-        return Markdown(text)
+            return f"⚗️ {model.name} ({model._typename()})"
 
-    def contains_regressions(self, regression: Regression) -> bool:
-        return bool(regression.tests) and any(
-            isinstance(test, Regression) for test in regression.tests
-        )
+        return f"{model.name} ({type(model).__name__})"
 
-    def format_header(self, model: TestBase) -> str:
-        if isinstance(model, Test):
-            icon = "🧪 "
-        elif isinstance(model, Regression):
-            icon = "⚗️ "
-        return f"# {icon}{model.name} ({type(model).__name__})"
-
-    def format_script(self, script: Script | None) -> str:
-        script_str = str(script or "")
-        return "\n\n".join(
-            ["## 📜 Command/Script", "```bash", script_str, "```"]
-        )
-
-    def format_retcode(self, retcode: int | None) -> str:
-        return str(retcode)
-
-    def format_result(self, result: TestResult | str) -> str:
-        if isinstance(result, TestResult):
-            return result.value
-        return str(result)
-
-    def format_status(self, status: int | str | TestStatus) -> str:
-        if isinstance(status, int):
-            status = TestStatus(status)
+    @classmethod
+    def format_status(cls, status: int | str | TestStatus) -> str:
         if isinstance(status, str):
             status = TestStatus[status.strip().lower().title()]
-        return status.name.lower()
 
-    def format_time(self, value: float | None) -> str:
+        if isinstance(status, int):
+            status = TestStatus(status)
+
+        return status.name
+
+    @classmethod
+    def format_result(cls, result: int | TestResult) -> str:
+        if isinstance(result, int):
+            result = TestResult(result)
+
+        return result.name
+
+    @classmethod
+    def format_exit_code(cls, code: int | None):
+        return str(code) if code is not None else ""
+
+    @classmethod
+    def format_time(cls, value: float | None) -> str:
         if value is None:
-            return "n/a"
+            return ""
 
         try:
             if value >= 946684800:
@@ -158,7 +231,8 @@ class RegressionStaticDetails(Static):
 
         return f"{value:.3f}s"
 
-    def format_timedelta(self, value: int | float | None) -> str:
+    @classmethod
+    def format_timedelta(cls, value: int | float | None) -> str:
         if value is None:
             return "n/a"
         total_seconds = int(value)
@@ -167,16 +241,83 @@ class RegressionStaticDetails(Static):
         seconds = int(total_seconds % 60)
         return f"{hours:02}h:{minutes:02}m:{seconds:02}s"
 
-    def count_results(self, regression: Regression, result: TestResult) -> int:
-        return sum(
-            1 for test in regression.iter_leaf_tests() if test.result is result
+    @classmethod
+    def format_passed_count(cls, model: Regression) -> str:
+        passed_count = sum(1 if test.passed else 0 for test in model.tests)
+        return str(passed_count)
+
+    @classmethod
+    def format_failed_count(cls, model: Regression) -> str:
+        failed_count = sum(1 if test.failed else 0 for test in model.tests)
+        return str(failed_count)
+
+    @classmethod
+    def format_children_count(cls, model: Regression) -> str:
+        kind = "regressions" if cls.contains_regressions(model) else "tests"
+        return f"{len(model)} {kind}"
+
+    @classmethod
+    def contains_regressions(cls, model: TestBase) -> bool:
+        return (
+            isinstance(model, Regression)
+            and bool(model.tests)
+            and any(isinstance(test, Regression) for test in model.tests)
         )
 
-    def format_progress(self, regression: Regression, width: int = 24) -> str:
-        total = regression.total_test_count
-        completed = regression.completed_test_count
-        ratio = regression.progress_ratio
-        filled = min(width, round(ratio * width))
-        bar = "#" * filled + "-" * (width - filled)
-        percent = int(ratio * 100)
-        return f"[{bar}] {completed}/{total} ({percent}%)"
+
+class RegressionProgress(Horizontal, can_focus=False):
+    ALLOW_MAXIMIZE: ClassVar[bool] = False
+
+    model: reactive[Any] = reactive(None, layout=True)
+    total: reactive[int] = reactive[int](0)
+    completed: reactive[int] = reactive[int](0)
+
+    def compose(self) -> ComposeResult:
+        yield Static(
+            id="progress-label",
+            name="progress-label",
+        )
+        yield ProgressBar(id="progress-bar", name="progress-bar")
+
+    def watch_model(self, model) -> None:
+        self.update_label()
+        self.update_progress()
+
+        if isinstance(model, Regression):
+            self.visible = True
+        else:
+            self.visible = False
+
+    def compute_total(self) -> int:
+        return len(self.model) if isinstance(self.model, Regression) else 0
+
+    def compute_completed(self) -> int:
+        return (
+            self.count_results(self.model)
+            if isinstance(self.model, Regression)
+            else 0
+        )
+
+    def update_progress(self) -> None:
+        progress = self.query_one_optional(ProgressBar)
+        if progress is not None:
+            progress.total = self.total
+            progress.progress = self.completed
+            progress.update()
+
+    def update_label(self) -> None:
+        label = self.query_one_optional(Static)
+        if label is not None:
+            label.update(
+                f"{self.completed}/{self.total} "
+                if self.total > 0
+                else "--/-- "
+            )
+
+    def count_results(self, model: TestBase) -> int:
+        if isinstance(model, Regression):
+            return len(model) - sum(
+                1 if test.result is TestResult.NA else 0
+                for test in model.tests
+            )
+        return 0

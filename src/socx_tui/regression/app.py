@@ -14,15 +14,11 @@ from textual.app import ComposeResult
 from textual.app import SystemCommand
 from textual.binding import Binding, BindingType
 from textual.screen import Screen
-from textual.widget import Widget
-from textual.widgets import Header
-from textual.widgets import Footer
-from hoptex.decorator import hoptex
+from textual.widgets import Header, Footer
 
 from socx_tui.regression.widget import RegressionWidget
 
 
-@hoptex()
 class SoCX(App[int]):
     """SoCX Terminal-UI application."""
 
@@ -35,8 +31,6 @@ class SoCX(App[int]):
     )
 
     INLINE_PADDING = 0
-
-    ALLOW_IN_MAXIMIZED_VIEW = ""
 
     @property
     def regression(self) -> RegressionWidget:
@@ -53,19 +47,43 @@ class SoCX(App[int]):
         message: Any | None = None,
     ) -> None:
         with suppress(Exception):
-            self.regression.persist_loaded_regression_state()
+            self.regression._persist_regression_state()
         super().exit(result=result, return_code=return_code, message=message)
 
     def compose(self) -> ComposeResult:
         """Lay out the application chrome shared between all screens."""
         yield Header(show_clock=True)
-        yield RegressionWidget()
+        yield RegressionWidget(
+            id="regression-widget", name="regression-widget"
+        )
         yield Footer(compact=True)
 
     def on_mount(self) -> None:
         theme = settings.regression.tui.get("theme")
         if theme:
             self.theme = theme
+
+    def get_system_commands(
+        self, screen: Screen[None]
+    ) -> Iterable[SystemCommand]:
+        """Expose extra debug commands alongside Textual's defaults."""
+        yield from super().get_system_commands(screen)
+        if settings.cli.params.debug or self.app.debug:
+            yield from self.get_debug_system_commands(screen)
+
+    def get_debug_system_commands(
+        self, screen: Screen[None]
+    ) -> Iterable[SystemCommand]:
+        yield SystemCommand(
+            "Print DOM Tree",
+            "Print the current DOM Tree to dev log",
+            partial(self.console.print, Group(self.tree)),
+        )
+        yield SystemCommand(
+            "Log DOM Tree",
+            "Print the current DOM Tree to dev log",
+            lambda: self.log.info(self.tree),
+        )
 
     def check_action(
         self,
@@ -74,41 +92,16 @@ class SoCX(App[int]):
     ) -> bool:
         return True
 
-    def get_system_commands(
-        self, screen: Screen[None]
-    ) -> Iterable[SystemCommand]:
-        """Expose extra debug commands alongside Textual's defaults."""
-        yield from super().get_system_commands(screen)
-        yield SystemCommand(
-            title="Load regression from file",
-            help="Load a regression definition from disk.",
-            callback=self.query_exactly_one(
-                RegressionWidget
-            ).action_load_regression_from_file,
-        )
-        if settings.cli.params.debug or self.app.debug:
-            yield SystemCommand(
-                "Print DOM Tree",
-                "Print the current DOM Tree to dev log",
-                partial(self.console.print, Group(self.tree)),
-            )
-            yield SystemCommand(
-                "Log DOM Tree",
-                "Print the current DOM Tree to dev log",
-                lambda: self.log.info(self.tree),
-            )
-
     def action_toggle_help_panel(self) -> None:
         if self.screen.query("HelpPanel"):
             self.app.action_hide_help_panel()
         else:
             self.app.action_show_help_panel()
 
-    async def action_toggle_maximize(self, widget: Widget) -> None:
-        if not widget.allow_maximize:
-            return
-
-        if widget.is_maximized:
-            self.screen.minimize()
-        else:
-            self.screen.maximize(widget)
+    async def action_toggle_maximize(self) -> None:
+        focused = self.screen.focused
+        if focused is not None:
+            if focused.is_maximized:
+                self.screen.minimize()
+            else:
+                self.screen.maximize(focused, container=False)

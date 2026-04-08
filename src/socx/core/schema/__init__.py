@@ -2,6 +2,7 @@ __all__ = (
     "git",
     "types",
     "plugin",
+    "Model",
     "Script",
     "NewPath",
     "FilePath",
@@ -15,6 +16,7 @@ from . import plugin as plugin
 
 from .git import git as git
 
+from socx.core.schema.types import Model as Model
 from socx.core.schema.types import Script as Script
 from socx.core.schema.types import NewPath as NewPath
 from socx.core.schema.types import FilePath as FilePath

@@ -103,7 +103,7 @@ theme:
       toggle:
         icon: lucide/sun
         name: Switch to system preference
-  logo: assets/images/logo.png
+  logo: assets/images/Hamsta.png
   favicon: "assets/images/Hamsta.png"
   icon:
     tag:
@@ -243,7 +243,7 @@ plugins:
           paths: [src]
           options:
             summary: true
-            backlinks: tree
+            # backlinks: tree
             filters: ["!^_"]
             heading_level: 2
             show_bases: true
@@ -263,7 +263,7 @@ plugins:
             inherited_members: true
             separate_signature: true
             merge_init_into_class: true
-            docstring_section_style: list
+            # docstring_section_style: list
             docstring_options:
               ignore_init_summary: true
           inventories:

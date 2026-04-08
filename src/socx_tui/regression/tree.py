@@ -8,20 +8,16 @@ import rich.repr
 from textual.binding import BindingType
 from textual.message import Message
 from textual.widgets import Tree
+from textual.widgets.tree import TreeNode
 
 from socx_tui.regression.bindings.vim.mode import VimModes
 
 
 @rich.repr.auto
-class VimTree(Tree[object], can_focus=True, inherit_bindings=True):
+class RegressionTree[T](
+    Tree[TreeNode[T]], can_focus=True, inherit_bindings=True
+):
     """Interactive tree widget with Vim-style navigation bindings."""
-
-    class OpenCursorNode(Message):
-        """Posted when Enter is pressed on the current tree node."""
-
-        def __init__(self, node: object) -> None:
-            self.node = node
-            super().__init__()
 
     BINDINGS: ClassVar[list[BindingType]] = Tree.BINDINGS + VimModes.Normal
 
@@ -29,15 +25,25 @@ class VimTree(Tree[object], can_focus=True, inherit_bindings=True):
 
     ICON_NODE_EXPANDED: ClassVar[str] = "👇 "
 
+    class OpenCursorNode(Message):
+        """Posted when Enter is pressed on the current tree node."""
+
+        def __init__(self, node: TreeNode | None) -> None:
+            self.node = node
+            super().__init__()
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.show_root = False
 
     def action_select_cursor(self) -> None:
         """Expand or collapse the highlighted node when Enter is pressed."""
-        node = self.cursor_node
+        node: TreeNode | None = self.cursor_node
+
         if node is not None and node.allow_expand:
             node.toggle()
+
         if node is not None:
             self.post_message(self.OpenCursorNode(node))
+
         super().action_select_cursor()

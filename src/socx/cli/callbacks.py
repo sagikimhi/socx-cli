@@ -46,10 +46,12 @@ def cwd_cb(ctx: Context, param: Parameter, value: Path) -> Path:
 def debug_cb(_: Context, param: Parameter, value: bool) -> bool:
     """Enable debug logging and persist the CLI switch to settings."""
     socx_logger = _get_logger()
+    settings[param.name] = value
     settings.cli.params[param.name] = value
     if value:
         set_level(Level.DEBUG, socx_logger)
         settings.cli.params["verbosity"] = get_level().name
+        settings.logging.handlers.console.level = Level.DEBUG.name
     return value
 
 
