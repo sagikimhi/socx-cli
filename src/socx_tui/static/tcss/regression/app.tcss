@@ -128,12 +128,11 @@ TestOutputDialog {
 
   ReadOnlyOutputArea {
     width: 1fr;
-    height: auto;
+    height: 1fr;
     border: blank;
     overflow: auto auto;
     scrollbar-size: 1 1;
     scrollbar-gutter: stable;
-    background: $background;
 
     &:hover,
     &:focus {

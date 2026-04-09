@@ -1,26 +1,47 @@
 #!/usr/bin/env python3
 
+import sys
 import time
 import random
 
+from concurrent.futures import ThreadPoolExecutor
 from rich import get_console
 
 
 console = get_console()
 
 
-def main(min_: int = 1, max_: int = 10):
-    if min_ > max_:
-        min_, max_ = max_, min_
-    duration = random.random() * (max_ - min_) + min_
-    console.log("doing some work...")
+def rand_num_jobs() -> int:
+    return random.randint(100, 300)
+
+
+def rand_retcode() -> int:
+    return random.randint(0, 12)
+
+
+def rand_duration(min_: float = 0, max_: float = 1) -> float:
+    return random.random() * (max_ - min_) + min_
+
+
+def do_work(duration: float) -> None:
+    console.log("Job starting: doing some work...")
     time.sleep(duration)
-    console.log(f"work done ([white]{duration:.2f}s[/]).")
+    console.log(f"Job ending: work done (took {duration:.2f}s).")
+
+
+def main() -> int:
+    retcode = rand_retcode()
+    num_jobs = rand_num_jobs()
+    rand_durations = [rand_duration() for _ in range(num_jobs)]
+
+    console.log(f"Worker starting: running {num_jobs} random jobs...")
+
+    with ThreadPoolExecutor() as executor:
+        executor.map(do_work, rand_durations, timeout=30)
+
+    console.log(f"Worker finished: exiting with random retcode '{retcode}'.")
+    return retcode
 
 
 if __name__ == "__main__":
-    import sys
-    import random
-
-    main()
-    sys.exit(random.randint(0, 1))
+    sys.exit(main())
