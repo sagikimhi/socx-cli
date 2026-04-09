@@ -12,6 +12,7 @@ from textual.containers import Container
 from textual.screen import ModalScreen, ScreenResultType
 from textual.widgets import (
     Static,
+    Footer,
     TextArea,
     Button,
     TabbedContent,
@@ -30,12 +31,16 @@ class Dialog(Container):
 class ReadOnlyOutputArea(TextArea, can_focus=True, inherit_bindings=True):
     """Read-only output viewer with keyboard navigation."""
 
-    BINDINGS: ClassVar[list[Binding]] = VimModes.Normal + [
-        Binding(**binding)
-        for binding in settings.regression.tui.keybinds.get(
-            "ReadOnlyOutputArea", []
-        )
-    ]
+    BINDINGS: ClassVar[list[Binding]] = (
+        VimModes.Normal
+        + TextArea.BINDINGS
+        + [
+            Binding(**binding)
+            for binding in settings.regression.tui.keybinds.get(
+                "ReadOnlyOutputArea", []
+            )
+        ]
+    )
 
 
 @rich.repr.auto
@@ -56,24 +61,22 @@ class TestOutputDialog(ModalScreen[ScreenResultType]):
             name="details-content",
             model=model,
         )
-        self._stdout_view = ReadOnlyOutputArea(
+        self._stdout_view = ReadOnlyOutputArea.code_editor(
             self._format_stdout(),
             id="stdout-content",
             name="stdout-content",
             compact=True,
-            language="console",
             read_only=True,
             soft_wrap=False,
             show_cursor=True,
             show_line_numbers=True,
             highlight_cursor_line=True,
         )
-        self._stderr_view = ReadOnlyOutputArea(
+        self._stderr_view = ReadOnlyOutputArea.code_editor(
             self._format_stderr(),
             id="stderr-content",
             name="stderr-content",
             compact=True,
-            language="console",
             read_only=True,
             soft_wrap=False,
             show_cursor=True,
@@ -108,6 +111,7 @@ class TestOutputDialog(ModalScreen[ScreenResultType]):
                         "stderr", id="stderr-pane", name="stderr-pane"
                     ):
                         yield self._stderr_view
+        yield Footer(compact=True)
 
     @work(
         name="refresh_details",
@@ -115,7 +119,7 @@ class TestOutputDialog(ModalScreen[ScreenResultType]):
         exclusive=True,
         exit_on_error=True,
     )
-    async def _refresh_details(self, *args, **kwargs) -> None:
+    async def automatic_refresh(self) -> None:
         if self._tabbed_content.active == "details-pane":
             model = self._model
             if model is not self._details_view.model:
@@ -123,17 +127,11 @@ class TestOutputDialog(ModalScreen[ScreenResultType]):
             elif model is not None:
                 self._details_view.mutate_reactive(RegressionDetails.model)
 
-    def connect_refresh_signals(self, model: TestBase) -> None:
-        if isinstance(model, Regression):
-            for test in model.tests:
-                self.connect_refresh_signals(test)
-        model.status_changed.connect(self._refresh_details)
-        model.result_changed.connect(self._refresh_details)
-
     def on_mount(self) -> None:
-        self._refresh_details()
         self._details_view.model = self._model
-        self.connect_refresh_signals(self._model)
+        if isinstance(self._model, Regression):
+            self.auto_refresh = 1
+        self.refresh()
 
     def _format_stdout(self) -> str:
         return (

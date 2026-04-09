@@ -68,7 +68,7 @@ class SoCX(App[int]):
     ) -> Iterable[SystemCommand]:
         """Expose extra debug commands alongside Textual's defaults."""
         yield from super().get_system_commands(screen)
-        if settings.cli.params.debug or self.app.debug:
+        if settings.debug or self.app.debug:
             yield from self.get_debug_system_commands(screen)
 
     def get_debug_system_commands(
