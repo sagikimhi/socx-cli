@@ -94,22 +94,18 @@ regression:
     # TUI application per-widget keybindings
     keybinds:
       SoCX:
-        - key: "?"
+        - key: f1,?
           show: true
-          action: toggle_help_panel()
-          description: Toggle help
-        - key: f1
-          show: false
           action: toggle_help_panel()
           description: Toggle help
         - key: f2
           show: false
-          action: toggle_dark()
-          description: Switch between light/dark theme modes
+          action: change_theme()
+          description: Change theme
         - key: "!"
           show: false
           action: toggle_maximize()
-          description: Maxmimize/minimize the focused widget
+          description: Maxmimize/minimize widget
 
       RegressionWidget:
         # Hidden Keys
@@ -152,12 +148,54 @@ regression:
           action: start_selected
           description: Start
 
+      ReadOnlyOutputArea:
+        - key: k
+          show: false
+          action: cursor_up
+          description: Cursor up
+        - key: j
+          show: false
+          action: cursor_down
+          description: Cursor down
+        - key: h
+          show: false
+          action: cursor_left
+          description: Cursor left
+        - key: l
+          show: false
+          action: cursor_right
+          description: Cursor right
+        - key: w
+          show: false
+          action: cursor_word_right
+          description: Cursor word right
+        - key: b
+          show: false
+          action: cursor_word_left
+          description: Cursor word left
+        - key: ctrl+d
+          show: false
+          action: cursor_page_down
+          description: Cursor page down
+        - key: ctrl+u
+          show: false
+          action: cursor_page_up
+          description: Cursor page up
+
       TestOutputDialog:
-        - key: escape
+        - key: q,escape
           show: true
           action: dismiss(None)
-          description: Dismiss the dialog.
-        - key: q
+          description: Dismiss the dialog
+        - key: "!"
           show: true
-          action: dismiss(None)
-          description: Dismiss the dialog.
+          action: app.toggle_maximize()
+          description: Maxmimize/minimize widget
+        - key: f1,?
+          show: false
+          action: app.toggle_help_panel()
+          description: Toggle help
+        - key: f2
+          show: true
+          action: app.change_theme()
+          description: Change theme
