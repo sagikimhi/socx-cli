@@ -19,6 +19,17 @@ python tools/run_smoke.py --seed 4142
 make -C ips/pci build
 ```
 
+When you define regressions in structured config files such as YAML, TOML, or
+JSON, each test entry may also include a `count` key to schedule that test more
+than once:
+
+```yaml
+smoke:
+  - name: alpha
+    exec: python tools/run_smoke.py --test alpha
+    count: 3
+```
+
 The default location of the failure log is controlled via configuration under
 `regression.run.input`. The CLI resolves the path in this order:
 
