@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import anyio
 from time import perf_counter
 
 from socx.regression import Test, Regression, TestResult, TestStatus
@@ -143,6 +144,57 @@ def test_regression_can_restart_children(tmp_path) -> None:
 
         assert regression.status is TestStatus.Finished
         assert marker.read_text().splitlines() == ["run", "run"]
+
+    asyncio.run(run_test())
+
+
+def test_regression_expands_and_runs_counted_tests(tmp_path) -> None:
+    runs: list[str] = []
+
+    class FakeTest(Test):
+        async def start(
+            self,
+            limiter=None,
+            task_status=anyio.TASK_STATUS_IGNORED,
+        ) -> None:
+            async with self.mutex:
+                if not self.is_idle():
+                    task_status.started()
+                    return
+                self._status = TestStatus.Pending
+
+            async with self.mutex:
+                self._status = TestStatus.Running
+
+            runs.append(self.name)
+
+            async with self.mutex:
+                self._retcode = 0
+                self._status = TestStatus.Finished
+                self._result = TestResult.Passed
+
+            task_status.started()
+
+    async def run_test() -> None:
+        regression = Regression(
+            name="smoke",
+            tests=[FakeTest(name="alpha", exec="true", count=3)],
+        )
+
+        assert [test.name for test in regression.tests] == [
+            "alpha_run_1",
+            "alpha_run_2",
+            "alpha_run_3",
+        ]
+        assert regression.total_test_count == 3
+
+        await regression.start()
+
+        assert regression.status is TestStatus.Finished
+        assert runs == ["alpha_run_1", "alpha_run_2", "alpha_run_3"]
+        assert regression.completed_test_count == 3
+        assert regression.progress_ratio == 1.0
+        assert regression.estimated_remaining_time == 0.0
 
     asyncio.run(run_test())
 

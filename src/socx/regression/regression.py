@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 import logging
 from typing import Any, Self, cast
 from pathlib import Path
@@ -61,6 +62,33 @@ def _coerce_result(value: TestResult | str) -> TestResult:
     return TestResult(value)
 
 
+def _repeat_test_name(name: str, index: int) -> str:
+    return f"{name}_run_{index}"
+
+
+def _expand_tests(tests: Iterable[TestBase]) -> list[TestBase]:
+    expanded: list[TestBase] = []
+
+    for test in tests:
+        if not isinstance(test, Test) or test.count <= 1:
+            expanded.append(test)
+            continue
+
+        for index in range(1, test.count + 1):
+            clone = test.model_copy(
+                deep=True,
+                update={
+                    "id": uuid.uuid4(),
+                    "name": _repeat_test_name(test.name, index),
+                    "count": 1,
+                },
+            )
+            clone._do_reset()
+            expanded.append(clone)
+
+    return expanded
+
+
 class Regression(TestBase):
     """Manage and execute a collection of tests with concurrency control."""
 
@@ -88,7 +116,7 @@ class Regression(TestBase):
     ) -> None:
         super().__init__(name=name, **kwargs)
         test_map = test_map or {}
-        tests = [*list(test_map.values()), *(tests or [])]
+        tests = _expand_tests([*list(test_map.values()), *(tests or [])])
         self.limiter = limiter if limiter is not None else default_limiter
         self.test_map = OrderedDict({test.id: test for test in tests})
         self.output_dir = output_dir
