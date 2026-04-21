@@ -51,6 +51,3 @@
 !CODE_OF_CONDUCT.md
 
 workrun/
-src/socx/regression/test.py
-tests/test_regression_loading.py
-tests/test_regression_runtime.py
