@@ -411,6 +411,9 @@ class TestBase(Model):
 class Test(TestBase):
     """Concrete test model with subprocess execution support."""
 
+    count: int = Field(default=1, ge=1)
+    """Number of times this test should be scheduled in a regression."""
+
     exec: Script = Field(
         "",
         validation_alias=AliasChoices("exec", "command", "script"),
