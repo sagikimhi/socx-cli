@@ -19,8 +19,6 @@ git:
 
   pull:
     flags:
-      - --tags
-      - --ff-only
       - --no-edit
       - --autostash
 
