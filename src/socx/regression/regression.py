@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import uuid
+import shlex
 import logging
 from typing import Any, Self, cast
 from pathlib import Path
@@ -66,6 +67,14 @@ def _repeat_test_name(name: str, index: int) -> str:
     return f"{name}_run_{index}"
 
 
+def _repeat_run_dir(name: str, index: int) -> str:
+    return f"{name}_{index}"
+
+
+def _append_run_dir_flag(command: str, run_dir: str) -> str:
+    return f"{command.rstrip()} --run_dir {shlex.quote(run_dir)}"
+
+
 def _expand_tests(tests: Iterable[TestBase]) -> list[TestBase]:
     expanded: list[TestBase] = []
 
@@ -75,12 +84,18 @@ def _expand_tests(tests: Iterable[TestBase]) -> list[TestBase]:
             continue
 
         for index in range(1, test.count + 1):
+            run_dir = _repeat_run_dir(test.name, index)
             clone = test.model_copy(
                 deep=True,
                 update={
                     "id": uuid.uuid4(),
                     "name": _repeat_test_name(test.name, index),
                     "count": 1,
+                    "exec": (
+                        _append_run_dir_flag(str(test.exec), run_dir)
+                        if test.add_run_dir
+                        else test.exec
+                    ),
                 },
             )
             clone._do_reset()

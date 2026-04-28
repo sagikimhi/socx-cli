@@ -414,6 +414,9 @@ class Test(TestBase):
     count: int = Field(default=1, ge=1)
     """Number of times this test should be scheduled in a regression."""
 
+    add_run_dir: bool = Field(default=False)
+    """Append ``--run_dir <test_name>_<run_id>`` for counted test clones."""
+
     exec: Script = Field(
         "",
         validation_alias=AliasChoices("exec", "command", "script"),

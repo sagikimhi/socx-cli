@@ -30,6 +30,18 @@ smoke:
     count: 3
 ```
 
+If the repeated command writes into a shared run directory, set
+`add_run_dir: true` to append a unique `--run_dir <test_name>_<run_id>` flag to
+each counted run:
+
+```yaml
+smoke:
+  - name: alpha
+    exec: my_runner --test alpha
+    count: 3
+    add_run_dir: true
+```
+
 The default location of the failure log is controlled via configuration under
 `regression.run.input`. The CLI resolves the path in this order:
 

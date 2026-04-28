@@ -199,6 +199,69 @@ def test_regression_expands_and_runs_counted_tests(tmp_path) -> None:
     asyncio.run(run_test())
 
 
+def test_regression_expands_counted_tests_with_unique_run_dirs(tmp_path) -> None:
+    runs: list[tuple[str, str]] = []
+
+    class FakeTest(Test):
+        async def start(
+            self,
+            limiter=None,
+            task_status=anyio.TASK_STATUS_IGNORED,
+        ) -> None:
+            async with self.mutex:
+                if not self.is_idle():
+                    task_status.started()
+                    return
+                self._status = TestStatus.Pending
+
+            async with self.mutex:
+                self._status = TestStatus.Running
+
+            runs.append((self.name, str(self.exec)))
+
+            async with self.mutex:
+                self._retcode = 0
+                self._status = TestStatus.Finished
+                self._result = TestResult.Passed
+
+            task_status.started()
+
+    async def run_test() -> None:
+        regression = Regression(
+            name="smoke",
+            tests=[
+                FakeTest(
+                    name="alpha",
+                    exec="my_runner --test alpha",
+                    count=3,
+                    add_run_dir=True,
+                )
+            ],
+        )
+
+        assert [test.name for test in regression.tests] == [
+            "alpha_run_1",
+            "alpha_run_2",
+            "alpha_run_3",
+        ]
+        assert [str(test.exec) for test in regression.tests] == [
+            "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_1",
+            "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_2",
+            "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_3",
+        ]
+
+        await regression.start()
+
+        assert runs == [
+            ("alpha_run_1", "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_1"),
+            ("alpha_run_2", "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_2"),
+            ("alpha_run_3", "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_3"),
+        ]
+        assert regression.status is TestStatus.Finished
+
+    asyncio.run(run_test())
+
+
 def test_regression_state_round_trips_with_test_outputs(tmp_path) -> None:
     async def run_test() -> None:
         regression = Regression(

@@ -106,3 +106,33 @@ def test_regression_from_file_expands_test_count(tmp_path) -> None:
         "alpha_run_3",
     ]
     assert all("echo alpha" in str(test.exec) for test in smoke.tests)
+
+
+def test_regression_from_file_can_add_unique_run_dir_flags(tmp_path) -> None:
+    path = tmp_path / "counted-run-dir.yaml"
+    path.write_text(
+        dedent(
+            """
+            smoke:
+              - name: alpha
+                exec: my_runner --test alpha
+                count: 3
+                add_run_dir: true
+            """
+        )
+    )
+
+    regression = Regression.from_file(path)
+    smoke = regression.tests[0]
+
+    assert isinstance(smoke, Regression)
+    assert [test.name for test in smoke.tests] == [
+        "alpha_run_1",
+        "alpha_run_2",
+        "alpha_run_3",
+    ]
+    assert [str(test.exec) for test in smoke.tests] == [
+        "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_1",
+        "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_2",
+        "#!/bin/sh\nmy_runner --test alpha --run_dir alpha_3",
+    ]
