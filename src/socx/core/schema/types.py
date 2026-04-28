@@ -219,7 +219,7 @@ def validate_script(value: str | Iterable[str]) -> str:
         return ""
 
     if isinstance(value, list | tuple):
-        value = "\n".join(list(value))
+        value = "\n".join(value)
 
     script = value if isinstance(value, str) else "\n".join(value)
 
