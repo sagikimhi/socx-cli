@@ -16,7 +16,6 @@ from pydantic import (
     UUID4,
     Field,
     ConfigDict,
-    TypeAdapter,
     SerializeAsAny,
     validate_call,
     computed_field,
@@ -28,13 +27,7 @@ from socx.core.schema import NewPath, FilePath, DirectoryPath
 from socx.regression.test import Test, TestBase, TestResult, TestStatus
 
 
-_sentinel = object()
-
 _converter = SymbolConverter()
-
-_filepath_adapter = TypeAdapter(FilePath)
-
-_directory_adapter = TypeAdapter(NewPath | DirectoryPath)
 
 logger = logging.getLogger(__name__)
 
@@ -130,17 +123,11 @@ class Regression(TestBase):
         path: FilePath,
         name: str | None = None,
         test_cls: str | type[Test] | None = None,
+        loader_cls: Any = None,
         **kwargs: Any,
     ) -> Self:
-        if test_cls is None or not test_cls:
-            test_cls = Test
-
-        if isinstance(test_cls, str):
-            test_cls: type[Test] = _converter(test_cls)
-
-        return cls._from_file(
-            path, name=name, test_cls=cast(type[Test], test_cls), **kwargs
-        )
+        loader = cls._get_loader(loader_cls, test_cls=test_cls)
+        return cast(Self, loader.from_file(path, name=name, **kwargs))
 
     @classmethod
     @validate_call(config=ConfigDict(extra="allow"))
@@ -149,22 +136,11 @@ class Regression(TestBase):
         path: FilePath,
         name: str | None = None,
         test_cls: str | type[Test] | None = None,
+        loader_cls: Any = None,
         **kwargs: Any,
     ) -> Self:
-        path = Path(path)
-        data = cls._read_data(path) | kwargs
-
-        if isinstance(test_cls, str):
-            test_cls: type[Test] = _converter(test_cls)
-
-        if cls._looks_like_state(data):
-            return cls._from_state_data(
-                data,
-                output_dir=path.parent,
-                test_cls=test_cls or Test,
-            )
-
-        return cls._from_file(path, name=name, test_cls=test_cls, **kwargs)
+        loader = cls._get_loader(loader_cls, test_cls=test_cls)
+        return cast(Self, loader.load(path, name=name, **kwargs))
 
     @computed_field
     @property
@@ -496,7 +472,10 @@ class Regression(TestBase):
             )
             return state
 
-        state["exec"] = str(node.exec) if isinstance(node, Test) else None
+        if isinstance(node, Test):
+            state["exec"] = str(node.exec)
+            if node.retcode is not None:
+                state["retcode"] = node.retcode
 
         if (
             node.stdout_path is not None
@@ -515,6 +494,29 @@ class Regression(TestBase):
         return state
 
     @classmethod
+    def _get_loader(
+        cls,
+        loader_cls: Any = None,
+        *,
+        test_cls: str | type[Test] | None = None,
+    ):
+        from socx.regression.loader import RegressionLoader
+
+        if loader_cls is None or not loader_cls:
+            loader_cls = settings.regression.get(
+                "loader_cls", RegressionLoader
+            )
+
+        if isinstance(loader_cls, str):
+            loader_cls = _converter(loader_cls)
+
+        if not isinstance(loader_cls, type):
+            return loader_cls
+
+        regression_cls = None if cls is Regression else cls
+        return loader_cls(test_cls=test_cls, regression_cls=regression_cls)
+
+    @classmethod
     @validate_call(config=ConfigDict(extra="allow"))
     def _from_file(
         cls,
@@ -524,23 +526,8 @@ class Regression(TestBase):
         **kwargs: Any,
     ) -> Self:
         """Construct a regression from a test configuration file."""
-        from box import Box
-
-        path = _filepath_adapter.validate_python(path)
-
-        if not bool(name):
-            name = path.stem
-
-        if not bool(test_cls):
-            test_cls = Test
-
-        if isinstance(test_cls, str):
-            test_cls = _converter(test_cls)
-
-        data = cls._read_data(path)
-
-        settings.update(Box({name: data}), merge=False)
-        return cls._from_data(name, settings[name], test_cls, **kwargs)
+        loader = cls._get_loader(test_cls=test_cls)
+        return cast(Self, loader.from_file(path, name=name, **kwargs))
 
     @staticmethod
     def _read_data(path: Path) -> dict[str, Any]:
@@ -651,7 +638,8 @@ class Regression(TestBase):
         test.output_dir = output_dir
         test._status = _coerce_status(data.get("status", TestStatus.Idle))
         test._result = _coerce_result(data.get("result", TestResult.NA))
-        test._elapsed_time = data.get("elapsed_time", 0) or 0
+        test._retcode = data.get("retcode", None)
+        test._elapsed_time = data.get("elapsed_time", 0)
         test._started_time = data.get("started_time")
         test._finished_time = data.get("finished_time")
 

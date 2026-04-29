@@ -471,9 +471,7 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
         self, path: FilePath
     ) -> Regression:
         """Load regressions or saved state from ``path`` into the tree."""
-        regression = Regression.load(
-            path=path, test_cls=settings.regression.test_cls
-        )
+        regression = Regression.load(path)
 
         if regression.output_dir is None:
             regression.assign_output_dir(
@@ -598,7 +596,7 @@ class RegressionWidget(Widget, can_focus=False, inherit_bindings=True):
     @classmethod
     def _create_session_output_dir(cls, regression: Regression) -> Path:
         now = datetime.now().astimezone()
-        output_root = settings.regression.run.output.directory
+        output_root = settings.regression.output_dir
         base_dir = (
             Path(output_root) if isinstance(output_root, str) else output_root
         )

@@ -51,9 +51,9 @@ def input_file_argument() -> Decorator:
 def output_directory_option() -> Decorator:
     """Click option configuring where regression results are stored."""
     return click.option(
-        "--output",
+        "--output-dir",
         "-o",
-        "output",
+        "output_dir",
         help="Output directory for writing passed/failed run commands.",
         nargs=1,
         metavar="<directory_path>",
@@ -64,7 +64,7 @@ def output_directory_option() -> Decorator:
             path_type=Path,
             resolve_path=True,
         ),
-        default=settings.regression.run.output.directory,
+        default=settings.regression.output_dir,
         callback=output_cb,
         show_default=True,
         expose_value=False,
@@ -118,7 +118,7 @@ def _get_output_path(regression: Regression) -> Path:
     """Return timestamped output paths for passed and failed results."""
     now = time.strftime("%H-%M")
     today = time.strftime("%d-%m-%Y")
-    dir_out = settings.regression.run.output.directory  # pyright: ignore
+    dir_out = settings.regression.output_dir  # pyright: ignore
     if isinstance(dir_out, str):
         dir_out = Path(dir_out)
     dir_out = dir_out / regression.name / today / now

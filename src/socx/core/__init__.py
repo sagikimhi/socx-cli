@@ -49,6 +49,8 @@ __all__ = (
     "Encoder",
     # serializer
     "Serializer",
+    # loader
+    "Loader",
 )
 
 
@@ -100,3 +102,5 @@ from socx.core.paths import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
 from socx.core.encoder import Encoder as Encoder
 
 from socx.core.serializer import Serializer as Serializer
+
+from socx.core.loader import Loader as Loader

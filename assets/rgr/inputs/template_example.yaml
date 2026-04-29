@@ -1,0 +1,27 @@
+context:
+  count: 2
+  seeds: [random]
+  run_dir: "{{this.regression.output_dir}}/tests/{{name}}"
+  build_dir: "{{this.regression.output_dir}}/build"
+  exec:
+    - "ls -la {{this.paths.app_root_dir}}/../.."
+    - |
+      {{this.paths.app_root_dir}}/../../bin/run \
+          --compile_once \
+          --compiledir {{build_dir}} \
+          --rundir {{run_dir}}/run_{{index}} \
+          --test {{name}}.cfg \
+          --seed {{seed}}
+  test_names:
+    - foo
+    - bar
+    - bazz
+
+my_regression:
+  tests:
+    - name: foobarbazz_test
+      seed: [1, 2, 3]
+      count: 3
+    {% for name in test_names %}
+    - name: {{name}}_test
+    {% endfor %}

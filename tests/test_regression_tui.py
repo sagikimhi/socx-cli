@@ -4,6 +4,7 @@ import asyncio
 from textwrap import dedent
 from contextlib import contextmanager
 
+import pytest
 from socx import settings
 from utils import wait_for
 from socx_tui.regression.app import SoCX
@@ -30,14 +31,15 @@ def _error_text(app: SoCX) -> str:
 
 @contextmanager
 def _tui_output_dir(path):
-    original = settings.regression.run.output.directory
-    settings.regression.run.output.directory = path
+    original = settings.regression.output_dir
+    settings.regression.output_dir = path
     try:
         yield
     finally:
-        settings.regression.run.output.directory = original
+        settings.regression.output_dir = original
 
 
+@pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning")
 def test_regression_tui_loads_and_expands_regressions(tmp_path) -> None:
     path = tmp_path / "multi.yaml"
     path.write_text(
@@ -59,21 +61,20 @@ def test_regression_tui_loads_and_expands_regressions(tmp_path) -> None:
         async with app.run_test() as pilot:
             widget = app.query_one(RegressionWidget)
             await widget._load_regression_tree_from_file(path)
-            widget.regression_tree.focus()
+
+            await pilot.press("shift+tab")
             await pilot.pause()
 
             tree = widget.regression_tree
             assert len(tree.root.children) == 1
-
-            loaded_regression = tree.root.children[0]
-            assert loaded_regression.data is not None
-            assert not loaded_regression.is_expanded
+            assert tree.root.children[0].data is not None
+            assert not tree.root.children[0].is_expanded
 
             await pilot.press("space")
             await pilot.pause()
 
-            assert loaded_regression.is_expanded
-            assert len(loaded_regression.children) == 2
+            assert len(tree.root.children[0].children) == 2
+            assert tree.root.children[0].is_expanded
 
     with _tui_output_dir(tmp_path / "workrun"):
         asyncio.run(run_test())

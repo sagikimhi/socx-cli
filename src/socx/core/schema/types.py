@@ -219,7 +219,7 @@ def validate_script(value: str | Iterable[str]) -> str:
         return ""
 
     if isinstance(value, list | tuple):
-        value = "\n".join(list(value))
+        value = "\n".join(value)
 
     script = value if isinstance(value, str) else "\n".join(value)
 
@@ -240,5 +240,8 @@ class Model(BaseModel):
     model_config = ConfigDict(
         extra="allow",
         from_attributes=True,
+        validate_by_name=True,
+        validate_by_alias=True,
         arbitrary_types_allowed=True,
+        use_attribute_docstrings=True,
     )
