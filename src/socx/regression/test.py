@@ -2,34 +2,34 @@
 
 from __future__ import annotations
 
+import io
+import os
 import time
 import uuid
-import os
-import io
 import signal
 import asyncio as aio
 import logging
-from typing import Any
 from enum import IntEnum, StrEnum, auto
+from typing import Any
 from pathlib import Path
+from contextlib import suppress
 from subprocess import CalledProcessError
 from collections.abc import Callable
 
 import anyio
 import declare
+from blinker import Signal
 from pydantic import (
     UUID4,
     Field,
-    ConfigDict,
-    AliasChoices,
     PrivateAttr,
+    AliasChoices,
     computed_field,
 )
-from blinker import Signal
 from anyio.abc import Process, TaskStatus
 
-from socx.patterns import Visitor
 from socx.core import Model, Script, DirectoryPath
+from socx.patterns import Visitor
 
 
 logger = logging.getLogger(__name__)
@@ -115,6 +115,10 @@ class TestBase(Model):
     )
     """A signal emitted by the test instance on every result change."""
 
+    # -------------------------------------------------------------------------
+    # Private Attributes
+    # -------------------------------------------------------------------------
+
     _mutex: anyio.Lock = PrivateAttr(default_factory=anyio.Lock)
     _status: declare.Declare[TestStatus] = declare.Declare(TestStatus.Idle)
     _result: declare.Declare[TestResult] = declare.Declare(TestResult.NA)
@@ -190,17 +194,17 @@ class TestBase(Model):
     @property
     def terminated(self) -> bool:
         """Return ``True`` if the test ended due to termination signals."""
-        return self.status is TestStatus.Terminated
+        return self.status == TestStatus.Terminated
 
     @property
     def passed(self) -> bool:
         """Return ``True`` if the test finished successfully."""
-        return self.result is TestResult.Passed
+        return self.result == TestResult.Passed
 
     @property
     def failed(self) -> bool:
         """Return ``True`` if the test finished with a failure result."""
-        return self.result is TestResult.Failed
+        return self.result == TestResult.Failed
 
     @property
     def mutex(self) -> anyio.Lock:
@@ -212,19 +216,19 @@ class TestBase(Model):
 
     def is_idle(self) -> bool:
         """True if test has no active process and has not yet started."""
-        return self.status is TestStatus.Idle
+        return self.status == TestStatus.Idle
 
     def is_pending(self) -> bool:
         """Return ``True`` if the test is queued but not yet running."""
-        return self.status is TestStatus.Pending
+        return self.status == TestStatus.Pending
 
     def is_running(self) -> bool:
         """True if test is currently running in a dedicated process."""
-        return self.status is TestStatus.Running
+        return self.status == TestStatus.Running
 
     def is_suspended(self) -> bool:
         """Return ``True`` if the subprocess is currently stopped."""
-        return self.status is TestStatus.Paused
+        return self.status == TestStatus.Paused
 
     async def wait(
         self, limiter: anyio.CapacityLimiter | None = None
@@ -242,7 +246,7 @@ class TestBase(Model):
     async def pause(self) -> None:
         """Pause a running test with ``SIGSTOP``."""
         async with self.mutex:
-            if self._process is None or self.status is not TestStatus.Running:
+            if self._process is None or self.status != TestStatus.Running:
                 return
 
             self._send_process_signal(signal.SIGSTOP)
@@ -251,7 +255,7 @@ class TestBase(Model):
     async def resume(self) -> None:
         """Resume a paused test with ``SIGCONT``."""
         async with self.mutex:
-            if self._process is None or self.status is not TestStatus.Paused:
+            if self._process is None or self.status != TestStatus.Paused:
                 return
 
             self._status = TestStatus.Running
@@ -269,9 +273,9 @@ class TestBase(Model):
 
             self._termination_requested = True
             process = self._process
-            was_paused = self._status is TestStatus.Paused
+            was_paused = self._status == TestStatus.Paused
 
-            if process is None:
+            if self._process is None:
                 self._status = TestStatus.Terminated
                 self._result = TestResult.Failed
                 return
@@ -284,7 +288,6 @@ class TestBase(Model):
 
         with anyio.move_on_after(2, shield=True):
             await self.wait()
-            return
 
         async with self.mutex:
             if self._process is process:
@@ -328,7 +331,7 @@ class TestBase(Model):
         if auto_start:
             await self.start()
 
-    def model_post_init(self, context: Any) -> None:
+    def model_post_init(self, _: Any) -> None:
         if not self.fresh_env:
             self.env = os.environ.copy() | self.env
 
@@ -396,16 +399,12 @@ class TestBase(Model):
             return
 
         pid = self._process.pid
-        if pid is None:
-            return
 
-        try:
+        with suppress(ProcessLookupError):
             if hasattr(os, "killpg"):
                 os.killpg(pid, sig)
             else:
                 self._process.send_signal(sig)
-        except ProcessLookupError:
-            return
 
 
 class Test(TestBase):
@@ -415,22 +414,10 @@ class Test(TestBase):
     """Number of times this test should be scheduled in a regression."""
 
     exec: Script = Field(
-        "",
+        default="",
         validation_alias=AliasChoices("exec", "command", "script"),
-        description=(
-            "A shell command or a path to an executable file to run on test "
-            "invocation."
-        ),
     )
-
-    model_config = ConfigDict(
-        use_enum_values=True,
-        from_attributes=True,
-        arbitrary_types_allowed=True,
-    )
-    _stdout: str = PrivateAttr("")
-    _stderr: str = PrivateAttr("")
-    _retcode: declare.Declare[int | None] = declare.Declare(None)
+    """Shell command or a path to an executable to run the test."""
 
     @computed_field
     @property
@@ -450,12 +437,6 @@ class Test(TestBase):
             return self.stderr_path.read_text()
         else:
             return self._stderr
-
-    def _do_reset(self) -> None:
-        super()._do_reset()
-        self._stdout = ""
-        self._stderr = ""
-        self._retcode = None
 
     async def start(
         self,
@@ -511,6 +492,12 @@ class Test(TestBase):
 
         async with limiter:
             return await self._wait()
+
+    def _do_reset(self) -> None:
+        super()._do_reset()
+        self._stdout = ""
+        self._stderr = ""
+        self._retcode = None
 
     async def _start(
         self,
@@ -619,3 +606,7 @@ class Test(TestBase):
             self.stderr_path,
             "_stderr",
         )
+
+    _stdout: str = PrivateAttr("")
+    _stderr: str = PrivateAttr("")
+    _retcode: declare.Declare[int | None] = declare.Declare(None)
