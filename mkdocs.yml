@@ -39,6 +39,7 @@ nav:
   - User Guide:
       - Plugins Guide: user-guide/plugins.md
       - Configuration Guide: user-guide/configuration.md
+      - Regression Guide: user-guide/regression.md
   - Reference:
       - Library API: reference/api.md
       - Configurations: reference/configuration.md

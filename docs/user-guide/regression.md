@@ -1,111 +1,269 @@
 ---
-title: Regression Automation
+title: Regression Guide
 icon: lucide/flask-conical
 ---
 
-The regression rerun plugin (`socx regression`) is designed to take the text files your
-simulations or tests produce and feed them back into your execution pipeline. It
-pairs a non-interactive CLI with a Textual-powered terminal UI (TUI).
+SoCX regressions are executable test trees. A regression contains one or more
+tests, and each test eventually runs a shell command through the configured
+`Test` class.
 
-## Command File Format
+Regression definitions can be loaded from YAML, TOML, or JSON files. Saved run
+state files can be loaded through the same entry point, which lets the CLI and
+TUI restore a previous run with statuses, output paths, and return codes.
 
-The CLI expects a plain text file where each line is an executable command. The
-`Regression` model inside SoCX parses the file and tracks pass/fail outcomes for
-each line.
+## Basic YAML
 
-```text title="failed.log"
-vcs -full64 +acc +cover top.tb
-python tools/run_smoke.py --seed 4142
-make -C ips/pci build
-```
-
-When you define regressions in structured config files such as YAML, TOML, or
-JSON, each test entry may also include a `count` key to schedule that test more
-than once:
+The smallest structured regression file is a mapping from regression names to
+test lists:
 
 ```yaml
 smoke:
   - name: alpha
-    exec: python tools/run_smoke.py --test alpha
-    count: 3
+    exec: python tools/run.py --test alpha
+
+  - name: beta
+    exec: python tools/run.py --test beta
 ```
 
-The default location of the failure log is controlled via configuration under
-`regression.run.input`. The CLI resolves the path in this order:
+Loading this file creates a root regression named after the file stem, with a
+child regression named `smoke`.
 
-1. `--input /path/to/file`
-2. `SOCX_REGRESSION__RUN__INPUT__FILENAME`
-3. Configured `regression.run.input.directory` + `filename`
+```python
+from socx import Regression
 
-## Running Regressions
+regression = Regression.from_file("regression.yaml")
+```
+
+The same loader is used by:
 
 ```bash
-socx regression run --help
-```
-
-Important options:
-
-- `--input / -i FILE` – read a specific failure log instead of the configured
-  default.
-- `--output / -o DIRECTORY` – persist pass/fail command logs to a custom
-  directory. SoCX appends a timestamped suffix so multiple runs can coexist.
-
-Example:
-
-```bash
-socx regression run -i ci/failures/failed.log -o ci/results
-```
-
-Behind the scenes the CLI:
-
-1. Loads the failure log into a `Regression` model (with typed `PixieTest`
-   wrappers around each command).
-2. Runs the regression asynchronously with `uvloop` so commands can execute in
-   parallel according to their definition.
-3. Writes two files, `<timestamp>_passed.log` and `<timestamp>_failed.log`, using
-   atomic writes so dashboards or log shippers can consume the results.
-
-## Using the Terminal UI
-
-```
+socx regression run regression.yaml
 socx regression tui
 ```
 
-The TUI provides a live view of command execution, progress bars, and quick
-links to failures. It uses the same configuration as the CLI, so you can switch
-between them without reconfiguring paths.
+## Defaults And Tests
 
-### Keyboard Shortcuts
+A regression may use the explicit `defaults` and `tests` shape. Defaults are
+merged into every test in that regression, and test-level fields override them.
 
-- `q` – quit the application
-- `r` – reload the current failure log and start a fresh run
-- `o` – open the directory containing the latest run outputs
+{% raw %}
+```yaml
+smoke:
+  defaults:
+    count: 2
+    exec: pytest tests/hw/{{ name }}.py --seed {{ seed }}
+    seed: [0, random]
 
-Shortcuts vary slightly depending on the active view—press `?` inside the TUI to
-see the full help panel.
+  tests:
+    - name: apb
 
-## Interpreting Outputs
+    - name: axi
+      count: 3
+      seed: [11, 22]
+```
+{% endraw %}
 
-The regression write step mirrors the configuration inside
-`regression.run.output`:
+`count` expands one logical test into concrete runs before the `Test` model is
+created. When `count` is greater than `1`, SoCX appends `_run_N` to the test
+name:
+
+```text
+apb_run_1
+apb_run_2
+axi_run_1
+axi_run_2
+axi_run_3
+```
+
+Seed values can be defined with either `seed` or `seeds`.
+
+- A scalar seed is reused for every run.
+- A seed list is assigned by run index.
+- If the list is shorter than `count`, the final seed is reused for the
+  remaining runs.
+- If the list is longer than `count`, extra seeds are ignored.
+
+In the example above, `axi` uses seeds `11`, `22`, and `22`.
+
+`random` is treated as a normal string. If your runner interprets `random`
+specially, pass it through in the generated `exec` command.
+
+## File Rendering
+
+The regression loader renders configuration files in two passes.
+
+First, it extracts a top-level `context` block. That context is available while
+rendering the whole file with Jinja. This allows generated test lists:
+
+{% raw %}
+```yaml
+context:
+  count: 2
+  seeds: [0, random]
+  run_dir: /work/regression/runs
+  build_dir: /work/regression/build
+  exec: |
+    my_run_cmd --build-dir {{ build_dir }} \
+        --run-dir {{ run_dir }}/run_{{ index }} \
+        --test {{ name }}.cfg \
+        --seed {{ seed }}
+  test_names:
+    - foo
+    - bar
+    - bazz
+
+my_regression:
+  tests:
+    - name: foobarbazz_test
+      seed: [1, 2, 3]
+      count: 3
+
+    {% for name in test_names %}
+    - name: {{ name }}_test
+    {% endfor %}
+```
+{% endraw %}
+
+Second, after the rendered YAML/TOML/JSON is parsed, each test payload is
+rendered again for each concrete run. That second pass provides run-specific
+variables:
+
+| Variable | Meaning |
+| --- | --- |
+| `name` | Logical test name before `_run_N` is added. |
+| `run_name` | Concrete test name after expansion. |
+| `index` | Zero-based run index. |
+| `run_index` | Alias for `index`. |
+| `run_number` | One-based run number. |
+| `seed` | Seed selected for this run. |
+| `settings` | Application settings object. |
+| `this` | Alias for `settings`, matching Dynaconf conventions. |
+| `context` | The extracted top-level context mapping. |
+
+Any values in the test payload are also available while rendering that test.
+
+The top-level `context` block itself is not added to the regression tree. It is
+only used as template input. Context keys that match `Test` fields, or loader
+default fields such as `count`, `exec`, `command`, `script`, `seed`, and
+`seeds`, are inherited as defaults. Other context keys are still available to
+Jinja templates.
+
+Keep the `context` block parseable before rendering. For example, quote scalar
+Jinja expressions inside `context` if they would otherwise make the YAML, TOML,
+or JSON invalid.
+
+## TOML And JSON
+
+The same model can be expressed in TOML:
+
+{% raw %}
+```toml
+[context]
+count = 2
+seed = [0, "random"]
+exec = "pytest tests/{{ name }}.py --seed {{ seed }}"
+
+[nightly]
+defaults = { timeout = 600 }
+tests = [
+  { name = "alpha" },
+  { name = "beta", count = 1, seed = 42 },
+]
+```
+{% endraw %}
+
+JSON is also supported:
+
+{% raw %}
+```json
+{
+  "context": {
+    "count": 2,
+    "seed": [0, "random"],
+    "exec": "pytest tests/{{ name }}.py --seed {{ seed }}"
+  },
+  "nightly": {
+    "tests": [
+      { "name": "alpha" },
+      { "name": "beta", "seed": 42 }
+    ]
+  }
+}
+```
+{% endraw %}
+
+YAML is usually the most comfortable format when using Jinja loops.
+
+## Saved State
+
+After a run, SoCX can persist the regression tree and test artifacts:
+
+```python
+state_file = regression.dump_state()
+```
+
+State files contain a top-level `kind: regression` marker. `Regression.load()`
+detects that marker and restores the saved run instead of treating the file as
+a new regression definition:
+
+```python
+restored = Regression.load(state_file)
+```
+
+Saved state restores:
+
+- regression and test ids
+- names
+- statuses and results
+- elapsed, start, and finish times
+- test `exec` values
+- test return codes
+- stdout and stderr artifact paths and contents when available
+
+The TUI uses the same load path, so opening a saved `state.yaml`, `state.toml`,
+or `state.json` restores the previous run view.
+
+## Custom Loaders
+
+The default loader is `socx:RegressionLoader`. It extends the generic
+`socx.core.Loader` base class and is selected through settings:
 
 ```yaml
 regression:
-  run:
-    output:
-      directory: ~/socx/results
+  loader_cls: "socx:RegressionLoader"
+  test_cls: "socx:Test"
+  regression_cls: "socx:Regression"
 ```
 
-SoCX creates the directory if necessary and places a dated folder inside (for
-example `~/socx/results/09-03-2025/12-45_failed.log`). Each line in the files is
-the original command; there is no additional metadata so that the logs can be
-consumed by other scripts.
+Custom classes are resolved by `SymbolConverter`, so they may be provided as
+module symbols:
+
+```yaml
+regression:
+  loader_cls: "my_project.regression:MyLoader"
+  test_cls: "my_project.regression:MyTest"
+```
+
+or as symbols from a Python file:
+
+```yaml
+regression:
+  loader_cls: "/path/to/loaders.py:MyLoader"
+```
+
+For the easiest integration, subclass `RegressionLoader` and override the
+smallest method that matches your schema change. Fully custom loaders should
+implement `load(path, ...)`; if they are used through `Regression.from_file()`,
+they should also provide `from_file(path, ...)`.
 
 ## Troubleshooting
 
-- `SOCX_DEBUG=1 socx regression run` turns on debug logging for the regression
-  pipeline and configuration loader.
-- Use `--no-configure` if you suspect a repository override is injecting an
-  unexpected command file.
-- Inspect runtime settings with `socx config get regression` to confirm which
-  directories and filenames are in play.
+- Use `SOCX_DEBUG=1` to turn on debug logging.
+- Use `socx config get regression` to inspect the active `loader_cls`,
+  `test_cls`, and output settings.
+- If a generated file fails to parse, simplify the file by temporarily removing
+  Jinja control blocks, or render the same context in a small standalone script
+  to inspect the generated YAML/TOML/JSON.
+- If repeated runs use an unexpected seed, check whether the test has its own
+  `seed` value. Test-level seed fields override regression defaults and context
+  defaults.
