@@ -31,12 +31,12 @@ def _error_text(app: SoCX) -> str:
 
 @contextmanager
 def _tui_output_dir(path):
-    original = settings.regression.run.output.directory
-    settings.regression.run.output.directory = path
+    original = settings.regression.output_dir
+    settings.regression.output_dir = path
     try:
         yield
     finally:
-        settings.regression.run.output.directory = original
+        settings.regression.output_dir = original
 
 
 @pytest.mark.filterwarnings("ignore::pytest.PytestUnraisableExceptionWarning")

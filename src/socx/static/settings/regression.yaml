@@ -5,6 +5,9 @@ regression:
   # regression class to create when loading regressions from a file
   regression_cls: "socx:Regression"
 
+  # loader class to use when loading regressions from a file
+  loader_cls: "socx:RegressionLoader"
+
   # stored state file format, can be any of: yaml/toml/json
   state_format: yaml
 
@@ -12,13 +15,15 @@ regression:
   # given time.
   max_runs_in_parallel: 10
 
+  # default output directory to which regression outputs and state will be
+  # dumped.
+  output_dir: "@path workrun/regression"
+
   # settings for the `socx regression run` command
   run:
     input:
       filename: ~
       directory: ~
-    output:
-      directory: "@path workrun/regression"
 
   # settings for the `socx regression tui` command
   tui:

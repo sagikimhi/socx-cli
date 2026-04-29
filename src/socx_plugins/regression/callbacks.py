@@ -27,7 +27,7 @@ def input_cb(ctx: Context, param: Parameter, value: str | Path) -> Path:
 def output_cb(ctx: Context, param: Parameter, value: str | Path) -> Path:
     """Normalise the regression output directory and update configuration."""
     path = Path(value) if isinstance(value, str) else value
-    settings.regression.run.output.update({param.name: path})
+    settings.regression.update({param.name: path})
     return path
 
 

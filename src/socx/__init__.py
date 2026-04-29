@@ -38,6 +38,7 @@ __all__ = (
     "APP_CONFIG_FILENAME",
     "Encoder",
     "Serializer",
+    "Loader",
     "wrap",
     "desync",
     "deduplicate",
@@ -133,6 +134,7 @@ __all__ = (
     "Test",
     "TestBase",
     "Regression",
+    "RegressionLoader",
     "TestStatus",
     "TestResult",
     "RegressionProgress",
@@ -174,6 +176,7 @@ from socx.core import APP_CONFIG_FILE as APP_CONFIG_FILE
 from socx.core import APP_CONFIG_FILENAME as APP_CONFIG_FILENAME
 from socx.core import Encoder as Encoder
 from socx.core import Serializer as Serializer
+from socx.core import Loader as Loader
 from socx.core import wrap as wrap
 from socx.core import desync as desync
 from socx.core import deduplicate as deduplicate
@@ -257,6 +260,7 @@ from socx.patterns import ProxyMixin as ProxyMixin
 from socx.regression import Test as Test
 from socx.regression import TestBase as TestBase
 from socx.regression import Regression as Regression
+from socx.regression import RegressionLoader as RegressionLoader
 from socx.regression import TestStatus as TestStatus
 from socx.regression import TestResult as TestResult
 from socx.regression import RegressionProgress as RegressionProgress
