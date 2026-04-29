@@ -61,7 +61,6 @@ smoke:
       count: 3
       seed: [11, 22]
 ```
-{% endraw %}
 
 `count` expands one logical test into concrete runs before the `Test` model is
 created. When `count` is greater than `1`, SoCX appends `_run_N` to the test
@@ -95,7 +94,6 @@ The regression loader renders configuration files in two passes.
 First, it extracts a top-level `context` block. That context is available while
 rendering the whole file with Jinja. This allows generated test lists:
 
-{% raw %}
 ```yaml
 context:
   count: 2
