@@ -240,5 +240,8 @@ class Model(BaseModel):
     model_config = ConfigDict(
         extra="allow",
         from_attributes=True,
+        validate_by_name=True,
+        validate_by_alias=True,
         arbitrary_types_allowed=True,
+        use_attribute_docstrings=True,
     )
