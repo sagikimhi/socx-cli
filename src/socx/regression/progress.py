@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any
+from functools import partial
 
 import anyio
 from anyio.abc import TaskStatus
@@ -18,7 +19,7 @@ from rich.progress import (
     Task,
 )
 
-from socx.regression.test import TestStatus
+from socx.regression.test import TestStatus, TestResult, TestBase
 from socx.regression.regression import Regression
 
 
@@ -59,10 +60,8 @@ class RegressionProgress:
         self,
         include: set[str] | None = None,
         exclude: set[str] | None = None,
-        limiter: anyio.CapacityLimiter | None = None,
     ) -> None:
-        self.progress.start()
-        try:
+        with self.progress:
             async with anyio.create_task_group() as tg:
                 for obj in self.regression.tests:
                     if exclude is not None and obj.name in exclude:
@@ -77,8 +76,6 @@ class RegressionProgress:
                             obj,
                             name=f"track_{obj.name}_progress",
                         )
-        finally:
-            self.progress.stop()
 
     async def track_regression(
         self,
@@ -101,7 +98,12 @@ class RegressionProgress:
                 task_status.started()
 
     async def _track_regression(self, regression: Regression) -> None:
-        task = self.progress.tasks[self.tasks[regression.id]]
+        total = len(regression)
+
+        for test in regression.tests:
+            test.result_changed.connect(
+                partial(self.result_changed, regression)
+            )
 
         while True:
             finished = await self._count_statuses(
@@ -110,13 +112,21 @@ class RegressionProgress:
                 TestStatus.Terminated,
             )
 
-            if finished != task.completed:
+            if finished >= total:
                 await self.update_regression(regression, finished)
-
-            if finished == len(regression):
                 break
 
+            await self.update_regression(regression, finished)
             await anyio.sleep(0.05)
+
+    async def result_changed(
+        self,
+        regression: Regression,
+        model: TestBase,
+        old: TestResult,
+        current: TestResult,
+    ) -> None:
+        await self.advance_regression(regression)
 
     async def advance_regression(
         self, regression: Regression, n: int = 1
@@ -147,18 +157,20 @@ class RegressionProgress:
                     f"[yellow]{self._get_task_tag(regression)}: "
                     f"{regression.status.name}"
                 )
-            elif regression.finished:
-                description = (
-                    f"[green]{self._get_task_tag(regression)}: "
-                    f"{regression.status.name}"
-                )
             elif regression.terminated:
                 description = (
                     f"[red]{self._get_task_tag(regression)}: "
                     f"{regression.status.name}"
                 )
+            elif regression.finished:
+                description = (
+                    f"[green]{self._get_task_tag(regression)}: "
+                    f"{regression.status.name}"
+                )
 
-            completed = min(n, task.total)
+            completed = (
+                min(n, int(task.total)) if task.total is not None else None
+            )
             progress.update(
                 task.id,
                 completed=completed,
