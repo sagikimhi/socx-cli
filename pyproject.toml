@@ -58,7 +58,7 @@ dependencies = [
     "uv",
     "pip",
     "rich",
-    "click",
+    "click<8.4.0",
     "declare",
     "typer~=0.19",
     "jinja2",
