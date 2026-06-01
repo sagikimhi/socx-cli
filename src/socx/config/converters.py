@@ -667,7 +667,7 @@ class CommandConverter(
             else click.rich_click.THEME
         )
         cfg = click.RichHelpConfiguration.load_from_globals(theme=theme)
-        click_patch.patch(cfg, patch_rich_click=True, patch_typer=True)
+        click_patch.patch(cfg, patch_rich_click=True)
 
     def is_pathspec(self, path: Any) -> bool:
         """Return ``True`` if ``path`` is either a script or package path."""
